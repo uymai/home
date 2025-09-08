@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -18,10 +19,12 @@ interface Recipe {
 }
 
 export default function RecipesPage() {
+  const searchParams = useSearchParams();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   useEffect(() => {
     // Load recipes from the data directory
@@ -41,6 +44,37 @@ export default function RecipesPage() {
 
     loadRecipes();
   }, []);
+
+  // Handle URL parameters for direct recipe linking
+  useEffect(() => {
+    const recipeParam = searchParams.get('recipe');
+    if (recipeParam && recipes.length > 0) {
+      // Find recipe by filename (without .json extension)
+      const recipe = recipes.find(r => 
+        recipeParam === r.title.toLowerCase()
+          .replace(/[^a-z0-9]/g, '-')
+          .replace(/-+/g, '-')
+          .replace(/^-|-$/g, '')
+      );
+      if (recipe) {
+        setSelectedRecipe(recipe);
+      }
+    }
+  }, [searchParams, recipes]);
+
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedRecipe(null);
+      }
+    };
+
+    if (selectedRecipe) {
+      document.addEventListener('keydown', handleEscape);
+      return () => document.removeEventListener('keydown', handleEscape);
+    }
+  }, [selectedRecipe]);
 
   // Get all unique tags for filtering
   const allTags = useMemo(() => {
@@ -68,6 +102,33 @@ export default function RecipesPage() {
     const randomIndex = Math.floor(Math.random() * filteredRecipes.length);
     return filteredRecipes[randomIndex];
   }, [filteredRecipes]);
+
+  // Generate URL-friendly slug from recipe title
+  const generateRecipeSlug = (title: string) => {
+    return title.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
+
+  // Generate shareable URL for a recipe
+  const getRecipeUrl = (recipe: Recipe) => {
+    const slug = generateRecipeSlug(recipe.title);
+    return `${window.location.origin}/recipes?recipe=${slug}`;
+  };
+
+  // Copy recipe URL to clipboard
+  const copyRecipeUrl = async (recipe: Recipe) => {
+    try {
+      const url = getRecipeUrl(recipe);
+      await navigator.clipboard.writeText(url);
+      // You could add a toast notification here
+      alert('Recipe link copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy URL:', err);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -145,7 +206,10 @@ export default function RecipesPage() {
       {randomRecipe && (
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6 text-center">Recipe of the Moment</h2>
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-xl p-8 border border-blue-200 dark:border-blue-800">
+          <div 
+            className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-xl p-8 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02]"
+            onClick={() => setSelectedRecipe(randomRecipe)}
+          >
             <div className="text-center mb-6">
               <h3 className="text-3xl font-bold text-blue-900 dark:text-blue-100 mb-2">
                 {randomRecipe.title}
@@ -153,6 +217,12 @@ export default function RecipesPage() {
               <p className="text-lg text-blue-700 dark:text-blue-300 mb-4">
                 {randomRecipe.description}
               </p>
+              <div className="flex items-center justify-center text-blue-600 dark:text-blue-400 text-sm font-medium">
+                <span>Click to view full recipe</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
               <div className="flex flex-wrap justify-center gap-4 text-sm text-blue-600 dark:text-blue-400">
                 <span>⏱️ {randomRecipe.prepTime}</span>
                 <span>🔥 {randomRecipe.cookTime}</span>
@@ -235,20 +305,116 @@ export default function RecipesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRecipes.map((recipe, index) => (
-              <RecipeCard key={index} recipe={recipe} />
+              <RecipeCard key={index} recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />
             ))}
           </div>
         )}
       </div>
 
       <Footer />
+
+      {/* Recipe Modal */}
+      {selectedRecipe && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={() => setSelectedRecipe(null)}
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    {selectedRecipe.title}
+                  </h2>
+                  <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
+                    {selectedRecipe.description}
+                  </p>
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
+                    <span>⏱️ Prep: {selectedRecipe.prepTime}</span>
+                    <span>🔥 Cook: {selectedRecipe.cookTime}</span>
+                    <span>👥 Serves: {selectedRecipe.servings}</span>
+                    <span>📊 {selectedRecipe.difficulty}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => copyRecipeUrl(selectedRecipe)}
+                    className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm flex items-center gap-1"
+                    title="Copy recipe link"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                    </svg>
+                    Share
+                  </button>
+                  <button
+                    onClick={() => setSelectedRecipe(null)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 mb-6">
+                {selectedRecipe.tags.map(tag => (
+                  <span
+                    key={tag}
+                    className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm"
+                  >
+                    {tag.charAt(0).toUpperCase() + tag.slice(1).replace('-', ' ')}
+                  </span>
+                ))}
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Ingredients</h3>
+                  <ul className="space-y-2">
+                    {selectedRecipe.ingredients.map((ingredient, index) => (
+                      <li key={index} className="flex items-start text-gray-700 dark:text-gray-300">
+                        <span className="mr-2 text-blue-500">•</span>
+                        <span>{ingredient}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Instructions</h3>
+                  <ol className="space-y-3">
+                    {selectedRecipe.instructions.map((instruction, index) => (
+                      <li key={index} className="flex text-gray-700 dark:text-gray-300">
+                        <span className="mr-3 font-semibold text-blue-500 min-w-[2rem]">{index + 1}.</span>
+                        <span>{instruction}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+
+              {selectedRecipe.notes && (
+                <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">Notes</h4>
+                  <p className="text-yellow-700 dark:text-yellow-300">{selectedRecipe.notes}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function RecipeCard({ recipe }: { recipe: Recipe }) {
+function RecipeCard({ recipe, onClick }: { recipe: Recipe; onClick: () => void }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div 
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer border border-gray-200 dark:border-gray-700 overflow-hidden hover:scale-105"
+      onClick={onClick}
+    >
       <div className="p-6">
         <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
           {recipe.title}
@@ -280,13 +446,34 @@ function RecipeCard({ recipe }: { recipe: Recipe }) {
           <span>📊 {recipe.difficulty}</span>
         </div>
         
-        <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           <p className="mb-2">
             <strong>Ingredients:</strong> {recipe.ingredients.length} items
           </p>
           <p>
             <strong>Instructions:</strong> {recipe.instructions.length} steps
           </p>
+        </div>
+        
+        <div className="flex items-center justify-between text-blue-600 dark:text-blue-400 text-sm font-medium">
+          <span>View Full Recipe</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                copyRecipeUrl(recipe);
+              }}
+              className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900 rounded"
+              title="Share recipe"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+              </svg>
+            </button>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
         </div>
       </div>
     </div>
