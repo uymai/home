@@ -1,0 +1,29 @@
+{
+  "title": "Greek Chicken Souvlaki",
+  "description": "Traditional Greek marinated chicken skewers with lemon, oregano, and garlic",
+  "prepTime": "15 minutes",
+  "cookTime": "15 minutes",
+  "servings": 4,
+  "difficulty": "Easy",
+  "tags": ["greek", "chicken", "grilled", "marinated", "skewers", "mediterranean", "gluten-free"],
+  "ingredients": [
+    "1 ½ lbs boneless skinless chicken thighs (juicier than breast, but breast works)",
+    "3 tbsp olive oil",
+    "Juice of 1 lemon",
+    "Zest of ½ lemon",
+    "3 garlic cloves, minced",
+    "2 tsp dried oregano (or 1 tbsp fresh, chopped)",
+    "1 tsp salt",
+    "½ tsp black pepper",
+    "1 tsp smoked paprika (optional)",
+    "Pinch chili flakes for heat (optional)"
+  ],
+  "instructions": [
+    "Cut chicken into 1-inch chunks.",
+    "Marinate: In a bowl, mix olive oil, lemon juice & zest, garlic, oregano, salt, pepper. Toss chicken in. Cover and chill at least 30 min (2–4 hrs best).",
+    "Skewer: Thread chicken onto skewers (if wooden, soak in water 30 min first).",
+    "Cook: Grill on medium-high for 8–10 min total, turning once or twice. Or oven broil 6–8 min per side on a sheet pan with rack. Or stovetop pan: Cast-iron skillet, 3–4 min per side until charred and cooked through (165°F internal).",
+    "Rest 5 minutes before serving."
+  ],
+  "notes": "Serve with falafel, pita, and lots of dips: tzatziki, toum (garlic sauce), hummus. Add toppings: tomato, cucumber, red onion, olives, feta, pickled turnip. Grain option: bulgur, rice pilaf, or couscous."
+}

@@ -1,0 +1,30 @@
+{
+  "title": "Edamame & Lentil Protein Salad",
+  "description": "High-protein salad with lentils, edamame, and fresh vegetables, perfect for post-workout meals",
+  "prepTime": "15 minutes",
+  "cookTime": "25 minutes",
+  "servings": 2,
+  "difficulty": "Easy",
+  "tags": ["salad", "protein", "lentils", "edamame", "healthy", "vegetarian", "high-fiber"],
+  "ingredients": [
+    "1 cup green or French lentils (uncooked, ~½ lb)",
+    "1 cup frozen shelled edamame",
+    "2 cups kale (stems removed, chopped) or arugula",
+    "1 medium carrot, grated or matchsticks",
+    "2 stalks celery, thinly sliced",
+    "2 tbsp pumpkin seeds or sunflower seeds (toasted, optional)",
+    "2 tbsp olive oil",
+    "2 tbsp red wine vinegar (or apple cider vinegar)",
+    "1 tsp Dijon mustard",
+    "1 tsp honey or maple syrup (optional for balance)",
+    "Salt & black pepper to taste"
+  ],
+  "instructions": [
+    "Cook the lentils: Rinse well. Add to a pot with 3 cups water, bring to boil, then simmer ~20–25 min until tender but not mushy. Drain and cool.",
+    "Cook the edamame: Boil or microwave from frozen (about 3–5 min). Drain.",
+    "Prep the greens: If using kale, massage with a tiny drizzle of olive oil + pinch of salt for 1–2 minutes to soften. If using arugula, just toss it in raw.",
+    "Make dressing: Whisk olive oil, vinegar, mustard, honey, salt, and pepper until smooth.",
+    "Assemble: In a large bowl, combine lentils, edamame, kale/arugula, carrot, and celery. Toss with dressing. Sprinkle pumpkin seeds on top."
+  ],
+  "notes": "Serves 2 big portions. Nutrition per large serving (~½ recipe): Calories: ~450, Protein: ~28–30g, Carbs: ~50g (high-fiber), Fat: ~15g (healthy fats), Fiber: ~15g."
+}
