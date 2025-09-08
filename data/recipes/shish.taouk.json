@@ -1,0 +1,29 @@
+{
+  "title": "Shish Taouk (Chicken Skewers)",
+  "description": "Tender marinated chicken skewers with Middle Eastern spices, perfect for grilling or air frying",
+  "prepTime": "15 minutes",
+  "cookTime": "15 minutes",
+  "servings": 4,
+  "difficulty": "Easy",
+  "tags": ["middle-eastern", "grilled", "chicken", "marinated", "quick", "gluten-free"],
+  "ingredients": [
+    "1 ½ lbs (700 g) boneless, skinless chicken thighs (or breast if you prefer)",
+    "3 tbsp plain yogurt (Greek or regular)",
+    "3 tbsp olive oil",
+    "3 tbsp lemon juice (juice of 1 lemon)",
+    "4 garlic cloves, minced (or 2 tsp garlic paste)",
+    "1 ½ tsp paprika",
+    "1 tsp ground cumin",
+    "1 tsp salt",
+    "½ tsp black pepper",
+    "½ tsp ground cinnamon or allspice (optional, gives it a 'Lebanese' edge)"
+  ],
+  "instructions": [
+    "Cut chicken into 1-inch chunks.",
+    "In a large bowl, mix all the marinade ingredients (yogurt, olive oil, lemon juice, garlic, paprika, cumin, salt, pepper, and optional cinnamon).",
+    "Toss chicken in the marinade, cover, and marinate at least 1 hour (overnight = best flavor).",
+    "For Grill Method: Preheat grill to medium-high. Thread chicken onto skewers (soak wooden skewers 30 min in water first). Grill 8–10 min, turning 2–3 times, until golden with slight char and cooked through (internal temp 165°F).",
+    "For Air Fryer Method: Preheat air fryer to 390°F (200°C). Place chicken pieces in a single layer in the basket (skewers optional if they fit). Cook 12–15 min, shaking or flipping halfway, until browned and cooked through."
+  ],
+  "notes": "The longer you marinate, the more flavorful the chicken will be. Overnight marinating is ideal. You can use either chicken thighs (more tender) or breast (leaner). Soak wooden skewers in water for 30 minutes before using to prevent burning."
+}

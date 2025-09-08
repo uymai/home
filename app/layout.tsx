@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Your Name | Personal Links & Resources",
+  title: "Rob | Personal Links & Resources",
   description: "A central hub for all my links, projects, and ways to connect with me",
 };
 
