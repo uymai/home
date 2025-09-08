@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -18,7 +18,7 @@ interface Recipe {
   notes?: string;
 }
 
-export default function RecipesPage() {
+function RecipesContent() {
   const searchParams = useSearchParams();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -305,7 +305,12 @@ export default function RecipesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRecipes.map((recipe, index) => (
-              <RecipeCard key={index} recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />
+              <RecipeCard 
+                key={index} 
+                recipe={recipe} 
+                onClick={() => setSelectedRecipe(recipe)}
+                onShare={copyRecipeUrl}
+              />
             ))}
           </div>
         )}
@@ -409,7 +414,7 @@ export default function RecipesPage() {
   );
 }
 
-function RecipeCard({ recipe, onClick }: { recipe: Recipe; onClick: () => void }) {
+function RecipeCard({ recipe, onClick, onShare }: { recipe: Recipe; onClick: () => void; onShare: (recipe: Recipe) => void }) {
   return (
     <div 
       className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer border border-gray-200 dark:border-gray-700 overflow-hidden hover:scale-105"
@@ -461,7 +466,7 @@ function RecipeCard({ recipe, onClick }: { recipe: Recipe; onClick: () => void }
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                copyRecipeUrl(recipe);
+                onShare(recipe);
               }}
               className="p-1 hover:bg-blue-100 dark:hover:bg-blue-900 rounded"
               title="Share recipe"
@@ -477,5 +482,22 @@ function RecipeCard({ recipe, onClick }: { recipe: Recipe; onClick: () => void }
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RecipesPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen p-8 sm:p-12 max-w-6xl mx-auto">
+        <Header title="Recipes" subtitle="Discover delicious recipes" />
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading recipes...</p>
+        </div>
+        <Footer />
+      </div>
+    }>
+      <RecipesContent />
+    </Suspense>
   );
 }
