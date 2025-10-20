@@ -1,0 +1,30 @@
+{
+  "title": "Lemon Garlic Chicken & Barley Bowl",
+  "description": "Fresh, high-protein bowl with lemony chicken, barley, and greens.",
+  "prepTime": "10 minutes",
+  "cookTime": "25 minutes",
+  "servings": 4,
+  "difficulty": "Easy",
+  "tags": ["chicken", "bowl", "barley", "high-protein"],
+  "ingredients": [
+    "1.5 lb chicken breast, cubed or sliced",
+    "2 tbsp lemon juice",
+    "1 tbsp olive oil",
+    "2 cloves garlic, minced",
+    "1 tsp oregano",
+    "2 cups cooked barley",
+    "1 cup edamame",
+    "1 cup shredded carrot",
+    "2 cups arugula",
+    "1 tbsp tahini",
+    "1 tsp maple syrup",
+    "1 tsp soy sauce"
+  ],
+  "instructions": [
+    "Marinate chicken in lemon juice, olive oil, garlic, and oregano for at least 30 minutes.",
+    "Cook chicken in skillet until golden and cooked through.",
+    "Whisk tahini, maple syrup, soy sauce, and water for dressing.",
+    "Assemble bowls with barley, veggies, and chicken. Drizzle dressing."
+  ],
+  "notes": "Great for meal prep; keeps well for next-day lunch."
+}

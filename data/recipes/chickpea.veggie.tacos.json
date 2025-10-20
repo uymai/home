@@ -1,0 +1,27 @@
+{
+  "title": "Chickpea & Veggie Tacos",
+  "description": "High-protein vegetarian tacos with roasted chickpeas, sweet potatoes, and kale.",
+  "prepTime": "15 minutes",
+  "cookTime": "20 minutes",
+  "servings": 4,
+  "difficulty": "Easy",
+  "tags": ["vegetarian", "tacos", "high-fiber", "family"],
+  "ingredients": [
+    "2 cans chickpeas, drained and rinsed",
+    "1 cup roasted sweet potato cubes",
+    "2 cups kale or arugula, chopped",
+    "1 tsp cumin",
+    "1/2 tsp smoked paprika",
+    "1/4 tsp salt",
+    "1 tsp olive oil",
+    "4–6 whole wheat tortillas",
+    "1/2 cup Greek yogurt",
+    "Juice of 1/2 lime"
+  ],
+  "instructions": [
+    "Toss chickpeas with oil, cumin, paprika, and salt. Roast at 400°F (200°C) for 20 minutes.",
+    "Warm tortillas. Mash or layer chickpeas, sweet potato, and kale.",
+    "Mix yogurt with lime juice and drizzle on top."
+  ],
+  "notes": "Turn into bowls if preferred; add avocado or feta for extra richness."
+}

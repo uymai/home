@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -26,6 +26,11 @@ function RecipesContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
+  // Screen Wake Lock state
+  const wakeLockRef = useRef<any>(null);
+  const [wakeLockActive, setWakeLockActive] = useState(false);
+  const [wakeLockSupported, setWakeLockSupported] = useState(false);
+
   useEffect(() => {
     // Load recipes from the data directory
     const loadRecipes = async () => {
@@ -44,6 +49,36 @@ function RecipesContent() {
 
     loadRecipes();
   }, []);
+
+  // Detect Wake Lock API support and set up listeners
+  useEffect(() => {
+    if (typeof navigator !== 'undefined') {
+      try {
+        // Some browsers require secure context; feature detect safely
+        const supported = Boolean((navigator as any).wakeLock?.request);
+        setWakeLockSupported(supported);
+      } catch {
+        setWakeLockSupported(false);
+      }
+    }
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible' && wakeLockActive && !wakeLockRef.current) {
+        // Re-acquire if it was released when page was hidden
+        requestWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      // Ensure we release on unmount
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release?.().catch(() => {}).finally(() => {
+          wakeLockRef.current = null;
+        });
+      }
+    };
+  }, [wakeLockActive]);
 
   // Handle URL parameters for direct recipe linking
   useEffect(() => {
@@ -75,6 +110,61 @@ function RecipesContent() {
       return () => document.removeEventListener('keydown', handleEscape);
     }
   }, [selectedRecipe]);
+
+  // Release wake lock when modal closes
+  useEffect(() => {
+    if (!selectedRecipe && wakeLockActive) {
+      // Best-effort release; ignore errors
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release?.().catch(() => {}).finally(() => {
+          wakeLockRef.current = null;
+          setWakeLockActive(false);
+        });
+      } else {
+        setWakeLockActive(false);
+      }
+    }
+  }, [selectedRecipe, wakeLockActive]);
+
+  // Wake Lock helpers
+  const requestWakeLock = async () => {
+    if (!wakeLockSupported || wakeLockRef.current) return;
+    try {
+      const sentinel = await (navigator as any).wakeLock.request('screen');
+      wakeLockRef.current = sentinel;
+      setWakeLockActive(true);
+      // When released (by system or manual), update state
+      sentinel.addEventListener?.('release', () => {
+        wakeLockRef.current = null;
+        setWakeLockActive(false);
+      });
+    } catch (err) {
+      console.error('Failed to acquire wake lock:', err);
+      // Keep state in sync
+      wakeLockRef.current = null;
+      setWakeLockActive(false);
+      // Optional: user feedback
+      // alert('Unable to keep screen awake on this device/browser.');
+    }
+  };
+
+  const releaseWakeLock = async () => {
+    try {
+      await wakeLockRef.current?.release?.();
+    } catch {}
+    finally {
+      wakeLockRef.current = null;
+      setWakeLockActive(false);
+    }
+  };
+
+  const toggleWakeLock = async () => {
+    if (!wakeLockActive) {
+      await requestWakeLock();
+    } else {
+      await releaseWakeLock();
+    }
+  };
 
   // Get all unique tags for filtering
   const allTags = useMemo(() => {
@@ -345,6 +435,15 @@ function RecipesContent() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={toggleWakeLock}
+                    disabled={!wakeLockSupported}
+                    className={`px-3 py-1 rounded-lg transition-colors text-sm flex items-center gap-1 border ${wakeLockActive ? 'bg-green-600 text-white border-green-700 hover:bg-green-700' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'} ${!wakeLockSupported ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title={wakeLockSupported ? (wakeLockActive ? 'Screen will stay on. Click to turn off.' : 'Prevent screen from sleeping while viewing this recipe') : 'Not supported on this device/browser'}
+                  >
+                    <span className="text-lg">🔆</span>
+                    <span>{wakeLockActive ? 'Stay On: ON' : 'Stay On'}</span>
+                  </button>
                   <button
                     onClick={() => copyRecipeUrl(selectedRecipe)}
                     className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm flex items-center gap-1"
