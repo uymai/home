@@ -143,8 +143,8 @@ function RecipesContent() {
       // Keep state in sync
       wakeLockRef.current = null;
       setWakeLockActive(false);
-      // Optional: user feedback
-      // alert('Unable to keep screen awake on this device/browser.');
+      // Visible feedback for users if their browser blocks it
+      alert('Unable to enable "Stay On" on this device/browser right now. Your screen may still go to sleep.');
     }
   };
 
@@ -159,6 +159,10 @@ function RecipesContent() {
   };
 
   const toggleWakeLock = async () => {
+    if (!wakeLockSupported) {
+      alert('Screen wake lock is not supported in this browser/device.');
+      return;
+    }
     if (!wakeLockActive) {
       await requestWakeLock();
     } else {
@@ -438,11 +442,12 @@ function RecipesContent() {
                   <button
                     onClick={toggleWakeLock}
                     disabled={!wakeLockSupported}
-                    className={`px-3 py-1 rounded-lg transition-colors text-sm flex items-center gap-1 border ${wakeLockActive ? 'bg-green-600 text-white border-green-700 hover:bg-green-700' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'} ${!wakeLockSupported ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    aria-pressed={wakeLockActive}
+                    className={`px-3 py-1 rounded-lg transition-colors text-sm flex items-center gap-2 border font-medium ${wakeLockActive ? 'bg-green-600 text-white border-green-700 hover:bg-green-700' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'} ${!wakeLockSupported ? 'opacity-50 cursor-not-allowed' : ''}`}
                     title={wakeLockSupported ? (wakeLockActive ? 'Screen will stay on. Click to turn off.' : 'Prevent screen from sleeping while viewing this recipe') : 'Not supported on this device/browser'}
                   >
-                    <span className="text-lg">🔆</span>
-                    <span>{wakeLockActive ? 'Stay On: ON' : 'Stay On'}</span>
+                    <span className={`inline-block w-2.5 h-2.5 rounded-full ${wakeLockActive ? 'bg-white' : 'bg-gray-400 dark:bg-gray-300'}`} aria-hidden="true"></span>
+                    <span className="text-sm tracking-wide">{wakeLockSupported ? (wakeLockActive ? 'Stay On: ON' : 'Stay On: OFF') : 'Stay On: Not Supported'}</span>
                   </button>
                   <button
                     onClick={() => copyRecipeUrl(selectedRecipe)}
