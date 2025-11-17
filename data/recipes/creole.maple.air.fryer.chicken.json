@@ -1,50 +1,28 @@
 {
-  "title": "Creole–Maple Air Fryer Chicken (1.5 lbs)",
+  "title": "Creole–Maple Air Fryer Chicken",
+  "description": "Juicy, flavorful chicken breast seasoned with Creole spices, maple, and lemon. Perfect for salads, bowls, or meal prep.",
+  "prepTime": "20 minutes",
+  "cookTime": "10 minutes",
   "servings": 4,
+  "difficulty": "Easy",
+  "tags": ["chicken", "air fryer", "high-protein", "meal prep"],
   "ingredients": [
-    {
-      "item": "Chicken breast",
-      "amount": "1.5 lbs (680 g)"
-    },
-    {
-      "item": "Olive or canola oil",
-      "amount": "1.5 tbsp"
-    },
-    {
-      "item": "Creole seasoning",
-      "amount": "4 tsp"
-    },
-    {
-      "item": "Garlic powder",
-      "amount": "0.75 tsp"
-    },
-    {
-      "item": "Maple syrup",
-      "amount": "1.5 tsp"
-    },
-    {
-      "item": "Lemon juice",
-      "amount": "1.5 tbsp",
-      "note": "≈ juice of 3/4 lemon"
-    },
-    {
-      "item": "Smoked paprika",
-      "amount": "0.5 tsp",
-      "optional": true
-    }
+    "1.5 lbs (680 g) chicken breast, cut into 1–1.5 inch pieces",
+    "1.5 tbsp olive oil or canola oil",
+    "4 tsp Creole seasoning",
+    "0.75 tsp garlic powder",
+    "1.5 tsp maple syrup",
+    "1.5 tbsp lemon juice (≈ juice of 3/4 lemon)",
+    "0.5 tsp smoked paprika (optional)"
   ],
   "instructions": [
-    "Cut chicken breast into 1–1.5 inch pieces.",
-    "In a bowl, combine the oil, Creole seasoning, garlic powder, maple syrup, lemon juice, and optional smoked paprika.",
-    "Add chicken and toss until well-coated. Marinate for 15–30 minutes.",
+    "Add chicken pieces to a bowl and toss with oil, Creole seasoning, garlic powder, maple syrup, lemon juice, and optional smoked paprika.",
+    "Marinate for 15–30 minutes.",
     "Preheat air fryer to 380°F (193°C).",
-    "Place chicken in a single layer in the air fryer basket.",
+    "Place the chicken in a single layer in the air fryer basket.",
     "Cook for 8–10 minutes, shaking or turning halfway through.",
-    "Check internal temperature; remove when chicken reaches 160°F and let rest for 3–5 minutes to finish at 165°F.",
-    "Cool slightly, then chop for use in salads or bowls."
+    "Remove when chicken reaches 160°F and let rest for 3–5 minutes to finish at 165°F.",
+    "Cool slightly, then slice or chop for salads, bowls, or meal prep."
   ],
-  "notes": [
-    "If cooking whole chicken breasts instead of chunks, cook 9–12 minutes per side at 380°F.",
-    "Pairs especially well with arugula, sweet potato, carrots, and black beans."
-  ]
+  "notes": "If cooking whole chicken breasts instead of chunks, air fry 9–12 minutes per side at 380°F. Excellent with Lemon–Garlic Yogurt Dressing."
 }
