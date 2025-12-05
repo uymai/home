@@ -28,7 +28,9 @@ function RecipesContent() {
 
   // Screen Wake Lock state
   const wakeLockRef = useRef<any>(null);
+  // wakeLockActive reflects the actual acquired state; stayOnEnabled is the user's intent
   const [wakeLockActive, setWakeLockActive] = useState(false);
+  const [stayOnEnabled, setStayOnEnabled] = useState(false);
   const [wakeLockSupported, setWakeLockSupported] = useState(false);
 
   useEffect(() => {
@@ -63,8 +65,8 @@ function RecipesContent() {
     }
 
     const onVisibility = () => {
-      if (document.visibilityState === 'visible' && wakeLockActive && !wakeLockRef.current) {
-        // Re-acquire if it was released when page was hidden
+      // Only (re)acquire when user asked to keep screen on and page is visible
+      if (document.visibilityState === 'visible' && stayOnEnabled && !wakeLockRef.current) {
         requestWakeLock();
       }
     };
@@ -78,7 +80,7 @@ function RecipesContent() {
         });
       }
     };
-  }, [wakeLockActive]);
+  }, [stayOnEnabled]);
 
   // Handle URL parameters for direct recipe linking
   useEffect(() => {
@@ -113,8 +115,9 @@ function RecipesContent() {
 
   // Release wake lock when modal closes
   useEffect(() => {
-    if (!selectedRecipe && wakeLockActive) {
-      // Best-effort release; ignore errors
+    if (!selectedRecipe && (wakeLockActive || stayOnEnabled)) {
+      // When closing the modal, disable the user's intent and release if needed
+      setStayOnEnabled(false);
       if (wakeLockRef.current) {
         wakeLockRef.current.release?.().catch(() => {}).finally(() => {
           wakeLockRef.current = null;
@@ -124,27 +127,33 @@ function RecipesContent() {
         setWakeLockActive(false);
       }
     }
-  }, [selectedRecipe, wakeLockActive]);
+  }, [selectedRecipe, wakeLockActive, stayOnEnabled]);
 
   // Wake Lock helpers
   const requestWakeLock = async () => {
     if (!wakeLockSupported || wakeLockRef.current) return;
     try {
+      // Wake Lock can only be acquired while the document is visible
+      if (document.visibilityState !== 'visible') return;
       const sentinel = await (navigator as any).wakeLock.request('screen');
       wakeLockRef.current = sentinel;
       setWakeLockActive(true);
       // When released (by system or manual), update state
-      sentinel.addEventListener?.('release', () => {
+      const onRelease = () => {
         wakeLockRef.current = null;
         setWakeLockActive(false);
-      });
+        // Do NOT change stayOnEnabled here; if user wanted it, we'll re-acquire on visibility
+      };
+      // Support both listener styles across browsers
+      sentinel.addEventListener?.('release', onRelease);
+      (sentinel as any).onrelease = onRelease;
     } catch (err) {
       console.error('Failed to acquire wake lock:', err);
       // Keep state in sync
       wakeLockRef.current = null;
       setWakeLockActive(false);
       // Visible feedback for users if their browser blocks it
-      alert('Unable to enable "Stay On" on this device/browser right now. Your screen may still go to sleep.');
+      // Avoid blocking alert as it may disrupt user gesture; fall back to subtle console error
     }
   };
 
@@ -160,10 +169,12 @@ function RecipesContent() {
 
   const toggleWakeLock = async () => {
     if (!wakeLockSupported) {
-      alert('Screen wake lock is not supported in this browser/device.');
-      return;
+      return; // Button is disabled when unsupported
     }
-    if (!wakeLockActive) {
+    // Toggle user's intent first
+    const next = !stayOnEnabled;
+    setStayOnEnabled(next);
+    if (next) {
       await requestWakeLock();
     } else {
       await releaseWakeLock();
@@ -442,12 +453,12 @@ function RecipesContent() {
                   <button
                     onClick={toggleWakeLock}
                     disabled={!wakeLockSupported}
-                    aria-pressed={wakeLockActive}
-                    className={`px-3 py-1 rounded-lg transition-colors text-sm flex items-center gap-2 border font-medium ${wakeLockActive ? 'bg-green-600 text-white border-green-700 hover:bg-green-700' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'} ${!wakeLockSupported ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    title={wakeLockSupported ? (wakeLockActive ? 'Screen will stay on. Click to turn off.' : 'Prevent screen from sleeping while viewing this recipe') : 'Not supported on this device/browser'}
+                    aria-pressed={stayOnEnabled}
+                    className={`px-3 py-1 rounded-lg transition-colors text-sm flex items-center gap-2 border font-medium ${stayOnEnabled ? 'bg-green-600 text-white border-green-700 hover:bg-green-700' : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'} ${!wakeLockSupported ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    title={wakeLockSupported ? (stayOnEnabled ? 'Screen will attempt to stay on. Click to turn off.' : 'Prevent screen from sleeping while viewing this recipe') : 'Not supported on this device/browser'}
                   >
-                    <span className={`inline-block w-2.5 h-2.5 rounded-full ${wakeLockActive ? 'bg-white' : 'bg-gray-400 dark:bg-gray-300'}`} aria-hidden="true"></span>
-                    <span className="text-sm tracking-wide">{wakeLockSupported ? (wakeLockActive ? 'Stay On: ON' : 'Stay On: OFF') : 'Stay On: Not Supported'}</span>
+                    <span className={`inline-block w-2.5 h-2.5 rounded-full ${stayOnEnabled ? 'bg-white' : 'bg-gray-400 dark:bg-gray-300'}`} aria-hidden="true"></span>
+                    <span className="text-sm tracking-wide">{wakeLockSupported ? (stayOnEnabled ? 'Stay On: ON' : 'Stay On: OFF') : 'Stay On: Not Supported'}</span>
                   </button>
                   <button
                     onClick={() => copyRecipeUrl(selectedRecipe)}
