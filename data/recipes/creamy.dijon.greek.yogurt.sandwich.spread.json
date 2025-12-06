@@ -1,0 +1,24 @@
+{
+  "title": "Creamy Dijon Greek Yogurt Sandwich Spread",
+  "description": "A high-protein, mayo-style spread using Greek yogurt, perfect for turkey, cucumber, and mozzarella sandwiches.",
+  "prepTime": "5 minutes",
+  "cookTime": "0 minutes",
+  "servings": 1,
+  "difficulty": "Easy",
+  "tags": ["sandwich", "spread", "greek yogurt", "high-protein"],
+  "ingredients": [
+    "3 tbsp Greek yogurt",
+    "1 tsp Dijon mustard",
+    "1/2 tsp maple syrup (optional, for balance)",
+    "1 small pinch salt",
+    "1 small pinch black pepper",
+    "1/8–1/4 tsp lemon juice"
+  ],
+  "instructions": [
+    "Add Greek yogurt, Dijon mustard, maple syrup, salt, pepper, and lemon juice to a small bowl.",
+    "Stir until smooth and combined.",
+    "Taste and adjust: add more Dijon for sharpness, more yogurt for thickness, or a touch more lemon juice for tang.",
+    "Spread onto bread and assemble your sandwich as usual."
+  ],
+  "notes": "Swap Dijon for yellow mustard if you want milder flavor. Works well on turkey, chicken, or veggie sandwiches."
+}
