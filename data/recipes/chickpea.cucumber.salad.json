@@ -1,0 +1,27 @@
+{
+  "title": "Chickpea-Cucumber Salad",
+  "description": "A refreshing chickpea and cucumber salad with parsley, lemon juice, and olive oil — fast, bright, and great with shish taouk.",
+  "prepTime": "10 minutes",
+  "cookTime": "0 minutes",
+  "servings": 4,
+  "difficulty": "Easy",
+  "tags": ["salad", "chickpeas", "high-protein", "mediterranean"],
+  "ingredients": [
+    "1 can (540 mL) chickpeas, drained and rinsed",
+    "1 large English cucumber, diced",
+    "1/4 cup parsley, chopped",
+    "2 green onions, thinly sliced",
+    "2 tbsp olive oil",
+    "2 tbsp lemon juice (sub for 1 lemon)",
+    "1/2 tsp salt",
+    "1/4 tsp black pepper",
+    "1/4 tsp garlic powder"
+  ],
+  "instructions": [
+    "Add chickpeas, cucumber, parsley, and green onions to a large bowl.",
+    "Whisk together olive oil, lemon juice, salt, pepper, and garlic powder.",
+    "Pour dressing over the salad and toss to combine.",
+    "Let rest 5 minutes to allow flavors to meld."
+  ],
+  "notes": "Add 1/2 cup diced bell pepper or 1/4 cup edamame for extra crunch and protein."
+}
