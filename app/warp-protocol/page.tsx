@@ -1,7 +1,7 @@
 import WarpProtocolClient from './WarpProtocolClient';
 
 type PageProps = {
-  searchParams?: Promise<{ seed?: string | string[] }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export default async function WarpProtocolPage({ searchParams }: PageProps) {

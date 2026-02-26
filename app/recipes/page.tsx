@@ -18,6 +18,18 @@ interface Recipe {
   notes?: string;
 }
 
+type WakeLockSentinelLike = {
+  addEventListener?: (type: 'release', listener: () => void) => void;
+  onrelease?: (() => void) | null;
+  release?: () => Promise<void>;
+};
+
+type NavigatorWithWakeLock = Navigator & {
+  wakeLock?: {
+    request: (type: 'screen') => Promise<WakeLockSentinelLike>;
+  };
+};
+
 function RecipesContent() {
   const searchParams = useSearchParams();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -27,7 +39,7 @@ function RecipesContent() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   // Screen Wake Lock state
-  const wakeLockRef = useRef<any>(null);
+  const wakeLockRef = useRef<WakeLockSentinelLike | null>(null);
   // wakeLockActive reflects the actual acquired state; stayOnEnabled is the user's intent
   const [wakeLockActive, setWakeLockActive] = useState(false);
   const [stayOnEnabled, setStayOnEnabled] = useState(false);
@@ -57,7 +69,7 @@ function RecipesContent() {
     if (typeof navigator !== 'undefined') {
       try {
         // Some browsers require secure context; feature detect safely
-        const supported = Boolean((navigator as any).wakeLock?.request);
+        const supported = Boolean((navigator as NavigatorWithWakeLock).wakeLock?.request);
         setWakeLockSupported(supported);
       } catch {
         setWakeLockSupported(false);
@@ -132,7 +144,10 @@ function RecipesContent() {
     try {
       // Wake Lock can only be acquired while the document is visible
       if (document.visibilityState !== 'visible') return;
-      const sentinel = await (navigator as any).wakeLock.request('screen');
+      const sentinel = await (navigator as NavigatorWithWakeLock).wakeLock?.request('screen');
+      if (!sentinel) {
+        return;
+      }
       wakeLockRef.current = sentinel;
       setWakeLockActive(true);
       // When released (by system or manual), update state
@@ -143,7 +158,7 @@ function RecipesContent() {
       };
       // Support both listener styles across browsers
       sentinel.addEventListener?.('release', onRelease);
-      (sentinel as any).onrelease = onRelease;
+      sentinel.onrelease = onRelease;
     } catch (err) {
       console.error('Failed to acquire wake lock:', err);
       // Keep state in sync

@@ -74,7 +74,7 @@ export default function Gaming() {
       </div>
       
       <div id="discord-servers" className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-6">Discord Servers I'm Active In</h2>
+        <h2 className="text-2xl font-bold mb-6">Discord Servers I&apos;m Active In</h2>
         <div className="space-y-6">
           {discordServers.map((server, index) => (
             <div key={index} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-0 last:pb-0">

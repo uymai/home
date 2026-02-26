@@ -47,7 +47,7 @@ export default function Discord() {
           <DiscordIcon className="h-8 w-8 mr-3 text-indigo-600 dark:text-indigo-400" />
           <h2 className="text-2xl font-bold">My Discord Profile</h2>
         </div>
-        <p className="mb-4">I'm active on Discord under the username <span className="font-bold">uymai</span>. Feel free to add me!</p>
+        <p className="mb-4">I&apos;m active on Discord under the username <span className="font-bold">uymai</span>. Feel free to add me!</p>
         <p className="mb-4">I mostly hang out in servers related to technology, gaming, and creative pursuits. Check out some of my favorite servers below.</p>
         
         <div className="mt-6">
