@@ -344,10 +344,14 @@ function startNextRound(state: GameState): GameState {
   if (state.status !== 'playing' || state.roundStatus === 'drawing') {
     return state;
   }
+
+  const recycled = state.discard;
   return {
     ...state,
+    bag: [...state.bag, ...recycled],
+    discard: [],
     roundStatus: 'drawing',
-    log: [...state.log, `Starting round ${state.rounds + 1}.`],
+    log: [...state.log, `Starting round ${state.rounds + 1}. Recycled ${recycled.length} modules back into bag.`],
   };
 }
 
