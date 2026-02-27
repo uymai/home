@@ -1,42 +1,44 @@
-export type ModuleKind =
+export type CoreKind =
   | 'flux-coil'
   | 'sponsored-relay'
   | 'stabilizer'
   | 'volatile-lens'
   | 'warp-core';
 
-export type GameStatus = 'playing' | 'won' | 'lost';
-export type GamePhase = 'draw' | 'buy' | 'ended';
+export type GameStatus = 'playing' | 'won';
+export type RoundStatus = 'drawing' | 'stopped' | 'busted';
 
-export type ModuleCard = {
+export type CoreModule = {
   id: string;
-  kind: ModuleKind;
-  fluxValue: number;
-  creditValue: number;
-  instabilityValue: number;
-  isWarpCore: boolean;
+  name: string;
+  kind: CoreKind;
   tier: number;
+  costFlux: number;
+  costCredits: number;
+  genFlux: number;
+  genCredits: number;
+  addInstability: number;
   sponsored?: boolean;
+  isWarpCore?: boolean;
 };
 
 export type RoundSnapshot = {
   number: number;
-  exploded: boolean;
-  drawn: ModuleCard[];
+  status: RoundStatus;
+  drawn: CoreModule[];
   roundFlux: number;
   roundCredits: number;
   roundInstability: number;
-  reason: 'banked' | 'instability' | 'capacity';
 };
 
 export type GameState = {
   seed: string;
   status: GameStatus;
-  phase: GamePhase;
   rounds: number;
   score: number | null;
-  flux: number;
-  credits: number;
+  roundStatus: RoundStatus;
+  bankedFlux: number;
+  bankedCredits: number;
   roundFlux: number;
   roundCredits: number;
   roundInstability: number;
@@ -50,9 +52,10 @@ export type GameState = {
   warpProgress: number;
   warpProgressTarget: number;
   warpCoreTarget: number;
-  bag: ModuleCard[];
-  discard: ModuleCard[];
-  activePile: ModuleCard[];
+  bag: CoreModule[];
+  discard: CoreModule[];
+  activePile: CoreModule[];
+  lastDiscarded: CoreModule[];
   rngState: number;
   nextModuleId: number;
   lastRound: RoundSnapshot | null;
@@ -60,7 +63,7 @@ export type GameState = {
   log: string[];
 };
 
-export type FluxPurchaseKind = Exclude<ModuleKind, 'flux-coil'> | 'flux-coil';
+export type FluxPurchaseKind = CoreKind;
 export type CreditUpgradeKind = 'slot-capacity' | 'instability-threshold' | 'draw-limit';
 
 export type GameAction =

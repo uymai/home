@@ -1,15 +1,7 @@
-import {
-  CreditUpgradeKind,
-  FluxPurchaseKind,
-  GameAction,
-  GameState,
-  ModuleCard,
-  ModuleKind,
-  RoundSnapshot,
-} from './types';
+import { CoreKind, CoreModule, CreditUpgradeKind, FluxPurchaseKind, GameAction, GameState, RoundSnapshot } from './types';
 
-const START_FLUX = 0;
-const START_CREDITS = 0;
+const START_BANKED_FLUX = 0;
+const START_BANKED_CREDITS = 0;
 const START_DRAW_LIMIT = 4;
 const START_SLOT_CAPACITY = 4;
 const START_INSTABILITY_THRESHOLD = 4;
@@ -37,55 +29,91 @@ function nextRandom(state: number): { value: number; nextState: number } {
   return { value, nextState };
 }
 
-function createModule(kind: ModuleKind, id: number): ModuleCard {
+function createModule(kind: CoreKind, id: number): CoreModule {
   switch (kind) {
     case 'flux-coil':
-      return { id: `module-${id}`, kind, fluxValue: 2, creditValue: 0, instabilityValue: 1, isWarpCore: false, tier: 1 };
+      return {
+        id: `module-${id}`,
+        name: 'Flux Coil',
+        kind,
+        tier: 1,
+        costFlux: 3,
+        costCredits: 0,
+        genFlux: 2,
+        genCredits: 0,
+        addInstability: 1,
+      };
     case 'sponsored-relay':
       return {
         id: `module-${id}`,
+        name: 'Sponsored Relay',
         kind,
-        fluxValue: 1,
-        creditValue: 2,
-        instabilityValue: 1,
-        isWarpCore: false,
         tier: 1,
+        costFlux: 5,
+        costCredits: 0,
+        genFlux: 1,
+        genCredits: 2,
+        addInstability: 1,
         sponsored: true,
       };
     case 'stabilizer':
-      return { id: `module-${id}`, kind, fluxValue: 0, creditValue: 0, instabilityValue: -1, isWarpCore: false, tier: 1 };
+      return {
+        id: `module-${id}`,
+        name: 'Stabilizer',
+        kind,
+        tier: 1,
+        costFlux: 4,
+        costCredits: 0,
+        genFlux: 0,
+        genCredits: 0,
+        addInstability: -1,
+      };
     case 'volatile-lens':
-      return { id: `module-${id}`, kind, fluxValue: 4, creditValue: 0, instabilityValue: 2, isWarpCore: false, tier: 2 };
+      return {
+        id: `module-${id}`,
+        name: 'Volatile Lens',
+        kind,
+        tier: 2,
+        costFlux: 7,
+        costCredits: 0,
+        genFlux: 4,
+        genCredits: 0,
+        addInstability: 2,
+      };
     case 'warp-core':
-      return { id: `module-${id}`, kind, fluxValue: 1, creditValue: 0, instabilityValue: 2, isWarpCore: true, tier: 3 };
+      return {
+        id: `module-${id}`,
+        name: 'Warp Core',
+        kind,
+        tier: 3,
+        costFlux: 10,
+        costCredits: 0,
+        genFlux: 1,
+        genCredits: 0,
+        addInstability: 2,
+        isWarpCore: true,
+      };
     default:
-      return { id: `module-${id}`, kind: 'flux-coil', fluxValue: 2, creditValue: 0, instabilityValue: 1, isWarpCore: false, tier: 1 };
+      return {
+        id: `module-${id}`,
+        name: 'Flux Coil',
+        kind: 'flux-coil',
+        tier: 1,
+        costFlux: 3,
+        costCredits: 0,
+        genFlux: 2,
+        genCredits: 0,
+        addInstability: 1,
+      };
   }
 }
 
-function moduleFluxCost(kind: FluxPurchaseKind): number {
-  switch (kind) {
-    case 'flux-coil':
-      return 3;
-    case 'sponsored-relay':
-      return 5;
-    case 'stabilizer':
-      return 4;
-    case 'volatile-lens':
-      return 7;
-    case 'warp-core':
-      return 10;
-    default:
-      return 999;
-  }
-}
-
-function startingBag(): ModuleCard[] {
-  const kinds: ModuleKind[] = ['flux-coil', 'flux-coil', 'sponsored-relay', 'stabilizer', 'volatile-lens'];
+function startingBag(): CoreModule[] {
+  const kinds: CoreKind[] = ['flux-coil', 'flux-coil', 'sponsored-relay', 'stabilizer', 'volatile-lens'];
   return kinds.map((kind, index) => createModule(kind, index + 1));
 }
 
-function reshuffle(discard: ModuleCard[], rngState: number): { bag: ModuleCard[]; rngState: number } {
+function reshuffle(discard: CoreModule[], rngState: number): { bag: CoreModule[]; rngState: number } {
   const bag = [...discard];
   let nextState = rngState;
   for (let i = bag.length - 1; i > 0; i -= 1) {
@@ -97,7 +125,7 @@ function reshuffle(discard: ModuleCard[], rngState: number): { bag: ModuleCard[]
   return { bag, rngState: nextState };
 }
 
-function drawModuleFromBag(bag: ModuleCard[], rngState: number): { drawnModule: ModuleCard; bag: ModuleCard[]; rngState: number } {
+function drawModuleFromBag(bag: CoreModule[], rngState: number): { drawnModule: CoreModule; bag: CoreModule[]; rngState: number } {
   const random = nextRandom(rngState);
   const index = Math.floor(random.value * bag.length);
   const drawnModule = bag[index];
@@ -106,8 +134,7 @@ function drawModuleFromBag(bag: ModuleCard[], rngState: number): { drawnModule: 
 }
 
 function countOwnedWarpCores(state: GameState): number {
-  const allModules = [...state.bag, ...state.discard, ...state.activePile];
-  return allModules.reduce((sum, module) => sum + (module.isWarpCore ? 1 : 0), 0);
+  return [...state.bag, ...state.discard, ...state.activePile].reduce((sum, core) => sum + (core.isWarpCore ? 1 : 0), 0);
 }
 
 function applyWinCheck(state: GameState): GameState {
@@ -119,45 +146,46 @@ function applyWinCheck(state: GameState): GameState {
   return {
     ...state,
     status: 'won',
-    phase: 'ended',
     score: state.rounds,
     log: [...state.log, `Warp protocol complete. Owned cores ${ownedWarpCores}/${state.warpCoreTarget}, progress ${state.warpProgress}/${state.warpProgressTarget}.`],
   };
 }
 
-function meltdown(state: GameState, reason: RoundSnapshot['reason']): GameState {
-  const roundNumber = state.rounds + 1;
+function bustRound(state: GameState, extraLog: string): GameState {
+  const nextRoundNumber = state.rounds + 1;
+  const discarded = [...state.activePile];
   const roundResult: RoundSnapshot = {
-    number: roundNumber,
-    exploded: true,
-    drawn: [...state.activePile],
+    number: nextRoundNumber,
+    status: 'busted',
+    drawn: discarded,
     roundFlux: state.roundFlux,
     roundCredits: state.roundCredits,
     roundInstability: state.roundInstability,
-    reason,
   };
-  const reasonLabel = reason === 'capacity' ? 'slot capacity overload' : 'instability threshold breached';
   return {
     ...state,
-    status: 'lost',
-    phase: 'ended',
-    score: null,
+    rounds: nextRoundNumber,
+    roundStatus: 'busted',
+    discard: [...state.discard, ...discarded],
+    activePile: [],
+    lastDiscarded: discarded,
     lastRound: roundResult,
-    log: [
-      ...state.log,
-      `Round ${roundNumber} meltdown: ${reasonLabel}. Lost unbanked rewards (${state.roundFlux} flux, ${state.roundCredits} credits).`,
-    ],
+    roundFlux: 0,
+    roundCredits: 0,
+    roundInstability: 0,
+    drawCount: 0,
+    log: [...state.log, extraLog, `Round ${nextRoundNumber} busted. Unbanked rewards were lost.`],
   };
 }
 
 function drawModule(state: GameState): GameState {
-  if (state.status !== 'playing' || state.phase !== 'draw') {
+  if (state.status !== 'playing' || state.roundStatus !== 'drawing') {
     return state;
   }
   if (state.drawCount >= state.drawLimit) {
     return {
       ...state,
-      log: [...state.log, `Draw limit reached (${state.drawLimit}). Stop and bank to continue.`],
+      log: [...state.log, `Draw limit reached (${state.drawLimit}). Stop and bank.`],
     };
   }
 
@@ -183,10 +211,9 @@ function drawModule(state: GameState): GameState {
 
   const draw = drawModuleFromBag(bag, rngState);
   const activePile = [...state.activePile, draw.drawnModule];
-  const roundFlux = state.roundFlux + draw.drawnModule.fluxValue;
-  const roundCredits = state.roundCredits + draw.drawnModule.creditValue;
-  const roundInstability = state.roundInstability + draw.drawnModule.instabilityValue;
-  const drawCount = state.drawCount + 1;
+  const roundFlux = state.roundFlux + draw.drawnModule.genFlux;
+  const roundCredits = state.roundCredits + draw.drawnModule.genCredits;
+  const roundInstability = state.roundInstability + draw.drawnModule.addInstability;
 
   const nextState: GameState = {
     ...state,
@@ -197,129 +224,116 @@ function drawModule(state: GameState): GameState {
     roundFlux,
     roundCredits,
     roundInstability,
-    drawCount,
-    log: [...log, `Drew ${draw.drawnModule.kind}. Round totals: ${roundFlux} flux, ${roundCredits} credits, instability ${roundInstability}/${state.instabilityThreshold}.`],
+    drawCount: state.drawCount + 1,
+    log: [...log, `Drew ${draw.drawnModule.name}. Unbanked: ${roundFlux} flux, ${roundCredits} credits. Instability ${roundInstability}/${state.instabilityThreshold}.`],
   };
 
   if (nextState.activePile.length > nextState.slotCapacity) {
-    return meltdown(nextState, 'capacity');
+    return bustRound(nextState, 'Slot capacity exceeded.');
   }
   if (nextState.roundInstability >= nextState.instabilityThreshold) {
-    return meltdown(nextState, 'instability');
+    return bustRound(nextState, 'Instability threshold exceeded.');
   }
 
   return nextState;
 }
 
 function stopAndBank(state: GameState): GameState {
-  if (state.status !== 'playing' || state.phase !== 'draw') {
+  if (state.status !== 'playing' || state.roundStatus !== 'drawing') {
     return state;
   }
-
-  const roundNumber = state.rounds + 1;
-  const warpDrawn = state.activePile.reduce((sum, module) => sum + (module.isWarpCore ? 1 : 0), 0);
+  const nextRoundNumber = state.rounds + 1;
+  const discarded = [...state.activePile];
+  const warpDrawn = discarded.reduce((sum, core) => sum + (core.isWarpCore ? 1 : 0), 0);
   const roundResult: RoundSnapshot = {
-    number: roundNumber,
-    exploded: false,
-    drawn: [...state.activePile],
+    number: nextRoundNumber,
+    status: 'stopped',
+    drawn: discarded,
     roundFlux: state.roundFlux,
     roundCredits: state.roundCredits,
     roundInstability: state.roundInstability,
-    reason: 'banked',
   };
 
   const bankedState: GameState = {
     ...state,
-    rounds: roundNumber,
-    flux: state.flux + state.roundFlux,
-    credits: state.credits + state.roundCredits,
+    rounds: nextRoundNumber,
+    roundStatus: 'stopped',
+    bankedFlux: state.bankedFlux + state.roundFlux,
+    bankedCredits: state.bankedCredits + state.roundCredits,
     warpProgress: state.warpProgress + warpDrawn,
-    discard: [...state.discard, ...state.activePile],
+    discard: [...state.discard, ...discarded],
     activePile: [],
+    lastDiscarded: discarded,
+    lastRound: roundResult,
     roundFlux: 0,
     roundCredits: 0,
     roundInstability: 0,
     drawCount: 0,
-    phase: 'buy',
-    lastRound: roundResult,
-    log: [
-      ...state.log,
-      `Banked round ${roundNumber}: +${state.roundFlux} flux, +${state.roundCredits} credits, warp progress +${warpDrawn}.`,
-    ],
+    log: [...state.log, `Banked round ${nextRoundNumber}: +${state.roundFlux} flux, +${state.roundCredits} credits.`],
   };
 
   return applyWinCheck(bankedState);
 }
 
 function buyModule(state: GameState, kind: FluxPurchaseKind): GameState {
-  if (state.status !== 'playing' || state.phase !== 'buy') {
+  if (state.status !== 'playing' || state.roundStatus === 'drawing') {
     return state;
   }
-  const cost = moduleFluxCost(kind);
-  if (state.flux < cost) {
+  const prototype = createModule(kind, state.nextModuleId);
+  if (state.bankedFlux < prototype.costFlux || state.bankedCredits < prototype.costCredits) {
     return {
       ...state,
-      log: [...state.log, `Not enough flux for ${kind} (cost ${cost}).`],
+      log: [...state.log, `Not enough resources for ${prototype.name}.`],
     };
   }
 
   const purchasedModule = createModule(kind, state.nextModuleId);
   const nextState: GameState = {
     ...state,
-    flux: state.flux - cost,
+    bankedFlux: state.bankedFlux - purchasedModule.costFlux,
+    bankedCredits: state.bankedCredits - purchasedModule.costCredits,
     bag: [...state.bag, purchasedModule],
     nextModuleId: state.nextModuleId + 1,
-    log: [...state.log, `Purchased ${kind} for ${cost} flux.`],
+    log: [...state.log, `Purchased ${purchasedModule.name} for ${purchasedModule.costFlux} flux and ${purchasedModule.costCredits} credits.`],
   };
   return applyWinCheck(nextState);
 }
 
 function buyUpgrade(state: GameState, kind: CreditUpgradeKind): GameState {
-  if (state.status !== 'playing' || state.phase !== 'buy') {
+  if (state.status !== 'playing' || state.roundStatus === 'drawing') {
     return state;
   }
-
   if (kind === 'slot-capacity') {
-    if (state.credits < state.nextSlotCapacityCost) {
-      return {
-        ...state,
-        log: [...state.log, `Not enough credits for slot capacity upgrade (cost ${state.nextSlotCapacityCost}).`],
-      };
+    if (state.bankedCredits < state.nextSlotCapacityCost) {
+      return { ...state, log: [...state.log, `Not enough credits for slot capacity upgrade (cost ${state.nextSlotCapacityCost}).`] };
     }
     return {
       ...state,
-      credits: state.credits - state.nextSlotCapacityCost,
+      bankedCredits: state.bankedCredits - state.nextSlotCapacityCost,
       slotCapacity: state.slotCapacity + 1,
       nextSlotCapacityCost: state.nextSlotCapacityCost + 2,
       log: [...state.log, `Upgraded slot capacity to ${state.slotCapacity + 1}.`],
     };
   }
-
   if (kind === 'instability-threshold') {
-    if (state.credits < state.nextInstabilityCost) {
-      return {
-        ...state,
-        log: [...state.log, `Not enough credits for instability tolerance upgrade (cost ${state.nextInstabilityCost}).`],
-      };
+    if (state.bankedCredits < state.nextInstabilityCost) {
+      return { ...state, log: [...state.log, `Not enough credits for instability tolerance upgrade (cost ${state.nextInstabilityCost}).`] };
     }
     return {
       ...state,
-      credits: state.credits - state.nextInstabilityCost,
+      bankedCredits: state.bankedCredits - state.nextInstabilityCost,
       instabilityThreshold: state.instabilityThreshold + 1,
       nextInstabilityCost: state.nextInstabilityCost + 3,
       log: [...state.log, `Upgraded instability threshold to ${state.instabilityThreshold + 1}.`],
     };
   }
 
-  if (state.credits < state.nextDrawLimitCost) {
-    return {
-      ...state,
-      log: [...state.log, `Not enough credits for draw limit upgrade (cost ${state.nextDrawLimitCost}).`],
-    };
+  if (state.bankedCredits < state.nextDrawLimitCost) {
+    return { ...state, log: [...state.log, `Not enough credits for draw limit upgrade (cost ${state.nextDrawLimitCost}).`] };
   }
   return {
     ...state,
-    credits: state.credits - state.nextDrawLimitCost,
+    bankedCredits: state.bankedCredits - state.nextDrawLimitCost,
     drawLimit: state.drawLimit + 1,
     nextDrawLimitCost: state.nextDrawLimitCost + 2,
     log: [...state.log, `Upgraded draw limit to ${state.drawLimit + 1}.`],
@@ -327,12 +341,12 @@ function buyUpgrade(state: GameState, kind: CreditUpgradeKind): GameState {
 }
 
 function startNextRound(state: GameState): GameState {
-  if (state.status !== 'playing' || state.phase !== 'buy') {
+  if (state.status !== 'playing' || state.roundStatus === 'drawing') {
     return state;
   }
   return {
     ...state,
-    phase: 'draw',
+    roundStatus: 'drawing',
     log: [...state.log, `Starting round ${state.rounds + 1}.`],
   };
 }
@@ -357,11 +371,11 @@ export function createInitialState(seed: string): GameState {
   return {
     seed,
     status: 'playing',
-    phase: 'draw',
     rounds: 0,
     score: null,
-    flux: START_FLUX,
-    credits: START_CREDITS,
+    roundStatus: 'drawing',
+    bankedFlux: START_BANKED_FLUX,
+    bankedCredits: START_BANKED_CREDITS,
     roundFlux: 0,
     roundCredits: 0,
     roundInstability: 0,
@@ -378,6 +392,7 @@ export function createInitialState(seed: string): GameState {
     bag,
     discard: [],
     activePile: [],
+    lastDiscarded: [],
     rngState: seedHash,
     nextModuleId: bag.length + 1,
     lastRound: null,
