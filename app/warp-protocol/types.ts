@@ -1,50 +1,72 @@
-export type CoreKind = 'credit' | 'capacity' | 'unstable' | 'stabilizer' | 'warp';
+export type ModuleKind =
+  | 'flux-coil'
+  | 'sponsored-relay'
+  | 'stabilizer'
+  | 'volatile-lens'
+  | 'warp-core';
 
-export type GameStatus = 'playing' | 'won';
+export type GameStatus = 'playing' | 'won' | 'lost';
+export type GamePhase = 'draw' | 'buy' | 'ended';
 
-export type Core = {
+export type ModuleCard = {
   id: string;
-  kind: CoreKind;
-  cost: number;
-  currency?: number;
-  capacityPoints?: number;
-  unstable?: number;
-  stabilizer?: number;
-  warp?: number;
+  kind: ModuleKind;
+  fluxValue: number;
+  creditValue: number;
+  instabilityValue: number;
+  isWarpCore: boolean;
+  tier: number;
+  sponsored?: boolean;
 };
 
-export type RunResult = {
+export type RoundSnapshot = {
+  number: number;
   exploded: boolean;
-  drawn: Core[];
-  grossCurrency: number;
-  grossCapacityPoints: number;
-  unstableCount: number;
-  stabilizerCount: number;
-  effectiveUnstable: number;
-  warpCount: number;
+  drawn: ModuleCard[];
+  roundFlux: number;
+  roundCredits: number;
+  roundInstability: number;
+  reason: 'banked' | 'instability' | 'capacity';
 };
 
 export type GameState = {
   seed: string;
   status: GameStatus;
-  runs: number;
+  phase: GamePhase;
+  rounds: number;
   score: number | null;
+  flux: number;
   credits: number;
-  capacityPoints: number;
-  slotsPerRun: number;
-  nextSlotCost: number;
-  unstableThreshold: number;
-  warpTargetPerRun: number;
-  bag: Core[];
-  discard: Core[];
+  roundFlux: number;
+  roundCredits: number;
+  roundInstability: number;
+  drawCount: number;
+  drawLimit: number;
+  slotCapacity: number;
+  instabilityThreshold: number;
+  nextDrawLimitCost: number;
+  nextSlotCapacityCost: number;
+  nextInstabilityCost: number;
+  warpProgress: number;
+  warpProgressTarget: number;
+  warpCoreTarget: number;
+  bag: ModuleCard[];
+  discard: ModuleCard[];
+  activePile: ModuleCard[];
   rngState: number;
-  nextCoreId: number;
-  lastRun: RunResult | null;
+  nextModuleId: number;
+  lastRound: RoundSnapshot | null;
+  seedModifier: string;
   log: string[];
 };
 
+export type FluxPurchaseKind = Exclude<ModuleKind, 'flux-coil'> | 'flux-coil';
+export type CreditUpgradeKind = 'slot-capacity' | 'instability-threshold' | 'draw-limit';
+
 export type GameAction =
-  | { type: 'run-reactor' }
-  | { type: 'buy-core'; kind: CoreKind }
-  | { type: 'buy-slot' }
+  | { type: 'draw-module' }
+  | { type: 'stop-and-bank' }
+  | { type: 'buy-module'; kind: FluxPurchaseKind }
+  | { type: 'buy-upgrade'; kind: CreditUpgradeKind }
+  | { type: 'start-next-round' }
   | { type: 'new-run'; seed: string };
