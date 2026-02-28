@@ -107,14 +107,14 @@ function upgradeLabel(kind: CreditUpgradeKind): string {
   }
 }
 
-function BagPanel({ bag }: { bag: CoreModule[] }) {
+function BagPanel({ bag, title }: { bag: CoreModule[]; title: string }) {
   const [showDetails, setShowDetails] = useState(false);
   const grouped = useMemo(() => groupModules(bag), [bag]);
 
   return (
     <section className="rounded-lg border border-slate-700 bg-slate-900 p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">Tokens Left In Bag</h2>
+        <h2 className="text-lg font-semibold">{title}</h2>
         <button
           type="button"
           onClick={() => setShowDetails((current) => !current)}
@@ -210,6 +210,7 @@ export default function WarpProtocolClient({ initialSeed }: WarpProtocolClientPr
   const instabilityWarning = canDraw && state.roundInstability >= state.instabilityThreshold - 1;
   const shareUrl = `${pathname}?seed=${state.seed}`;
   const phaseLabel = canDraw ? 'Run Phase' : 'Buy Phase';
+  const nextRoundBag = useMemo(() => [...state.bag, ...state.discard], [state.bag, state.discard]);
 
   return (
     <main className="min-h-screen bg-slate-950 p-6 text-slate-100 sm:p-10">
@@ -291,7 +292,7 @@ export default function WarpProtocolClient({ initialSeed }: WarpProtocolClientPr
               )}
             </section>
 
-            <BagPanel bag={state.bag} />
+            <BagPanel bag={state.bag} title="Tokens Left In Bag" />
             <DiscardPanel discard={state.discard} lastDiscarded={state.lastDiscarded} />
           </div>
         ) : (
@@ -301,7 +302,7 @@ export default function WarpProtocolClient({ initialSeed }: WarpProtocolClientPr
               <div className="grid grid-cols-2 gap-3">
                 <Stat label="Banked Flux" value={state.bankedFlux} />
                 <Stat label="Banked Credits" value={state.bankedCredits} />
-                <Stat label="Warp Progress" value={`${state.warpProgress}/${state.warpProgressTarget}`} />
+                <Stat label="Warp Goal" value={`${state.warpCoreTarget} in one round`} />
                 <Stat label="Round Result" value={state.roundStatus.toUpperCase()} />
               </div>
               <p className="mt-3 text-xs text-slate-400">{state.seedModifier}</p>
@@ -320,14 +321,21 @@ export default function WarpProtocolClient({ initialSeed }: WarpProtocolClientPr
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 {moduleKinds.map((kind) => {
                   const template = moduleTemplates[kind];
+                  const affordable =
+                    canManageBetweenRounds &&
+                    state.bankedFlux >= template.costFlux &&
+                    state.bankedCredits >= template.costCredits;
                   return (
-                    <div key={kind} className="rounded border border-slate-700 bg-slate-950 p-3">
+                    <div
+                      key={kind}
+                      className={`rounded border border-slate-700 bg-slate-950 p-3 ${affordable ? '' : 'opacity-40'}`}
+                    >
                       <p className="font-semibold">{template.name}</p>
                       <p className="text-xs text-slate-400">{moduleStatLine({ id: kind, ...template })}</p>
                       <button
                         type="button"
                         onClick={() => dispatch({ type: 'buy-module', kind })}
-                        disabled={!canManageBetweenRounds}
+                        disabled={!affordable}
                         className="mt-2 rounded bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         Purchase
@@ -360,7 +368,7 @@ export default function WarpProtocolClient({ initialSeed }: WarpProtocolClientPr
               </div>
             </section>
 
-            <BagPanel bag={state.bag} />
+            <BagPanel bag={nextRoundBag} title="Next Round Bag" />
             <DiscardPanel discard={state.discard} lastDiscarded={state.lastDiscarded} />
           </div>
         )}

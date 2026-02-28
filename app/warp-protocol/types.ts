@@ -49,8 +49,6 @@ export type GameState = {
   nextDrawLimitCost: number;
   nextSlotCapacityCost: number;
   nextInstabilityCost: number;
-  warpProgress: number;
-  warpProgressTarget: number;
   warpCoreTarget: number;
   bag: CoreModule[];
   discard: CoreModule[];

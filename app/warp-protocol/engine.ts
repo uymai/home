@@ -8,7 +8,6 @@ const START_INSTABILITY_THRESHOLD = 4;
 const START_DRAW_LIMIT_COST = 4;
 const START_SLOT_CAPACITY_COST = 4;
 const START_INSTABILITY_COST = 5;
-const WARP_PROGRESS_TARGET = 8;
 const WARP_CORE_TARGET = 4;
 
 function hashSeed(seed: string): number {
@@ -133,21 +132,15 @@ function drawModuleFromBag(bag: CoreModule[], rngState: number): { drawnModule: 
   return { drawnModule, bag: nextBag, rngState: random.nextState };
 }
 
-function countOwnedWarpCores(state: GameState): number {
-  return [...state.bag, ...state.discard, ...state.activePile].reduce((sum, core) => sum + (core.isWarpCore ? 1 : 0), 0);
-}
-
-function applyWinCheck(state: GameState): GameState {
-  const ownedWarpCores = countOwnedWarpCores(state);
-  const won = ownedWarpCores >= state.warpCoreTarget || state.warpProgress >= state.warpProgressTarget;
-  if (!won) {
+function applyRoundWinCheck(state: GameState, roundWarpCores: number, roundNumber: number): GameState {
+  if (roundWarpCores < state.warpCoreTarget) {
     return state;
   }
   return {
     ...state,
     status: 'won',
-    score: state.rounds,
-    log: [...state.log, `Warp protocol complete. Owned cores ${ownedWarpCores}/${state.warpCoreTarget}, progress ${state.warpProgress}/${state.warpProgressTarget}.`],
+    score: roundNumber,
+    log: [...state.log, `Warp protocol complete. Played ${roundWarpCores} warp cores in round ${roundNumber}.`],
   };
 }
 
@@ -260,7 +253,6 @@ function stopAndBank(state: GameState): GameState {
     roundStatus: 'stopped',
     bankedFlux: state.bankedFlux + state.roundFlux,
     bankedCredits: state.bankedCredits + state.roundCredits,
-    warpProgress: state.warpProgress + warpDrawn,
     discard: [...state.discard, ...discarded],
     activePile: [],
     lastDiscarded: discarded,
@@ -272,7 +264,7 @@ function stopAndBank(state: GameState): GameState {
     log: [...state.log, `Banked round ${nextRoundNumber}: +${state.roundFlux} flux, +${state.roundCredits} credits.`],
   };
 
-  return applyWinCheck(bankedState);
+  return applyRoundWinCheck(bankedState, warpDrawn, nextRoundNumber);
 }
 
 function buyModule(state: GameState, kind: FluxPurchaseKind): GameState {
@@ -296,7 +288,7 @@ function buyModule(state: GameState, kind: FluxPurchaseKind): GameState {
     nextModuleId: state.nextModuleId + 1,
     log: [...state.log, `Purchased ${purchasedModule.name} for ${purchasedModule.costFlux} flux and ${purchasedModule.costCredits} credits.`],
   };
-  return applyWinCheck(nextState);
+  return nextState;
 }
 
 function buyUpgrade(state: GameState, kind: CreditUpgradeKind): GameState {
@@ -390,8 +382,6 @@ export function createInitialState(seed: string): GameState {
     nextDrawLimitCost: START_DRAW_LIMIT_COST,
     nextSlotCapacityCost: START_SLOT_CAPACITY_COST,
     nextInstabilityCost: START_INSTABILITY_COST,
-    warpProgress: 0,
-    warpProgressTarget: WARP_PROGRESS_TARGET,
     warpCoreTarget: WARP_CORE_TARGET,
     bag,
     discard: [],
