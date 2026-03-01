@@ -5,6 +5,7 @@ export type CoreKind =
   | 'volatile-lens'
   | 'warp-core';
 
+export type GameMode = 'random' | 'seeded' | 'daily';
 export type GameStatus = 'playing' | 'won';
 export type RoundStatus = 'drawing' | 'stopped' | 'busted';
 
@@ -32,11 +33,14 @@ export type RoundSnapshot = {
 };
 
 export type GameState = {
+  mode: GameMode;
   seed: string;
+  dailyDate: string | null;
   status: GameStatus;
   rounds: number;
   score: number | null;
   roundStatus: RoundStatus;
+  volatilityExceededCount: number;
   bankedFlux: number;
   bankedCredits: number;
   roundFlux: number;
@@ -70,4 +74,4 @@ export type GameAction =
   | { type: 'buy-module'; kind: FluxPurchaseKind }
   | { type: 'buy-upgrade'; kind: CreditUpgradeKind }
   | { type: 'start-next-round' }
-  | { type: 'new-run'; seed: string };
+  | { type: 'new-run'; seed: string; mode?: GameMode; dailyDate?: string | null };

@@ -1,4 +1,4 @@
-import { CoreKind, CoreModule, CreditUpgradeKind, FluxPurchaseKind, GameAction, GameState, RoundSnapshot } from './types';
+import { CoreKind, CoreModule, CreditUpgradeKind, FluxPurchaseKind, GameAction, GameMode, GameState, RoundSnapshot } from './types';
 
 const START_BANKED_FLUX = 0;
 const START_BANKED_CREDITS = 0;
@@ -144,7 +144,7 @@ function applyRoundWinCheck(state: GameState, roundWarpCores: number, roundNumbe
   };
 }
 
-function bustRound(state: GameState, extraLog: string): GameState {
+function bustRound(state: GameState, extraLog: string, volatilityExceeded: boolean): GameState {
   const nextRoundNumber = state.rounds + 1;
   const discarded = [...state.activePile];
   const roundResult: RoundSnapshot = {
@@ -159,6 +159,7 @@ function bustRound(state: GameState, extraLog: string): GameState {
     ...state,
     rounds: nextRoundNumber,
     roundStatus: 'busted',
+    volatilityExceededCount: state.volatilityExceededCount + (volatilityExceeded ? 1 : 0),
     discard: [...state.discard, ...discarded],
     activePile: [],
     lastDiscarded: discarded,
@@ -222,10 +223,10 @@ function drawModule(state: GameState): GameState {
   };
 
   if (nextState.activePile.length > nextState.slotCapacity) {
-    return bustRound(nextState, 'Slot capacity exceeded.');
+    return bustRound(nextState, 'Slot capacity exceeded.', false);
   }
   if (nextState.roundInstability >= nextState.instabilityThreshold) {
-    return bustRound(nextState, 'Instability threshold exceeded.');
+    return bustRound(nextState, 'Instability threshold exceeded.', true);
   }
 
   return nextState;
@@ -358,18 +359,27 @@ function seedInstabilityModifier(seedHash: number): { delta: number; label: stri
   return { delta: 1, label: 'Seed modifier: reinforced reactor (+1 instability threshold).' };
 }
 
-export function createInitialState(seed: string): GameState {
+function dailySeedFromDate(dailyDate: string): string {
+  return `daily-${dailyDate}`;
+}
+
+export function createInitialState(seed: string, options?: { mode?: GameMode; dailyDate?: string | null }): GameState {
   const bag = startingBag();
   const seedHash = hashSeed(seed);
   const modifier = seedInstabilityModifier(seedHash);
   const instabilityThreshold = Math.max(2, START_INSTABILITY_THRESHOLD + modifier.delta);
+  const mode = options?.mode ?? 'random';
+  const dailyDate = mode === 'daily' ? options?.dailyDate ?? seed.replace(/^daily-/, '') : null;
 
   return {
+    mode,
     seed,
+    dailyDate,
     status: 'playing',
     rounds: 0,
     score: null,
     roundStatus: 'drawing',
+    volatilityExceededCount: 0,
     bankedFlux: START_BANKED_FLUX,
     bankedCredits: START_BANKED_CREDITS,
     roundFlux: 0,
@@ -408,7 +418,7 @@ export function reduceGameState(state: GameState, action: GameAction): GameState
     case 'start-next-round':
       return startNextRound(state);
     case 'new-run':
-      return createInitialState(action.seed);
+      return createInitialState(action.seed, { mode: action.mode, dailyDate: action.dailyDate });
     default:
       return state;
   }
@@ -423,4 +433,8 @@ export function generateSeed(): string {
     seedChars.push(alphabet[bytes[i] % alphabet.length]);
   }
   return seedChars.join('');
+}
+
+export function generateDailySeed(dailyDate: string): string {
+  return dailySeedFromDate(dailyDate);
 }

@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useReducer, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { createInitialState, generateSeed, reduceGameState } from './engine';
-import { CoreModule, CreditUpgradeKind, FluxPurchaseKind } from './types';
+import { createInitialState, generateDailySeed, generateSeed, reduceGameState } from './engine';
+import { CoreModule, CreditUpgradeKind, FluxPurchaseKind, GameMode } from './types';
 
 type WarpProtocolClientProps = {
   initialSeed?: string;
+  initialMode?: GameMode;
+  initialDailyDate?: string;
 };
 
 const moduleKinds: FluxPurchaseKind[] = ['flux-coil', 'sponsored-relay', 'stabilizer', 'volatile-lens', 'warp-core'];
@@ -193,24 +195,55 @@ function DiscardPanel({ discard, lastDiscarded }: { discard: CoreModule[]; lastD
   );
 }
 
-export default function WarpProtocolClient({ initialSeed }: WarpProtocolClientProps) {
+function todayDateString(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export default function WarpProtocolClient({ initialSeed, initialMode = 'random', initialDailyDate }: WarpProtocolClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const seed = useMemo(() => (initialSeed && initialSeed.trim() ? initialSeed.trim() : generateSeed()), [initialSeed]);
-  const [state, dispatch] = useReducer(reduceGameState, seed, createInitialState);
+  const [state, dispatch] = useReducer(reduceGameState, seed, (startingSeed) =>
+    createInitialState(startingSeed, { mode: initialMode, dailyDate: initialDailyDate ?? null }),
+  );
+  const [seedInput, setSeedInput] = useState(initialSeed ?? '');
+  const [shareCopied, setShareCopied] = useState(false);
+
+  const replaceRunUrl = useCallback((nextMode: GameMode, nextSeed: string, nextDailyDate?: string | null) => {
+    const params = new URLSearchParams();
+    params.set('mode', nextMode);
+    if (nextMode === 'daily') {
+      params.set('date', nextDailyDate ?? todayDateString());
+    } else {
+      params.set('seed', nextSeed);
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [pathname, router]);
 
   useEffect(() => {
     if (!initialSeed) {
-      router.replace(`${pathname}?seed=${seed}`, { scroll: false });
+      replaceRunUrl(initialMode, seed, initialDailyDate ?? null);
     }
-  }, [initialSeed, pathname, router, seed]);
+  }, [initialDailyDate, initialMode, initialSeed, replaceRunUrl, seed]);
 
   const canDraw = state.status === 'playing' && state.roundStatus === 'drawing';
   const canManageBetweenRounds = state.status === 'playing' && state.roundStatus !== 'drawing';
   const instabilityWarning = canDraw && state.roundInstability >= state.instabilityThreshold - 1;
-  const shareUrl = `${pathname}?seed=${state.seed}`;
+  const shareUrl =
+    state.mode === 'daily'
+      ? `${pathname}?mode=daily&date=${state.dailyDate ?? todayDateString()}`
+      : `${pathname}?mode=${state.mode}&seed=${state.seed}`;
   const phaseLabel = canDraw ? 'Run Phase' : 'Buy Phase';
   const nextRoundBag = useMemo(() => [...state.bag, ...state.discard], [state.bag, state.discard]);
+  const challengeLabel = state.mode === 'daily' ? `Daily ${state.dailyDate ?? todayDateString()}` : `Seed ${state.seed}`;
+
+  async function copyShareResult() {
+    const statusText = state.status === 'won' ? `won in ${state.rounds} rounds` : `${state.rounds} rounds played`;
+    const summary = `Warp Protocol ${challengeLabel}: ${statusText}, volatility exceeded ${state.volatilityExceededCount} time${state.volatilityExceededCount === 1 ? '' : 's'}.`;
+    await navigator.clipboard.writeText(summary);
+    setShareCopied(true);
+    window.setTimeout(() => setShareCopied(false), 1500);
+  }
 
   return (
     <main className="min-h-screen bg-slate-950 p-6 text-slate-100 sm:p-10">
@@ -225,9 +258,61 @@ export default function WarpProtocolClient({ initialSeed }: WarpProtocolClientPr
         <div className="rounded-lg border border-slate-700 bg-slate-900 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm font-semibold text-cyan-300">{phaseLabel}</p>
-            <p className="text-xs text-slate-400">Seed: {state.seed}</p>
+            <p className="text-xs text-slate-400">{challengeLabel}</p>
           </div>
           <p className="mt-2 text-sm text-slate-300 break-all">Share link: <span className="font-mono text-cyan-300">{shareUrl}</span></p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const nextSeed = generateSeed();
+                dispatch({ type: 'new-run', seed: nextSeed, mode: 'random', dailyDate: null });
+                setSeedInput(nextSeed);
+                replaceRunUrl('random', nextSeed, null);
+              }}
+              className={`rounded px-3 py-2 text-sm font-semibold ${state.mode === 'random' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-200'}`}
+            >
+              Random
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const nextSeed = seedInput.trim() || state.seed;
+                dispatch({ type: 'new-run', seed: nextSeed, mode: 'seeded', dailyDate: null });
+                setSeedInput(nextSeed);
+                replaceRunUrl('seeded', nextSeed, null);
+              }}
+              className={`rounded px-3 py-2 text-sm font-semibold ${state.mode === 'seeded' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-200'}`}
+            >
+              Seeded
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const nextDailyDate = todayDateString();
+                const nextSeed = generateDailySeed(nextDailyDate);
+                dispatch({ type: 'new-run', seed: nextSeed, mode: 'daily', dailyDate: nextDailyDate });
+                replaceRunUrl('daily', nextSeed, nextDailyDate);
+              }}
+              className={`rounded px-3 py-2 text-sm font-semibold ${state.mode === 'daily' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-200'}`}
+            >
+              Daily
+            </button>
+            <input
+              type="text"
+              value={seedInput}
+              onChange={(event) => setSeedInput(event.target.value)}
+              placeholder="Enter challenge seed"
+              className="min-w-52 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white"
+            />
+            <button
+              type="button"
+              onClick={copyShareResult}
+              className="rounded bg-emerald-700 px-3 py-2 text-sm font-semibold text-white"
+            >
+              {shareCopied ? 'Copied' : 'Share your result'}
+            </button>
+          </div>
         </div>
 
         {canDraw ? (
@@ -269,8 +354,9 @@ export default function WarpProtocolClient({ initialSeed }: WarpProtocolClientPr
                   type="button"
                   onClick={() => {
                     const nextSeed = generateSeed();
-                    dispatch({ type: 'new-run', seed: nextSeed });
-                    router.replace(`${pathname}?seed=${nextSeed}`, { scroll: false });
+                    dispatch({ type: 'new-run', seed: nextSeed, mode: 'random', dailyDate: null });
+                    setSeedInput(nextSeed);
+                    replaceRunUrl('random', nextSeed, null);
                   }}
                   className="rounded bg-fuchsia-600 px-3 py-2 text-sm font-semibold text-white"
                 >

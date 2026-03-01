@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
+import { useState, useEffect, useMemo, Suspense, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -45,6 +45,36 @@ function RecipesContent() {
   const [stayOnEnabled, setStayOnEnabled] = useState(false);
   const [wakeLockSupported, setWakeLockSupported] = useState(false);
 
+  const requestWakeLock = useCallback(async () => {
+    if (!wakeLockSupported || wakeLockRef.current) return;
+    try {
+      // Wake Lock can only be acquired while the document is visible
+      if (document.visibilityState !== 'visible') return;
+      const sentinel = await (navigator as NavigatorWithWakeLock).wakeLock?.request('screen');
+      if (!sentinel) {
+        return;
+      }
+      wakeLockRef.current = sentinel;
+      setWakeLockActive(true);
+      // When released (by system or manual), update state
+      const onRelease = () => {
+        wakeLockRef.current = null;
+        setWakeLockActive(false);
+        // Do NOT change stayOnEnabled here; if user wanted it, we'll re-acquire on visibility
+      };
+      // Support both listener styles across browsers
+      sentinel.addEventListener?.('release', onRelease);
+      sentinel.onrelease = onRelease;
+    } catch (err) {
+      console.error('Failed to acquire wake lock:', err);
+      // Keep state in sync
+      wakeLockRef.current = null;
+      setWakeLockActive(false);
+      // Visible feedback for users if their browser blocks it
+      // Avoid blocking alert as it may disrupt user gesture; fall back to subtle console error
+    }
+  }, [wakeLockSupported]);
+
   useEffect(() => {
     // Load recipes from the data directory
     const loadRecipes = async () => {
@@ -79,9 +109,10 @@ function RecipesContent() {
     const onVisibility = () => {
       // Only (re)acquire when user asked to keep screen on and page is visible
       if (document.visibilityState === 'visible' && stayOnEnabled && !wakeLockRef.current) {
-        requestWakeLock();
+        void requestWakeLock();
       }
     };
+
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
@@ -92,7 +123,7 @@ function RecipesContent() {
         });
       }
     };
-  }, [stayOnEnabled]);
+  }, [requestWakeLock, stayOnEnabled]);
 
   // Handle URL parameters for direct recipe linking
   useEffect(() => {
@@ -137,37 +168,6 @@ function RecipesContent() {
       }
     }
   }, [selectedRecipe, wakeLockActive, stayOnEnabled]);
-
-  // Wake Lock helpers
-  const requestWakeLock = async () => {
-    if (!wakeLockSupported || wakeLockRef.current) return;
-    try {
-      // Wake Lock can only be acquired while the document is visible
-      if (document.visibilityState !== 'visible') return;
-      const sentinel = await (navigator as NavigatorWithWakeLock).wakeLock?.request('screen');
-      if (!sentinel) {
-        return;
-      }
-      wakeLockRef.current = sentinel;
-      setWakeLockActive(true);
-      // When released (by system or manual), update state
-      const onRelease = () => {
-        wakeLockRef.current = null;
-        setWakeLockActive(false);
-        // Do NOT change stayOnEnabled here; if user wanted it, we'll re-acquire on visibility
-      };
-      // Support both listener styles across browsers
-      sentinel.addEventListener?.('release', onRelease);
-      sentinel.onrelease = onRelease;
-    } catch (err) {
-      console.error('Failed to acquire wake lock:', err);
-      // Keep state in sync
-      wakeLockRef.current = null;
-      setWakeLockActive(false);
-      // Visible feedback for users if their browser blocks it
-      // Avoid blocking alert as it may disrupt user gesture; fall back to subtle console error
-    }
-  };
 
   const releaseWakeLock = async () => {
     try {
