@@ -2,10 +2,8 @@ import { CoreKind, CoreModule, CreditUpgradeKind, FluxPurchaseKind, GameAction, 
 
 const START_BANKED_FLUX = 0;
 const START_BANKED_CREDITS = 0;
-const START_DRAW_LIMIT = 4;
 const START_SLOT_CAPACITY = 4;
 const START_INSTABILITY_THRESHOLD = 4;
-const START_DRAW_LIMIT_COST = 4;
 const START_SLOT_CAPACITY_COST = 4;
 const START_INSTABILITY_COST = 5;
 const WARP_CORE_TARGET = 4;
@@ -144,6 +142,44 @@ function applyRoundWinCheck(state: GameState, roundWarpCores: number, roundNumbe
   };
 }
 
+function bankRound(state: GameState, bankReason: 'manual' | 'auto-capacity'): GameState {
+  const nextRoundNumber = state.rounds + 1;
+  const discarded = [...state.activePile];
+  const warpDrawn = discarded.reduce((sum, core) => sum + (core.isWarpCore ? 1 : 0), 0);
+  const roundResult: RoundSnapshot = {
+    number: nextRoundNumber,
+    status: 'stopped',
+    bankReason,
+    drawn: discarded,
+    roundFlux: state.roundFlux,
+    roundCredits: state.roundCredits,
+    roundInstability: state.roundInstability,
+  };
+
+  const bankedState: GameState = {
+    ...state,
+    rounds: nextRoundNumber,
+    roundStatus: 'stopped',
+    bankedFlux: state.bankedFlux + state.roundFlux,
+    bankedCredits: state.bankedCredits + state.roundCredits,
+    discard: [...state.discard, ...discarded],
+    activePile: [],
+    lastDiscarded: discarded,
+    lastRound: roundResult,
+    roundFlux: 0,
+    roundCredits: 0,
+    roundInstability: 0,
+    log: [
+      ...state.log,
+      bankReason === 'auto-capacity'
+        ? `Round ${nextRoundNumber} auto-banked on slot capacity: +${state.roundFlux} flux, +${state.roundCredits} credits.`
+        : `Banked round ${nextRoundNumber}: +${state.roundFlux} flux, +${state.roundCredits} credits.`,
+    ],
+  };
+
+  return applyRoundWinCheck(bankedState, warpDrawn, nextRoundNumber);
+}
+
 function bustRound(state: GameState, extraLog: string, volatilityExceeded: boolean): GameState {
   const nextRoundNumber = state.rounds + 1;
   const discarded = [...state.activePile];
@@ -167,7 +203,6 @@ function bustRound(state: GameState, extraLog: string, volatilityExceeded: boole
     roundFlux: 0,
     roundCredits: 0,
     roundInstability: 0,
-    drawCount: 0,
     log: [...state.log, extraLog, `Round ${nextRoundNumber} busted. Unbanked rewards were lost.`],
   };
 }
@@ -175,12 +210,6 @@ function bustRound(state: GameState, extraLog: string, volatilityExceeded: boole
 function drawModule(state: GameState): GameState {
   if (state.status !== 'playing' || state.roundStatus !== 'drawing') {
     return state;
-  }
-  if (state.drawCount >= state.drawLimit) {
-    return {
-      ...state,
-      log: [...state.log, `Draw limit reached (${state.drawLimit}). Stop and bank.`],
-    };
   }
 
   let bag = [...state.bag];
@@ -218,15 +247,14 @@ function drawModule(state: GameState): GameState {
     roundFlux,
     roundCredits,
     roundInstability,
-    drawCount: state.drawCount + 1,
     log: [...log, `Drew ${draw.drawnModule.name}. Unbanked: ${roundFlux} flux, ${roundCredits} credits. Instability ${roundInstability}/${state.instabilityThreshold}.`],
   };
 
-  if (nextState.activePile.length > nextState.slotCapacity) {
-    return bustRound(nextState, 'Slot capacity exceeded.', false);
-  }
   if (nextState.roundInstability >= nextState.instabilityThreshold) {
     return bustRound(nextState, 'Instability threshold exceeded.', true);
+  }
+  if (nextState.activePile.length === nextState.slotCapacity) {
+    return bankRound(nextState, 'auto-capacity');
   }
 
   return nextState;
@@ -236,36 +264,7 @@ function stopAndBank(state: GameState): GameState {
   if (state.status !== 'playing' || state.roundStatus !== 'drawing') {
     return state;
   }
-  const nextRoundNumber = state.rounds + 1;
-  const discarded = [...state.activePile];
-  const warpDrawn = discarded.reduce((sum, core) => sum + (core.isWarpCore ? 1 : 0), 0);
-  const roundResult: RoundSnapshot = {
-    number: nextRoundNumber,
-    status: 'stopped',
-    drawn: discarded,
-    roundFlux: state.roundFlux,
-    roundCredits: state.roundCredits,
-    roundInstability: state.roundInstability,
-  };
-
-  const bankedState: GameState = {
-    ...state,
-    rounds: nextRoundNumber,
-    roundStatus: 'stopped',
-    bankedFlux: state.bankedFlux + state.roundFlux,
-    bankedCredits: state.bankedCredits + state.roundCredits,
-    discard: [...state.discard, ...discarded],
-    activePile: [],
-    lastDiscarded: discarded,
-    lastRound: roundResult,
-    roundFlux: 0,
-    roundCredits: 0,
-    roundInstability: 0,
-    drawCount: 0,
-    log: [...state.log, `Banked round ${nextRoundNumber}: +${state.roundFlux} flux, +${state.roundCredits} credits.`],
-  };
-
-  return applyRoundWinCheck(bankedState, warpDrawn, nextRoundNumber);
+  return bankRound(state, 'manual');
 }
 
 function buyModule(state: GameState, kind: FluxPurchaseKind): GameState {
@@ -321,16 +320,7 @@ function buyUpgrade(state: GameState, kind: CreditUpgradeKind): GameState {
     };
   }
 
-  if (state.bankedCredits < state.nextDrawLimitCost) {
-    return { ...state, log: [...state.log, `Not enough credits for draw limit upgrade (cost ${state.nextDrawLimitCost}).`] };
-  }
-  return {
-    ...state,
-    bankedCredits: state.bankedCredits - state.nextDrawLimitCost,
-    drawLimit: state.drawLimit + 1,
-    nextDrawLimitCost: state.nextDrawLimitCost + 2,
-    log: [...state.log, `Upgraded draw limit to ${state.drawLimit + 1}.`],
-  };
+  return state;
 }
 
 function startNextRound(state: GameState): GameState {
@@ -385,11 +375,8 @@ export function createInitialState(seed: string, options?: { mode?: GameMode; da
     roundFlux: 0,
     roundCredits: 0,
     roundInstability: 0,
-    drawCount: 0,
-    drawLimit: START_DRAW_LIMIT,
     slotCapacity: START_SLOT_CAPACITY,
     instabilityThreshold,
-    nextDrawLimitCost: START_DRAW_LIMIT_COST,
     nextSlotCapacityCost: START_SLOT_CAPACITY_COST,
     nextInstabilityCost: START_INSTABILITY_COST,
     warpCoreTarget: WARP_CORE_TARGET,

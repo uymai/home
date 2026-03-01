@@ -26,6 +26,7 @@ export type CoreModule = {
 export type RoundSnapshot = {
   number: number;
   status: RoundStatus;
+  bankReason?: 'manual' | 'auto-capacity';
   drawn: CoreModule[];
   roundFlux: number;
   roundCredits: number;
@@ -46,11 +47,8 @@ export type GameState = {
   roundFlux: number;
   roundCredits: number;
   roundInstability: number;
-  drawCount: number;
-  drawLimit: number;
   slotCapacity: number;
   instabilityThreshold: number;
-  nextDrawLimitCost: number;
   nextSlotCapacityCost: number;
   nextInstabilityCost: number;
   warpCoreTarget: number;
@@ -66,7 +64,7 @@ export type GameState = {
 };
 
 export type FluxPurchaseKind = CoreKind;
-export type CreditUpgradeKind = 'slot-capacity' | 'instability-threshold' | 'draw-limit';
+export type CreditUpgradeKind = 'slot-capacity' | 'instability-threshold';
 
 export type GameAction =
   | { type: 'draw-module' }

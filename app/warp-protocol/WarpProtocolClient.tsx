@@ -13,7 +13,7 @@ type WarpProtocolClientProps = {
 };
 
 const moduleKinds: FluxPurchaseKind[] = ['flux-coil', 'sponsored-relay', 'stabilizer', 'volatile-lens', 'warp-core'];
-const upgradeKinds: CreditUpgradeKind[] = ['slot-capacity', 'instability-threshold', 'draw-limit'];
+const upgradeKinds: CreditUpgradeKind[] = ['slot-capacity', 'instability-threshold'];
 
 const moduleTemplates: Record<FluxPurchaseKind, Omit<CoreModule, 'id'>> = {
   'flux-coil': {
@@ -102,8 +102,6 @@ function upgradeLabel(kind: CreditUpgradeKind): string {
       return 'Slot Capacity';
     case 'instability-threshold':
       return 'Instability Tolerance';
-    case 'draw-limit':
-      return 'Draw Limit';
     default:
       return kind;
   }
@@ -236,6 +234,13 @@ export default function WarpProtocolClient({ initialSeed, initialMode = 'random'
   const phaseLabel = canDraw ? 'Run Phase' : 'Buy Phase';
   const nextRoundBag = useMemo(() => [...state.bag, ...state.discard], [state.bag, state.discard]);
   const challengeLabel = state.mode === 'daily' ? `Daily ${state.dailyDate ?? todayDateString()}` : `Seed ${state.seed}`;
+  const lastRoundWarpCores = state.lastRound?.drawn.reduce((sum, module) => sum + (module.isWarpCore ? 1 : 0), 0) ?? 0;
+  const lastRoundOutcome =
+    state.lastRound?.status === 'busted'
+      ? 'BUSTED'
+      : state.lastRound?.bankReason === 'auto-capacity'
+        ? 'AUTO-BANKED'
+        : 'BANKED';
 
   async function copyShareResult() {
     const statusText = state.status === 'won' ? `won in ${state.rounds} rounds` : `${state.rounds} rounds played`;
@@ -319,6 +324,9 @@ export default function WarpProtocolClient({ initialSeed, initialMode = 'random'
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <section className="rounded-lg border border-slate-700 bg-slate-900 p-4 lg:col-span-2">
               <h2 className="mb-3 text-lg font-semibold">Current Run</h2>
+              <p className="mb-3 text-sm text-slate-300">
+                Draw one module at a time. Stop to bank early, or keep drawing until instability busts the round. If installed modules reach slot capacity, the round auto-banks.
+              </p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <Stat label="Instability" value={`${state.roundInstability}/${state.instabilityThreshold}`} />
                 <Stat label="Unbanked Flux" value={state.roundFlux} />
@@ -382,7 +390,39 @@ export default function WarpProtocolClient({ initialSeed, initialMode = 'random'
             <DiscardPanel discard={state.discard} lastDiscarded={state.lastDiscarded} />
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="space-y-4">
+            <section className="rounded-lg border border-slate-700 bg-slate-900 p-4">
+              <h2 className="mb-3 text-lg font-semibold">Run Summary</h2>
+              {!state.lastRound ? (
+                <p className="text-sm text-slate-400">No completed round yet.</p>
+              ) : (
+                <div className="space-y-3 text-sm text-slate-300">
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-6">
+                    <Stat label="Round" value={state.lastRound.number} />
+                    <Stat label="Outcome" value={lastRoundOutcome} />
+                    <Stat label="Flux" value={state.lastRound.roundFlux} />
+                    <Stat label="Credits" value={state.lastRound.roundCredits} />
+                    <Stat label="Instability" value={state.lastRound.roundInstability} />
+                    <Stat label="Warp Cores" value={lastRoundWarpCores} />
+                  </div>
+                  <p>
+                    Modules played:{' '}
+                    <span className="font-mono">
+                      {state.lastRound.drawn.map((module) => module.name).join(', ') || '-'}
+                    </span>
+                  </p>
+                  <p>
+                    {state.lastRound.status === 'busted'
+                      ? 'This round busted. Unbanked rewards were lost.'
+                      : state.lastRound.bankReason === 'auto-capacity'
+                        ? 'This round auto-banked at slot capacity. Rewards were added to your totals.'
+                        : 'This round was banked manually. Rewards were added to your totals.'}
+                  </p>
+                </div>
+              )}
+            </section>
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <section className="rounded-lg border border-slate-700 bg-slate-900 p-4 lg:col-span-1">
               <h2 className="mb-3 text-lg font-semibold">Your Resources</h2>
               <div className="grid grid-cols-2 gap-3">
@@ -433,12 +473,7 @@ export default function WarpProtocolClient({ initialSeed, initialMode = 'random'
               <h3 className="mt-4 mb-2 text-sm font-semibold uppercase tracking-wide text-slate-300">Upgrades</h3>
               <div className="flex flex-wrap gap-2">
                 {upgradeKinds.map((kind) => {
-                  const cost =
-                    kind === 'slot-capacity'
-                      ? state.nextSlotCapacityCost
-                      : kind === 'instability-threshold'
-                        ? state.nextInstabilityCost
-                        : state.nextDrawLimitCost;
+                  const cost = kind === 'slot-capacity' ? state.nextSlotCapacityCost : state.nextInstabilityCost;
                   return (
                     <button
                       key={kind}
@@ -456,6 +491,7 @@ export default function WarpProtocolClient({ initialSeed, initialMode = 'random'
 
             <BagPanel bag={nextRoundBag} title="Next Round Bag" />
             <DiscardPanel discard={state.discard} lastDiscarded={state.lastDiscarded} />
+            </div>
           </div>
         )}
 
