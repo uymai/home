@@ -86,12 +86,9 @@ function RecipesContent() {
   useEffect(() => {
     const recipeParam = searchParams.get('recipe');
     if (recipeParam && recipes.length > 0) {
-      // Find recipe by filename (without .json extension)
+      // Find recipe by the same slug format used for share links
       const recipe = recipes.find(r => 
-        recipeParam === r.title.toLowerCase()
-          .replace(/[^a-z0-9]/g, '-')
-          .replace(/-+/g, '-')
-          .replace(/^-|-$/g, '')
+        recipeParam === generateRecipeSlug(r.title)
       );
       if (recipe) {
         setSelectedRecipe(recipe);
@@ -211,8 +208,7 @@ function RecipesContent() {
   // Generate URL-friendly slug from recipe title
   const generateRecipeSlug = (title: string) => {
     return title.toLowerCase()
-      .replace(/[^a-z0-9\s]/g, '')
-      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9]+/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '');
   };
