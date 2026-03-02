@@ -5,7 +5,13 @@
   "cookTime": "8 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["vegetable", "side", "quick", "light", "green cabbage"],
+  "tags": [
+    "vegetable",
+    "side",
+    "quick",
+    "light",
+    "green cabbage"
+  ],
   "ingredients": [
     "1 small green cabbage, thinly sliced (about 6–7 cups)",
     "1 teaspoon olive oil (or canola)",
@@ -22,5 +28,11 @@
     "Taste and adjust seasoning. Add red pepper flakes or sesame oil if desired.",
     "Cook 1 additional minute until glossy and lightly caramelized. Serve warm."
   ],
+  "macros": {
+    "calories": 59,
+    "protein": 2,
+    "carbs": 12,
+    "fat": 1
+  },
   "notes": "For a burger topping version, cook only 3–4 minutes to keep the cabbage crisper. Use sesame oil sparingly—it goes a long way. Green cabbage is preferred here; red cabbage stays too firm and gets earthy with rosemary."
 }

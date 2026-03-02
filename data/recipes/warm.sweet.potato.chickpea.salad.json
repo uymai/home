@@ -5,7 +5,15 @@
   "cookTime": "25 minutes",
   "servings": 3,
   "difficulty": "Easy",
-  "tags": ["salad", "meal-prep", "vegetarian", "healthy", "roasted", "tahini", "gluten-free"],
+  "tags": [
+    "salad",
+    "meal-prep",
+    "vegetarian",
+    "healthy",
+    "roasted",
+    "tahini",
+    "gluten-free"
+  ],
   "ingredients": [
     "4 cups kale, stems removed, chopped",
     "2 medium sweet potatoes, peeled & cubed (about 1\" pieces)",
@@ -32,5 +40,11 @@
     "Add roasted sweet potatoes & chickpeas to the kale. Toss with dressing while still warm.",
     "Top with feta or goat cheese crumbles and serve warm."
   ],
+  "macros": {
+    "calories": 439,
+    "protein": 12,
+    "carbs": 37,
+    "fat": 29
+  },
   "notes": "Keeps 4 days in fridge, keep dressing separate if storing more than 1 day. Optional upgrades: Add roasted red peppers or caramelized onions for sweetness, sprinkle pumpkin seeds for crunch, or swap feta for shaved parmesan if you want it saltier."
 }

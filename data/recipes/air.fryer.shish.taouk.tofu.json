@@ -5,7 +5,13 @@
   "cookTime": "10–12 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["tofu", "air fryer", "vegetarian", "high-protein", "mediterranean"],
+  "tags": [
+    "tofu",
+    "air fryer",
+    "vegetarian",
+    "high-protein",
+    "mediterranean"
+  ],
   "ingredients": [
     "1 block (454 g) extra-firm tofu, frozen then thawed",
     "3 tbsp Greek yogurt",
@@ -31,5 +37,11 @@
     "Air fry for 10–12 minutes, shaking or flipping halfway, until golden with crispy edges.",
     "Let rest 2 minutes before serving."
   ],
+  "macros": {
+    "calories": 140,
+    "protein": 11,
+    "carbs": 6,
+    "fat": 10
+  },
   "notes": "Tofu browns best when spaced out. If you want a stronger char, spray lightly with olive oil before air frying. Serve with toum, chickpea-cucumber salad, or barley pilaf."
 }

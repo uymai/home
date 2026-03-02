@@ -5,7 +5,14 @@
   "cookTime": "0 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["dressing", "sauce", "spicy", "quick", "vegan-option", "gluten-free"],
+  "tags": [
+    "dressing",
+    "sauce",
+    "spicy",
+    "quick",
+    "vegan-option",
+    "gluten-free"
+  ],
   "ingredients": [
     "3 tbsp plain Greek yogurt (or 2 tbsp mayo if you want richer)",
     "1 tbsp olive oil or avocado oil",
@@ -22,5 +29,11 @@
     "Taste and adjust seasoning as needed.",
     "Store in refrigerator for up to 1 week."
   ],
+  "macros": {
+    "calories": 47,
+    "protein": 1,
+    "carbs": 3,
+    "fat": 4
+  },
   "notes": "Makes about ½ cup. For a vegan version, use maple syrup instead of honey and ensure your sriracha is vegan. The dressing will thicken in the fridge, so you may need to add a little water when serving."
 }

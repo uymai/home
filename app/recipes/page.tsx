@@ -4,19 +4,7 @@ import { useState, useEffect, useMemo, Suspense, useRef, useCallback } from 'rea
 import { useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-
-interface Recipe {
-  title: string;
-  description: string;
-  prepTime: string;
-  cookTime: string;
-  servings: number;
-  difficulty: string;
-  tags: string[];
-  ingredients: string[];
-  instructions: string[];
-  notes?: string;
-}
+import type { Recipe } from './types';
 
 type WakeLockSentinelLike = {
   addEventListener?: (type: 'release', listener: () => void) => void;
@@ -487,6 +475,26 @@ function RecipesContent() {
                   >
                     ×
                   </button>
+                </div>
+              </div>
+
+              <div className="mb-6 border-t border-gray-200 pt-4 dark:border-gray-700">
+                <h3 className="mb-3 text-lg font-semibold text-gray-900 dark:text-white">
+                  Macros (per serving)
+                </h3>
+                <div className="grid gap-x-8 gap-y-2 sm:grid-cols-2">
+                  <p className="text-gray-700 dark:text-gray-300">
+                    <span className="font-medium text-gray-900 dark:text-white">Calories:</span> {selectedRecipe.macros.calories}
+                  </p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    <span className="font-medium text-gray-900 dark:text-white">Protein:</span> {selectedRecipe.macros.protein}g
+                  </p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    <span className="font-medium text-gray-900 dark:text-white">Carbs:</span> {selectedRecipe.macros.carbs}g
+                  </p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    <span className="font-medium text-gray-900 dark:text-white">Fat:</span> {selectedRecipe.macros.fat}g
+                  </p>
                 </div>
               </div>
 

@@ -5,7 +5,15 @@
   "cookTime": "1 minute",
   "servings": 6,
   "difficulty": "Easy",
-  "tags": ["sauce", "high-protein", "yogurt", "Mediterranean", "Cuban-inspired", "chicken", "low-fat"],
+  "tags": [
+    "sauce",
+    "high-protein",
+    "yogurt",
+    "Mediterranean",
+    "Cuban-inspired",
+    "chicken",
+    "low-fat"
+  ],
   "ingredients": [
     "1/2 cup plain 0% Greek yogurt",
     "1 tbsp extra virgin olive oil",
@@ -25,5 +33,11 @@
     "Taste and adjust seasoning: add a touch more lime for brightness or a few drops of maple syrup if it’s too tangy.",
     "Chill for at least 30 minutes before serving to let flavors meld and the sauce thicken slightly."
   ],
+  "macros": {
+    "calories": 34,
+    "protein": 2,
+    "carbs": 2,
+    "fat": 2
+  },
   "notes": "Serve cool over grilled chicken breast or shish taouk skewers. Excellent as a dip for sweet potatoes, a dressing for kale or arugula salads, or a spread for wraps. Keeps 4–5 days in the fridge. For extra creaminess, blend briefly with an immersion blender before chilling."
 }

@@ -5,7 +5,12 @@
   "cookTime": "20 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["salmon", "sheet-pan", "family", "omega-3"],
+  "tags": [
+    "salmon",
+    "sheet-pan",
+    "family",
+    "omega-3"
+  ],
   "ingredients": [
     "4 salmon fillets (~170g each)",
     "2 cups broccoli florets",
@@ -24,5 +29,11 @@
     "Nestle salmon among veggies, brush with glaze.",
     "Bake 15–20 minutes, until salmon flakes easily."
   ],
+  "macros": {
+    "calories": 422,
+    "protein": 36,
+    "carbs": 8,
+    "fat": 26
+  },
   "notes": "Serve over rice or quinoa. Leftovers make great lunch bowls."
 }

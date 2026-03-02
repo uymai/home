@@ -5,7 +5,14 @@
   "cookTime": "0 minutes",
   "servings": 6,
   "difficulty": "easy",
-  "tags": ["spread", "sandwich", "chicken", "brie", "maple", "high-protein-friendly"],
+  "tags": [
+    "spread",
+    "sandwich",
+    "chicken",
+    "brie",
+    "maple",
+    "high-protein-friendly"
+  ],
   "ingredients": [
     "3 tbsp Dijon mustard",
     "2 tbsp light mayo or Greek yogurt (Greek = higher protein)",
@@ -23,5 +30,11 @@
     "Taste and adjust: add more lemon for brightness or maple for sweetness.",
     "Use immediately or refrigerate for up to 5 days."
   ],
+  "macros": {
+    "calories": 28,
+    "protein": 1,
+    "carbs": 3,
+    "fat": 1
+  },
   "notes": "Pairs best with lemon-rosemary chicken, Brie, and crisp thin apple slices on focaccia. Greek yogurt version adds extra protein and keeps calories lower."
 }

@@ -5,7 +5,16 @@
   "cookTime": "0 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["dressing", "sauce", "spicy", "sriracha", "soy", "vegan", "quick", "gluten-free"],
+  "tags": [
+    "dressing",
+    "sauce",
+    "spicy",
+    "sriracha",
+    "soy",
+    "vegan",
+    "quick",
+    "gluten-free"
+  ],
   "ingredients": [
     "2 tbsp Greek yogurt (or vegan yogurt)",
     "1 tbsp sriracha (adjust to taste)",
@@ -22,5 +31,11 @@
     "Taste and adjust sriracha for heat level and other seasonings as needed.",
     "Serve immediately or refrigerate for up to 3 days."
   ],
+  "macros": {
+    "calories": 13,
+    "protein": 1,
+    "carbs": 3,
+    "fat": 0
+  },
   "notes": "This dressing is perfect for Asian-inspired salads, grain bowls, or as a dipping sauce. Adjust sriracha to your heat preference - start with 1 tbsp and add more if you want it spicier. The vegan yogurt version works great for plant-based diets. Water helps thin it to a pourable consistency."
 }
