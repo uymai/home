@@ -192,10 +192,13 @@ function RecipesContent() {
 
   // Filter recipes based on search term and selected tag
   const filteredRecipes = useMemo(() => {
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+
     return recipes.filter(recipe => {
-      const matchesSearch = recipe.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           recipe.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           recipe.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesSearch = normalizedSearchTerm === '' ||
+                           recipe.title.toLowerCase().includes(normalizedSearchTerm) ||
+                           recipe.description.toLowerCase().includes(normalizedSearchTerm) ||
+                           recipe.tags.some(tag => tag.toLowerCase().includes(normalizedSearchTerm));
       const matchesTag = !selectedTag || recipe.tags.includes(selectedTag);
       return matchesSearch && matchesTag;
     });
@@ -222,6 +225,48 @@ function RecipesContent() {
     return `${window.location.origin}/recipes?recipe=${slug}`;
   };
 
+  const formatRecipeMarkdown = (recipe: Recipe) => {
+    const tags = recipe.tags.map((tag) => `\`${tag}\``).join(', ');
+
+    return [
+      `# ${recipe.title}`,
+      '',
+      recipe.description,
+      '',
+      `- Prep: ${recipe.prepTime}`,
+      `- Cook: ${recipe.cookTime}`,
+      `- Serves: ${recipe.servings}`,
+      `- Difficulty: ${recipe.difficulty}`,
+      '',
+      '## Macros (per serving)',
+      '',
+      `- Calories: ${recipe.macros.calories}`,
+      `- Protein: ${recipe.macros.protein}g`,
+      `- Carbs: ${recipe.macros.carbs}g`,
+      `- Fat: ${recipe.macros.fat}g`,
+      '',
+      '## Tags',
+      '',
+      tags,
+      '',
+      '## Ingredients',
+      '',
+      ...recipe.ingredients.map((ingredient) => `- ${ingredient}`),
+      '',
+      '## Instructions',
+      '',
+      ...recipe.instructions.map((instruction, index) => `${index + 1}. ${instruction}`),
+      ...(recipe.notes
+        ? [
+            '',
+            '## Notes',
+            '',
+            recipe.notes,
+          ]
+        : []),
+    ].join('\n');
+  };
+
   // Copy recipe URL to clipboard
   const copyRecipeUrl = async (recipe: Recipe) => {
     try {
@@ -231,6 +276,15 @@ function RecipesContent() {
       alert('Recipe link copied to clipboard!');
     } catch (err) {
       console.error('Failed to copy URL:', err);
+    }
+  };
+
+  const copyRecipeMarkdown = async (recipe: Recipe) => {
+    try {
+      await navigator.clipboard.writeText(formatRecipeMarkdown(recipe));
+      alert('Recipe copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy recipe:', err);
     }
   };
 
@@ -467,7 +521,14 @@ function RecipesContent() {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                     </svg>
-                    Share
+                    Copy Link
+                  </button>
+                  <button
+                    onClick={() => copyRecipeMarkdown(selectedRecipe)}
+                    className="px-3 py-1 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors text-sm"
+                    title="Copy recipe as Markdown"
+                  >
+                    Copy Recipe
                   </button>
                   <button
                     onClick={() => setSelectedRecipe(null)}
