@@ -5,7 +5,12 @@
   "cookTime": "0 minutes",
   "servings": 1,
   "difficulty": "Easy",
-  "tags": ["sandwich", "spread", "greek yogurt", "high-protein"],
+  "tags": [
+    "sandwich",
+    "spread",
+    "greek yogurt",
+    "high-protein"
+  ],
   "ingredients": [
     "3 tbsp Greek yogurt",
     "1 tsp Dijon mustard",
@@ -20,5 +25,11 @@
     "Taste and adjust: add more Dijon for sharpness, more yogurt for thickness, or a touch more lemon juice for tang.",
     "Spread onto bread and assemble your sandwich as usual."
   ],
+  "macros": {
+    "calories": 38,
+    "protein": 5,
+    "carbs": 4,
+    "fat": 0
+  },
   "notes": "Swap Dijon for yellow mustard if you want milder flavor. Works well on turkey, chicken, or veggie sandwiches."
 }

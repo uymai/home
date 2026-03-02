@@ -5,7 +5,13 @@
   "cookTime": "7 minutes",
   "servings": 2,
   "difficulty": "Easy",
-  "tags": ["cabbage", "side", "bunless", "quick", "vegetable"],
+  "tags": [
+    "cabbage",
+    "side",
+    "bunless",
+    "quick",
+    "vegetable"
+  ],
   "ingredients": [
     "1/2 head green cabbage, thinly sliced",
     "2 tsp olive oil",
@@ -24,5 +30,11 @@
     "Cook another 1–2 minutes until the seasoning coats the cabbage and it looks glossy and slightly caramelized.",
     "Taste and adjust seasoning. Sprinkle with sesame seeds if using."
   ],
+  "macros": {
+    "calories": 142,
+    "protein": 3,
+    "carbs": 12,
+    "fat": 10
+  },
   "notes": "The extra oil gives a softer texture and helps the maple caramelize. If the cabbage ever feels too wet, just cook 1–2 minutes longer uncovered to evaporate moisture."
 }

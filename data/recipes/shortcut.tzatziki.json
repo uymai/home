@@ -5,7 +5,15 @@
   "cookTime": "0 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["sauce", "greek", "yogurt", "cucumber", "dip", "quick", "gluten-free"],
+  "tags": [
+    "sauce",
+    "greek",
+    "yogurt",
+    "cucumber",
+    "dip",
+    "quick",
+    "gluten-free"
+  ],
   "ingredients": [
     "1 cup Greek yogurt (2% or full-fat for creaminess)",
     "½ cucumber, grated (no need to peel if English cucumber)",
@@ -21,5 +29,11 @@
     "Mix cucumber into yogurt with garlic, lemon, olive oil, dill, salt, and pepper.",
     "Stir, taste, and adjust: more lemon for tang, more garlic for punch."
   ],
+  "macros": {
+    "calories": 72,
+    "protein": 6,
+    "carbs": 3,
+    "fat": 5
+  },
   "notes": "Makes about 1 cup. Keeps in fridge for 2–3 days."
 }

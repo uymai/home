@@ -5,7 +5,13 @@
   "cookTime": "0 minutes",
   "servings": 4,
   "difficulty": "easy",
-  "tags": ["coleslaw", "high-protein", "vegetarian", "meal-prep", "macro-friendly"],
+  "tags": [
+    "coleslaw",
+    "high-protein",
+    "vegetarian",
+    "meal-prep",
+    "macro-friendly"
+  ],
   "ingredients": [
     "1/2 head green cabbage, finely chopped",
     "1–2 carrots, grated (optional)",
@@ -25,5 +31,11 @@
     "Taste and adjust seasoning — add more maple for sweetness or vinegar for tang.",
     "Refrigerate for 10–20 minutes before serving for best texture and flavor."
   ],
+  "macros": {
+    "calories": 91,
+    "protein": 4,
+    "carbs": 12,
+    "fat": 4
+  },
   "notes": "Salting the cabbage first prevents watery slaw. This keeps well for 2–3 days in the fridge. For a spicy version, add hot sauce or sriracha to the dressing."
 }

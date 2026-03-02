@@ -23,9 +23,17 @@ Each recipe should be a JSON file with the following structure:
     "Step 1",
     "Step 2"
   ],
+  "macros": {
+    "calories": 420,
+    "protein": 32,
+    "carbs": 28,
+    "fat": 14
+  },
   "notes": "Optional cooking notes or tips"
 }
 ```
+
+Macro values are numeric and represent one serving of the recipe. In this collection, some values are estimated from the listed ingredients when exact nutrition labels are not available.
 
 ## Adding New Recipes
 

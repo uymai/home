@@ -5,7 +5,15 @@
   "cookTime": "25 minutes",
   "servings": 12,
   "difficulty": "Medium",
-  "tags": ["meatloaf", "turkey", "kid-friendly", "muffins", "healthy", "hidden-veggies", "meal-prep"],
+  "tags": [
+    "meatloaf",
+    "turkey",
+    "kid-friendly",
+    "muffins",
+    "healthy",
+    "hidden-veggies",
+    "meal-prep"
+  ],
   "ingredients": [
     "2 lbs lean ground turkey (or chicken breast if you prefer)",
     "1 cup grated carrot (about 2 medium)",
@@ -32,5 +40,11 @@
     "Bake for 22–25 minutes, until internal temp hits 165°F.",
     "Rest 5 minutes before serving."
   ],
+  "macros": {
+    "calories": 170,
+    "protein": 17,
+    "carbs": 9,
+    "fat": 7
+  },
   "notes": "Makes ~12 muffins. Nutrition per muffin (approx): Calories: ~135, Protein: ~13g, Fat: ~5g, Carbs: ~8g, Fiber: ~2–3g, Vitamin A: ~35% DV (from carrots), Vitamin K & folate: boosted from greens."
 }
