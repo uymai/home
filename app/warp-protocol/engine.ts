@@ -138,19 +138,19 @@ function applyRoundWinCheck(state: GameState, roundWarpCores: number, roundNumbe
     ...state,
     status: 'won',
     score: roundNumber,
-    log: [...state.log, `Warp protocol complete. Played ${roundWarpCores} warp cores in round ${roundNumber}.`],
+    log: [...state.log, `Warp protocol complete. Won in round ${roundNumber} by drawing ${roundWarpCores} warp cores without busting.`],
   };
 }
 
 function bankRound(state: GameState, bankReason: 'manual' | 'auto-capacity'): GameState {
   const nextRoundNumber = state.rounds + 1;
   const discarded = [...state.activePile];
-  const warpDrawn = discarded.reduce((sum, core) => sum + (core.isWarpCore ? 1 : 0), 0);
   const roundResult: RoundSnapshot = {
     number: nextRoundNumber,
     status: 'stopped',
     bankReason,
     drawn: discarded,
+    roundWarpCores: state.roundWarpCores,
     roundFlux: state.roundFlux,
     roundCredits: state.roundCredits,
     roundInstability: state.roundInstability,
@@ -166,6 +166,7 @@ function bankRound(state: GameState, bankReason: 'manual' | 'auto-capacity'): Ga
     activePile: [],
     lastDiscarded: discarded,
     lastRound: roundResult,
+    roundWarpCores: 0,
     roundFlux: 0,
     roundCredits: 0,
     roundInstability: 0,
@@ -177,7 +178,7 @@ function bankRound(state: GameState, bankReason: 'manual' | 'auto-capacity'): Ga
     ],
   };
 
-  return applyRoundWinCheck(bankedState, warpDrawn, nextRoundNumber);
+  return applyRoundWinCheck(bankedState, state.roundWarpCores, nextRoundNumber);
 }
 
 function bustRound(state: GameState, extraLog: string, volatilityExceeded: boolean): GameState {
@@ -187,6 +188,7 @@ function bustRound(state: GameState, extraLog: string, volatilityExceeded: boole
     number: nextRoundNumber,
     status: 'busted',
     drawn: discarded,
+    roundWarpCores: state.roundWarpCores,
     roundFlux: state.roundFlux,
     roundCredits: state.roundCredits,
     roundInstability: state.roundInstability,
@@ -200,6 +202,7 @@ function bustRound(state: GameState, extraLog: string, volatilityExceeded: boole
     activePile: [],
     lastDiscarded: discarded,
     lastRound: roundResult,
+    roundWarpCores: 0,
     roundFlux: 0,
     roundCredits: 0,
     roundInstability: 0,
@@ -234,9 +237,15 @@ function drawModule(state: GameState): GameState {
 
   const draw = drawModuleFromBag(bag, rngState);
   const activePile = [...state.activePile, draw.drawnModule];
+  const roundWarpCores = state.roundWarpCores + (draw.drawnModule.isWarpCore ? 1 : 0);
   const roundFlux = state.roundFlux + draw.drawnModule.genFlux;
   const roundCredits = state.roundCredits + draw.drawnModule.genCredits;
   const roundInstability = state.roundInstability + draw.drawnModule.addInstability;
+  const nextLog = [...log, `Drew ${draw.drawnModule.name}. Unbanked: ${roundFlux} flux, ${roundCredits} credits. Instability ${roundInstability}/${state.instabilityThreshold}.`];
+
+  if (roundWarpCores === state.warpCoreTarget) {
+    nextLog.push(`Round target reached: ${roundWarpCores} warp cores drawn this round. Bank or auto-bank this round without busting to win.`);
+  }
 
   const nextState: GameState = {
     ...state,
@@ -244,10 +253,11 @@ function drawModule(state: GameState): GameState {
     discard,
     rngState: draw.rngState,
     activePile,
+    roundWarpCores,
     roundFlux,
     roundCredits,
     roundInstability,
-    log: [...log, `Drew ${draw.drawnModule.name}. Unbanked: ${roundFlux} flux, ${roundCredits} credits. Instability ${roundInstability}/${state.instabilityThreshold}.`],
+    log: nextLog,
   };
 
   if (nextState.roundInstability >= nextState.instabilityThreshold) {
@@ -372,6 +382,7 @@ export function createInitialState(seed: string, options?: { mode?: GameMode; da
     volatilityExceededCount: 0,
     bankedFlux: START_BANKED_FLUX,
     bankedCredits: START_BANKED_CREDITS,
+    roundWarpCores: 0,
     roundFlux: 0,
     roundCredits: 0,
     roundInstability: 0,

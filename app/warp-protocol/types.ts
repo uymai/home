@@ -28,6 +28,7 @@ export type RoundSnapshot = {
   status: RoundStatus;
   bankReason?: 'manual' | 'auto-capacity';
   drawn: CoreModule[];
+  roundWarpCores: number;
   roundFlux: number;
   roundCredits: number;
   roundInstability: number;
@@ -44,6 +45,7 @@ export type GameState = {
   volatilityExceededCount: number;
   bankedFlux: number;
   bankedCredits: number;
+  roundWarpCores: number;
   roundFlux: number;
   roundCredits: number;
   roundInstability: number;
