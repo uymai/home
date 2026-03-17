@@ -1,0 +1,4 @@
+interface:
+  display_name: "React Fullstack Dev"
+  short_description: "Build and debug React fullstack apps"
+  default_prompt: "Use $react-fullstack-dev to implement a React or Next.js feature safely across UI and backend code."

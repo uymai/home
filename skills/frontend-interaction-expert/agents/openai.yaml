@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frontend Interaction Expert"
+  short_description: "Design and refine frontend interactions"
+  default_prompt: "Use $frontend-interaction-expert to improve interaction design, UI states, and microcopy for this frontend change."
