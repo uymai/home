@@ -17,7 +17,7 @@ export default async function WarpProtocolPage({ searchParams }: PageProps) {
   const mode: GameMode = modeValue === 'seeded' || modeValue === 'daily' ? modeValue : 'random';
   const resolvedDailyDate = dateValue ?? new Date().toISOString().slice(0, 10);
   const dailyDate = mode === 'daily' ? resolvedDailyDate : undefined;
-  const initialSeed = mode === 'daily' ? generateDailySeed(resolvedDailyDate) : seed;
+  const initialSeed = mode === 'daily' ? seed ?? generateDailySeed(resolvedDailyDate) : seed;
 
   return <WarpProtocolClient initialSeed={initialSeed} initialMode={mode} initialDailyDate={dailyDate} />;
 }

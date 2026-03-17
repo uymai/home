@@ -1,4 +1,14 @@
-import { CoreKind, CoreModule, CreditUpgradeKind, FluxPurchaseKind, GameAction, GameMode, GameState, RoundSnapshot } from './types';
+import {
+  CoreKind,
+  CoreModule,
+  CreditUpgradeKind,
+  FluxPurchaseKind,
+  GameAction,
+  GameMode,
+  GameState,
+  GameVersion,
+  RoundSnapshot,
+} from './types';
 
 const START_BANKED_FLUX = 0;
 const START_BANKED_CREDITS = 0;
@@ -7,6 +17,134 @@ const START_INSTABILITY_THRESHOLD = 4;
 const START_SLOT_CAPACITY_COST = 4;
 const START_INSTABILITY_COST = 5;
 const WARP_CORE_TARGET = 4;
+const LEGACY_GAME_VERSION: GameVersion = '1.0.0';
+const CURRENT_GAME_VERSION: GameVersion = '1.1.0';
+const LEGACY_AVAILABLE_MODULE_COUNT = 5;
+const CURRENT_AVAILABLE_MODULE_COUNT = 5;
+
+type ParsedSeed = {
+  originalSeed: string;
+  payload: string;
+  gameVersion: GameVersion;
+  availableModuleCount: number;
+  dailyDate: string | null;
+};
+
+type CatalogConfig = {
+  startingBag: CoreKind[];
+  shopPool: FluxPurchaseKind[];
+  alwaysAvailable: FluxPurchaseKind[];
+  defaultAvailableModuleCount: number;
+};
+
+const MODULE_BLUEPRINTS: Record<CoreKind, Omit<CoreModule, 'id'>> = {
+  'flux-coil': {
+    name: 'Flux Coil',
+    kind: 'flux-coil',
+    tier: 1,
+    costFlux: 3,
+    costCredits: 0,
+    genFlux: 2,
+    genCredits: 0,
+    addInstability: 1,
+  },
+  'sponsored-relay': {
+    name: 'Sponsored Relay',
+    kind: 'sponsored-relay',
+    tier: 1,
+    costFlux: 5,
+    costCredits: 0,
+    genFlux: 1,
+    genCredits: 2,
+    addInstability: 1,
+    sponsored: true,
+  },
+  stabilizer: {
+    name: 'Stabilizer',
+    kind: 'stabilizer',
+    tier: 1,
+    costFlux: 4,
+    costCredits: 0,
+    genFlux: 0,
+    genCredits: 0,
+    addInstability: -1,
+  },
+  'volatile-lens': {
+    name: 'Volatile Lens',
+    kind: 'volatile-lens',
+    tier: 2,
+    costFlux: 7,
+    costCredits: 0,
+    genFlux: 4,
+    genCredits: 0,
+    addInstability: 2,
+  },
+  'warp-core': {
+    name: 'Warp Core',
+    kind: 'warp-core',
+    tier: 3,
+    costFlux: 10,
+    costCredits: 0,
+    genFlux: 1,
+    genCredits: 0,
+    addInstability: 2,
+    isWarpCore: true,
+  },
+  'credit-spike': {
+    name: 'Credit Spike',
+    kind: 'credit-spike',
+    tier: 1,
+    costFlux: 4,
+    costCredits: 0,
+    genFlux: 0,
+    genCredits: 3,
+    addInstability: 1,
+  },
+  'phase-anchor': {
+    name: 'Phase Anchor',
+    kind: 'phase-anchor',
+    tier: 2,
+    costFlux: 6,
+    costCredits: 0,
+    genFlux: 2,
+    genCredits: 0,
+    addInstability: -2,
+  },
+  'overclock-array': {
+    name: 'Overclock Array',
+    kind: 'overclock-array',
+    tier: 2,
+    costFlux: 8,
+    costCredits: 0,
+    genFlux: 5,
+    genCredits: 1,
+    addInstability: 3,
+  },
+};
+
+const CATALOGS: Record<GameVersion, CatalogConfig> = {
+  '1.0.0': {
+    startingBag: ['flux-coil', 'flux-coil', 'sponsored-relay', 'stabilizer', 'volatile-lens'],
+    shopPool: ['flux-coil', 'sponsored-relay', 'stabilizer', 'volatile-lens', 'warp-core'],
+    alwaysAvailable: ['warp-core'],
+    defaultAvailableModuleCount: LEGACY_AVAILABLE_MODULE_COUNT,
+  },
+  '1.1.0': {
+    startingBag: ['flux-coil', 'flux-coil', 'sponsored-relay', 'stabilizer', 'volatile-lens'],
+    shopPool: [
+      'flux-coil',
+      'sponsored-relay',
+      'stabilizer',
+      'volatile-lens',
+      'warp-core',
+      'credit-spike',
+      'phase-anchor',
+      'overclock-array',
+    ],
+    alwaysAvailable: ['warp-core'],
+    defaultAvailableModuleCount: CURRENT_AVAILABLE_MODULE_COUNT,
+  },
+};
 
 function hashSeed(seed: string): number {
   let hash = 2166136261;
@@ -15,6 +153,52 @@ function hashSeed(seed: string): number {
     hash = Math.imul(hash, 16777619);
   }
   return hash >>> 0;
+}
+
+function parseSeed(seed: string): ParsedSeed {
+  const trimmedSeed = seed.trim();
+  const versionedMatch = /^game-([0-9]+\.[0-9]+\.[0-9]+):mods-([0-9]+):(.+)$/.exec(trimmedSeed);
+
+  if (versionedMatch) {
+    const [, gameVersionValue, availableModuleCountValue, payload] = versionedMatch;
+    const gameVersion = gameVersionValue in CATALOGS ? (gameVersionValue as GameVersion) : CURRENT_GAME_VERSION;
+    const catalog = CATALOGS[gameVersion];
+    const parsedCount = Number.parseInt(availableModuleCountValue, 10);
+    const availableModuleCount = Number.isFinite(parsedCount)
+      ? Math.max(catalog.alwaysAvailable.length, Math.min(parsedCount, catalog.shopPool.length))
+      : catalog.defaultAvailableModuleCount;
+    const dailyDate = payload.startsWith('daily-') ? payload.slice('daily-'.length) : null;
+
+    return {
+      originalSeed: trimmedSeed,
+      payload,
+      gameVersion,
+      availableModuleCount,
+      dailyDate,
+    };
+  }
+
+  const priorVersionedMatch = /^v\d+:([a-z0-9-]+):(.+)$/.exec(trimmedSeed);
+  if (priorVersionedMatch) {
+    const [, , payload] = priorVersionedMatch;
+    const dailyDate = payload.startsWith('daily-') ? payload.slice('daily-'.length) : null;
+    return {
+      originalSeed: trimmedSeed,
+      payload,
+      gameVersion: LEGACY_GAME_VERSION,
+      availableModuleCount: LEGACY_AVAILABLE_MODULE_COUNT,
+      dailyDate,
+    };
+  }
+
+  const dailyDate = trimmedSeed.startsWith('daily-') ? trimmedSeed.slice('daily-'.length) : null;
+  return {
+    originalSeed: trimmedSeed,
+    payload: trimmedSeed,
+    gameVersion: LEGACY_GAME_VERSION,
+    availableModuleCount: LEGACY_AVAILABLE_MODULE_COUNT,
+    dailyDate,
+  };
 }
 
 function nextRandom(state: number): { value: number; nextState: number } {
@@ -27,87 +211,51 @@ function nextRandom(state: number): { value: number; nextState: number } {
 }
 
 function createModule(kind: CoreKind, id: number): CoreModule {
-  switch (kind) {
-    case 'flux-coil':
-      return {
-        id: `module-${id}`,
-        name: 'Flux Coil',
-        kind,
-        tier: 1,
-        costFlux: 3,
-        costCredits: 0,
-        genFlux: 2,
-        genCredits: 0,
-        addInstability: 1,
-      };
-    case 'sponsored-relay':
-      return {
-        id: `module-${id}`,
-        name: 'Sponsored Relay',
-        kind,
-        tier: 1,
-        costFlux: 5,
-        costCredits: 0,
-        genFlux: 1,
-        genCredits: 2,
-        addInstability: 1,
-        sponsored: true,
-      };
-    case 'stabilizer':
-      return {
-        id: `module-${id}`,
-        name: 'Stabilizer',
-        kind,
-        tier: 1,
-        costFlux: 4,
-        costCredits: 0,
-        genFlux: 0,
-        genCredits: 0,
-        addInstability: -1,
-      };
-    case 'volatile-lens':
-      return {
-        id: `module-${id}`,
-        name: 'Volatile Lens',
-        kind,
-        tier: 2,
-        costFlux: 7,
-        costCredits: 0,
-        genFlux: 4,
-        genCredits: 0,
-        addInstability: 2,
-      };
-    case 'warp-core':
-      return {
-        id: `module-${id}`,
-        name: 'Warp Core',
-        kind,
-        tier: 3,
-        costFlux: 10,
-        costCredits: 0,
-        genFlux: 1,
-        genCredits: 0,
-        addInstability: 2,
-        isWarpCore: true,
-      };
-    default:
-      return {
-        id: `module-${id}`,
-        name: 'Flux Coil',
-        kind: 'flux-coil',
-        tier: 1,
-        costFlux: 3,
-        costCredits: 0,
-        genFlux: 2,
-        genCredits: 0,
-        addInstability: 1,
-      };
-  }
+  const blueprint = MODULE_BLUEPRINTS[kind] ?? MODULE_BLUEPRINTS['flux-coil'];
+  return {
+    id: `module-${id}`,
+    ...blueprint,
+  };
 }
 
-function startingBag(): CoreModule[] {
-  const kinds: CoreKind[] = ['flux-coil', 'flux-coil', 'sponsored-relay', 'stabilizer', 'volatile-lens'];
+function getCatalog(gameVersion: GameVersion): CatalogConfig {
+  return CATALOGS[gameVersion] ?? CATALOGS[CURRENT_GAME_VERSION];
+}
+
+function startingBag(gameVersion: GameVersion): CoreModule[] {
+  const kinds = getCatalog(gameVersion).startingBag;
   return kinds.map((kind, index) => createModule(kind, index + 1));
+}
+
+function randomIndex(max: number, rngState: number): { index: number; nextState: number } {
+  const random = nextRandom(rngState);
+  return {
+    index: Math.floor(random.value * max),
+    nextState: random.nextState,
+  };
+}
+
+function selectAvailableModules(gameVersion: GameVersion, availableModuleCount: number, seed: string): FluxPurchaseKind[] {
+  const catalog = getCatalog(gameVersion);
+  const alwaysAvailable = [...catalog.alwaysAvailable];
+  const optionalPool = catalog.shopPool.filter((kind) => !alwaysAvailable.includes(kind));
+  const targetOptionalCount = Math.max(0, Math.min(availableModuleCount - alwaysAvailable.length, optionalPool.length));
+  const pool = [...optionalPool];
+  const selected: FluxPurchaseKind[] = [];
+  let rngState = hashSeed(`${seed}:available-modules`);
+
+  while (selected.length < targetOptionalCount && pool.length > 0) {
+    const next = randomIndex(pool.length, rngState);
+    rngState = next.nextState;
+    const [picked] = pool.splice(next.index, 1);
+    selected.push(picked);
+  }
+
+  return [...alwaysAvailable, ...selected].sort((left, right) => {
+    const leftModule = MODULE_BLUEPRINTS[left];
+    const rightModule = MODULE_BLUEPRINTS[right];
+    return leftModule.tier - rightModule.tier || leftModule.name.localeCompare(rightModule.name);
+  });
 }
 
 function reshuffle(discard: CoreModule[], rngState: number): { bag: CoreModule[]; rngState: number } {
@@ -271,6 +419,12 @@ function buyModule(state: GameState, kind: FluxPurchaseKind): GameState {
   if (state.status !== 'playing' || state.roundStatus === 'drawing') {
     return state;
   }
+  if (!state.availableModuleKinds.includes(kind)) {
+    return {
+      ...state,
+      log: [...state.log, `${MODULE_BLUEPRINTS[kind].name} is not available in this run.`],
+    };
+  }
   const prototype = createModule(kind, state.nextModuleId);
   if (state.bankedFlux < prototype.costFlux || state.bankedCredits < prototype.costCredits) {
     return {
@@ -349,21 +503,40 @@ function seedInstabilityModifier(seedHash: number): { delta: number; label: stri
   return { delta: 1, label: 'Seed modifier: reinforced reactor (+1 instability threshold).' };
 }
 
-function dailySeedFromDate(dailyDate: string): string {
-  return `daily-${dailyDate}`;
+function dailySeedFromDate(dailyDate: string, options?: { gameVersion?: GameVersion; availableModuleCount?: number }): string {
+  return formatSeed(`daily-${dailyDate}`, options);
+}
+
+export function formatSeed(payload: string, options?: { gameVersion?: GameVersion; availableModuleCount?: number }): string {
+  const gameVersion = options?.gameVersion ?? CURRENT_GAME_VERSION;
+  const catalog = getCatalog(gameVersion);
+  const availableModuleCount = Math.max(
+    catalog.alwaysAvailable.length,
+    Math.min(options?.availableModuleCount ?? catalog.defaultAvailableModuleCount, catalog.shopPool.length),
+  );
+  return `game-${gameVersion}:mods-${availableModuleCount}:${payload}`;
 }
 
 export function createInitialState(seed: string, options?: { mode?: GameMode; dailyDate?: string | null }): GameState {
-  const bag = startingBag();
-  const seedHash = hashSeed(seed);
+  const parsedSeed = parseSeed(seed);
+  const bag = startingBag(parsedSeed.gameVersion);
+  const availableModuleKinds = selectAvailableModules(
+    parsedSeed.gameVersion,
+    parsedSeed.availableModuleCount,
+    parsedSeed.originalSeed,
+  );
+  const seedHash = hashSeed(parsedSeed.originalSeed);
   const modifier = seedInstabilityModifier(seedHash);
   const instabilityThreshold = Math.max(2, START_INSTABILITY_THRESHOLD + modifier.delta);
   const mode = options?.mode ?? 'random';
-  const dailyDate = mode === 'daily' ? options?.dailyDate ?? seed.replace(/^daily-/, '') : null;
+  const dailyDate = mode === 'daily' ? options?.dailyDate ?? parsedSeed.dailyDate : null;
 
   return {
     mode,
-    seed,
+    seed: parsedSeed.originalSeed,
+    gameVersion: parsedSeed.gameVersion,
+    availableModuleCount: parsedSeed.availableModuleCount,
+    availableModuleKinds,
     dailyDate,
     status: 'playing',
     rounds: 0,
@@ -388,7 +561,12 @@ export function createInitialState(seed: string, options?: { mode?: GameMode; da
     nextModuleId: bag.length + 1,
     lastRound: null,
     seedModifier: modifier.label,
-    log: [`Run initialized with seed "${seed}".`, modifier.label],
+    log: [
+      `Run initialized with seed "${parsedSeed.originalSeed}".`,
+      `Game version ${parsedSeed.gameVersion} with ${parsedSeed.availableModuleCount} available modules.`,
+      `Run modules: ${availableModuleKinds.map((kind) => MODULE_BLUEPRINTS[kind].name).join(', ')}.`,
+      modifier.label,
+    ],
   };
 }
 
@@ -419,9 +597,13 @@ export function generateSeed(): string {
   for (let i = 0; i < bytes.length; i += 1) {
     seedChars.push(alphabet[bytes[i] % alphabet.length]);
   }
-  return seedChars.join('');
+  return formatSeed(seedChars.join(''));
 }
 
-export function generateDailySeed(dailyDate: string): string {
-  return dailySeedFromDate(dailyDate);
+export function generateDailySeed(dailyDate: string, options?: { gameVersion?: GameVersion; availableModuleCount?: number }): string {
+  return dailySeedFromDate(dailyDate, options);
+}
+
+export function getModuleTemplate(kind: CoreKind): Omit<CoreModule, 'id'> {
+  return MODULE_BLUEPRINTS[kind];
 }

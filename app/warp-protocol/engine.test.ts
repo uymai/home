@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createInitialState, generateDailySeed, reduceGameState } from './engine';
+import { createInitialState, formatSeed, generateDailySeed, reduceGameState } from './engine';
 import { CoreKind, CoreModule, GameAction, GameState } from './types';
 
 function createTestModule(kind: CoreKind, id: number): CoreModule {
@@ -98,6 +98,9 @@ describe('Warp Protocol engine', () => {
 
     expect(state.roundStatus).toBe('drawing');
     expect(state.rounds).toBe(0);
+    expect(state.gameVersion).toBe('1.0.0');
+    expect(state.availableModuleCount).toBe(5);
+    expect(state.availableModuleKinds).toEqual(['flux-coil', 'sponsored-relay', 'stabilizer', 'volatile-lens', 'warp-core']);
     expect(state.bankedFlux).toBe(0);
     expect(state.bankedCredits).toBe(0);
     expect(state.roundFlux).toBe(0);
@@ -128,6 +131,14 @@ describe('Warp Protocol engine', () => {
     }
   });
 
+  it('keeps legacy seeds playable while assigning default seed metadata', () => {
+    const state = createInitialState('v1:core:legacy-seed');
+
+    expect(state.seed).toBe('v1:core:legacy-seed');
+    expect(state.gameVersion).toBe('1.0.0');
+    expect(state.availableModuleCount).toBe(5);
+  });
+
   it('derives daily mode metadata from explicit and implicit daily seeds', () => {
     const explicit = createInitialState(generateDailySeed('2026-03-01'), {
       mode: 'daily',
@@ -136,16 +147,22 @@ describe('Warp Protocol engine', () => {
     const implicit = createInitialState('daily-2026-03-02', {
       mode: 'daily',
     });
+    const versioned = createInitialState(generateDailySeed('2026-03-03'), {
+      mode: 'daily',
+    });
 
     expect(explicit.dailyDate).toBe('2026-03-01');
-    expect(explicit.seed).toBe('daily-2026-03-01');
+    expect(explicit.seed).toBe('game-1.1.0:mods-5:daily-2026-03-01');
     expect(implicit.dailyDate).toBe('2026-03-02');
+    expect(versioned.seed).toBe('game-1.1.0:mods-5:daily-2026-03-03');
+    expect(versioned.dailyDate).toBe('2026-03-03');
   });
 
   it('produces identical state transitions for identical seeded runs', () => {
     const actions: GameAction[] = [{ type: 'draw-module' }, { type: 'draw-module' }, { type: 'stop-and-bank' }];
-    const firstRun = applyActions(createInitialState('deterministic-seed'), actions);
-    const secondRun = applyActions(createInitialState('deterministic-seed'), actions);
+    const seed = formatSeed('deterministic-seed');
+    const firstRun = applyActions(createInitialState(seed), actions);
+    const secondRun = applyActions(createInitialState(seed), actions);
 
     expect(firstRun).toEqual(secondRun);
   });
@@ -159,6 +176,19 @@ describe('Warp Protocol engine', () => {
 
     expect(alpha.rngState).not.toBe(beta.rngState);
     expect(firstDraws.size).toBeGreaterThan(1);
+  });
+
+  it('deterministically selects a run-specific module lineup for newer game versions', () => {
+    const first = createInitialState(formatSeed('lineup-seed'));
+    const second = createInitialState(formatSeed('lineup-seed'));
+    const third = createInitialState(formatSeed('other-lineup-seed'));
+
+    expect(first.gameVersion).toBe('1.1.0');
+    expect(first.availableModuleCount).toBe(5);
+    expect(first.availableModuleKinds).toHaveLength(5);
+    expect(first.availableModuleKinds).toContain('warp-core');
+    expect(first.availableModuleKinds).toEqual(second.availableModuleKinds);
+    expect(third.availableModuleKinds).not.toEqual(first.availableModuleKinds);
   });
 
   it('draws modules into the active pile and updates unbanked resources', () => {
@@ -360,6 +390,20 @@ describe('Warp Protocol engine', () => {
     expect(thresholdUpgradeState.nextInstabilityCost).toBe(8);
   });
 
+  it('refuses purchases for modules not selected for the run', () => {
+    const state: GameState = {
+      ...createInitialState(formatSeed('restricted-shop-seed')),
+      roundStatus: 'stopped',
+      bankedFlux: 20,
+      availableModuleKinds: ['warp-core', 'flux-coil', 'sponsored-relay', 'stabilizer', 'volatile-lens'],
+    };
+
+    const unavailablePurchase = reduceGameState(state, { type: 'buy-module', kind: 'credit-spike' });
+
+    expect(unavailablePurchase.bag).toEqual(state.bag);
+    expect(unavailablePurchase.log.at(-1)).toBe('Credit Spike is not available in this run.');
+  });
+
   it('refuses purchases when resources are insufficient', () => {
     const state: GameState = {
       ...createInitialState('insufficient-seed'),
@@ -421,12 +465,12 @@ describe('Warp Protocol engine', () => {
 
     const newRunState = reduceGameState(progressedState, {
       type: 'new-run',
-      seed: 'fresh-seed',
+      seed: formatSeed('fresh-seed'),
       mode: 'seeded',
       dailyDate: null,
     });
 
-    expect(newRunState.seed).toBe('fresh-seed');
+    expect(newRunState.seed).toBe('game-1.1.0:mods-5:fresh-seed');
     expect(newRunState.mode).toBe('seeded');
     expect(newRunState.rounds).toBe(0);
     expect(newRunState.score).toBeNull();

@@ -310,7 +310,7 @@ export default function MagicSquareGenerator() {
 
       <div className="relative mx-auto max-w-4xl">
         <div className="text-center">
-          <p className="text-xs uppercase tracking-[0.45em] text-cyan-400/70">Featured experiment</p>
+          <p className="text-xs uppercase tracking-[0.45em] text-cyan-400/70">Interactive generator</p>
           <h2 className="mt-3 text-3xl tracking-[0.2em] text-slate-50 sm:text-4xl">Magic Square</h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
             Generate a 4 x 4 square for any magic constant from 34 to 500. Hover a cell to inspect every valid line

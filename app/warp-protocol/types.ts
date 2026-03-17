@@ -3,11 +3,15 @@ export type CoreKind =
   | 'sponsored-relay'
   | 'stabilizer'
   | 'volatile-lens'
-  | 'warp-core';
+  | 'warp-core'
+  | 'credit-spike'
+  | 'phase-anchor'
+  | 'overclock-array';
 
 export type GameMode = 'random' | 'seeded' | 'daily';
 export type GameStatus = 'playing' | 'won';
 export type RoundStatus = 'drawing' | 'stopped' | 'busted';
+export type GameVersion = '1.0.0' | '1.1.0';
 
 export type CoreModule = {
   id: string;
@@ -36,6 +40,9 @@ export type RoundSnapshot = {
 export type GameState = {
   mode: GameMode;
   seed: string;
+  gameVersion: GameVersion;
+  availableModuleCount: number;
+  availableModuleKinds: FluxPurchaseKind[];
   dailyDate: string | null;
   status: GameStatus;
   rounds: number;

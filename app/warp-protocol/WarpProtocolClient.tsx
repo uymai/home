@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { createInitialState, generateDailySeed, generateSeed, reduceGameState } from './engine';
-import { CoreModule, CreditUpgradeKind, FluxPurchaseKind, GameMode } from './types';
+import { createInitialState, generateDailySeed, generateSeed, getModuleTemplate, reduceGameState } from './engine';
+import { CoreModule, CreditUpgradeKind, GameMode } from './types';
 
 type WarpProtocolClientProps = {
   initialSeed?: string;
@@ -12,63 +12,7 @@ type WarpProtocolClientProps = {
   initialDailyDate?: string;
 };
 
-const moduleKinds: FluxPurchaseKind[] = ['flux-coil', 'sponsored-relay', 'stabilizer', 'volatile-lens', 'warp-core'];
 const upgradeKinds: CreditUpgradeKind[] = ['slot-capacity', 'instability-threshold'];
-
-const moduleTemplates: Record<FluxPurchaseKind, Omit<CoreModule, 'id'>> = {
-  'flux-coil': {
-    name: 'Flux Coil',
-    kind: 'flux-coil',
-    tier: 1,
-    costFlux: 3,
-    costCredits: 0,
-    genFlux: 2,
-    genCredits: 0,
-    addInstability: 1,
-  },
-  'sponsored-relay': {
-    name: 'Sponsored Relay',
-    kind: 'sponsored-relay',
-    tier: 1,
-    costFlux: 5,
-    costCredits: 0,
-    genFlux: 1,
-    genCredits: 2,
-    addInstability: 1,
-    sponsored: true,
-  },
-  stabilizer: {
-    name: 'Stabilizer',
-    kind: 'stabilizer',
-    tier: 1,
-    costFlux: 4,
-    costCredits: 0,
-    genFlux: 0,
-    genCredits: 0,
-    addInstability: -1,
-  },
-  'volatile-lens': {
-    name: 'Volatile Lens',
-    kind: 'volatile-lens',
-    tier: 2,
-    costFlux: 7,
-    costCredits: 0,
-    genFlux: 4,
-    genCredits: 0,
-    addInstability: 2,
-  },
-  'warp-core': {
-    name: 'Warp Core',
-    kind: 'warp-core',
-    tier: 3,
-    costFlux: 10,
-    costCredits: 0,
-    genFlux: 1,
-    genCredits: 0,
-    addInstability: 2,
-    isWarpCore: true,
-  },
-};
 
 function groupModules(modules: CoreModule[]): Array<{ module: CoreModule; count: number }> {
   const grouped = new Map<string, { module: CoreModule; count: number }>();
@@ -212,6 +156,7 @@ export default function WarpProtocolClient({ initialSeed, initialMode = 'random'
     params.set('mode', nextMode);
     if (nextMode === 'daily') {
       params.set('date', nextDailyDate ?? todayDateString());
+      params.set('seed', nextSeed);
     } else {
       params.set('seed', nextSeed);
     }
@@ -229,11 +174,15 @@ export default function WarpProtocolClient({ initialSeed, initialMode = 'random'
   const instabilityWarning = canDraw && state.roundInstability >= state.instabilityThreshold - 1;
   const shareUrl =
     state.mode === 'daily'
-      ? `${pathname}?mode=daily&date=${state.dailyDate ?? todayDateString()}`
+      ? `${pathname}?mode=daily&date=${state.dailyDate ?? todayDateString()}&seed=${state.seed}`
       : `${pathname}?mode=${state.mode}&seed=${state.seed}`;
   const phaseLabel = canDraw ? 'Run Phase' : 'Buy Phase';
   const nextRoundBag = useMemo(() => [...state.bag, ...state.discard], [state.bag, state.discard]);
   const challengeLabel = state.mode === 'daily' ? `Daily ${state.dailyDate ?? todayDateString()}` : `Seed ${state.seed}`;
+  const availableModules = useMemo(
+    () => state.availableModuleKinds.map((kind) => ({ kind, template: getModuleTemplate(kind) })),
+    [state.availableModuleKinds],
+  );
   const lastRoundWarpCores = state.lastRound?.drawn.reduce((sum, module) => sum + (module.isWarpCore ? 1 : 0), 0) ?? 0;
   const lastRoundOutcome =
     state.lastRound?.status === 'busted'
@@ -432,6 +381,12 @@ export default function WarpProtocolClient({ initialSeed, initialMode = 'random'
                 <Stat label="Round Result" value={state.roundStatus.toUpperCase()} />
               </div>
               <p className="mt-3 text-xs text-slate-400">{state.seedModifier}</p>
+              <p className="mt-1 text-xs text-slate-500">
+                Game version {state.gameVersion} with {state.availableModuleCount} modules in this run.
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Run lineup: {availableModules.map(({ template }) => template.name).join(', ')}
+              </p>
               <button
                 type="button"
                 onClick={() => dispatch({ type: 'start-next-round' })}
@@ -445,8 +400,7 @@ export default function WarpProtocolClient({ initialSeed, initialMode = 'random'
             <section className="rounded-lg border border-slate-700 bg-slate-900 p-4 lg:col-span-2">
               <h2 className="mb-3 text-lg font-semibold">Buy Modules</h2>
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                {moduleKinds.map((kind) => {
-                  const template = moduleTemplates[kind];
+                {availableModules.map(({ kind, template }) => {
                   const affordable =
                     canManageBetweenRounds &&
                     state.bankedFlux >= template.costFlux &&
