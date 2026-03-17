@@ -1,6 +1,7 @@
 import LinkCard from "./components/LinkCard";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import MagicSquareGenerator from "./components/MagicSquareGenerator";
 
 export default function Home() {
   // You can customize these links based on what you want to direct people to
@@ -47,6 +48,10 @@ export default function Home() {
             color={link.color}
           />
         ))}
+      </div>
+
+      <div className="mt-12">
+        <MagicSquareGenerator />
       </div>
       
       <Footer />
