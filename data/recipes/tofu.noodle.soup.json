@@ -1,0 +1,48 @@
+{
+  "title": "Tofu Noodle Soup",
+  "description": "Classic chicken noodle soup adapted with crispy air-fried tofu instead of chicken. The tofu is seasoned with oregano and basil to match the broth and added at the end so it keeps some texture in the soup.",
+  "prepTime": "15 minutes",
+  "cookTime": "20 minutes",
+  "servings": 4,
+  "difficulty": "Easy",
+  "tags": ["soup", "tofu", "vegetarian", "comfort food", "high protein"],
+  "ingredients": [
+    "2 blocks extra-firm tofu, pressed",
+    "2–3 tsp canola oil or extra virgin olive oil",
+    "2–3 tsp cornstarch",
+    "1 tsp salt",
+    "1/2 tsp black pepper",
+    "1/2 tsp garlic powder",
+    "1/2 tsp onion powder",
+    "1/2 tsp dried oregano",
+    "1/2 tsp dried basil",
+    "1 tbsp butter",
+    "1/2 cup chopped onion",
+    "1/2 cup chopped celery",
+    "4 (14.5 oz) cans chicken broth",
+    "1 (14.5 oz) can vegetable broth",
+    "1 1/2 cups egg noodles",
+    "1 cup sliced carrots",
+    "1/2 tsp dried basil",
+    "1/2 tsp dried oregano",
+    "salt and ground black pepper to taste"
+  ],
+  "instructions": [
+    "Press tofu for 10–15 minutes, then tear into bite-sized irregular pieces.",
+    "Toss tofu with oil, salt, pepper, garlic powder, onion powder, oregano, and basil.",
+    "Sprinkle cornstarch over tofu and toss again until lightly coated.",
+    "Preheat air fryer to 400°F (200°C) and air fry tofu for 12–15 minutes, shaking halfway, until golden and crisp.",
+    "Meanwhile melt butter in a large soup pot over medium heat.",
+    "Add onion and celery and cook about 5 minutes until softened.",
+    "Add chicken broth, vegetable broth, egg noodles, carrots, basil, oregano, salt, and pepper. Bring to a boil.",
+    "Reduce heat and simmer about 20 minutes until noodles and carrots are tender.",
+    "Ladle soup into bowls and top each serving with crispy tofu just before eating."
+  ],
+  "macros": {
+    "calories": 297,
+    "protein": 22,
+    "carbs": 36,
+    "fat": 8
+  },
+  "notes": "Macros are per serving (¼ of the pot) including the doubled tofu. Add tofu at the end so it keeps some crisp texture. If you prefer softer tofu, you can simmer it directly in the soup for the last 5 minutes."
+}
