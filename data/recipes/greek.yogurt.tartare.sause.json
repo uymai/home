@@ -5,7 +5,12 @@
   "cookTime": "0 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["sauce", "condiment", "fish", "lightened-up"],
+  "tags": [
+    "sauce",
+    "condiment",
+    "fish",
+    "lightened-up"
+  ],
   "ingredients": [
     "2 tbsp mayonnaise",
     "3 tbsp plain Greek yogurt",
@@ -24,5 +29,11 @@
     "Optional: mix in onion, shallot, dill, or parsley for added flavor.",
     "Chill in the refrigerator for 10–15 minutes to let the flavors meld before serving."
   ],
+  "macros": {
+    "calories": 56,
+    "protein": 1,
+    "carbs": 1,
+    "fat": 5
+  },
   "notes": "For a tangier version, increase Greek yogurt to 4 tbsp and reduce mayo to 1 tbsp. Pairs beautifully with baked or air-fried fish, sweet potato fries, or turkey burgers."
 }

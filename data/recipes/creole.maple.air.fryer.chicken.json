@@ -5,7 +5,12 @@
   "cookTime": "10 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["chicken", "air fryer", "high-protein", "meal prep"],
+  "tags": [
+    "chicken",
+    "air fryer",
+    "high-protein",
+    "meal prep"
+  ],
   "ingredients": [
     "1.5 lbs (680 g) chicken breast, cut into 1–1.5 inch pieces",
     "1.5 tbsp olive oil or canola oil",
@@ -24,5 +29,11 @@
     "Remove when chicken reaches 160°F and let rest for 3–5 minutes to finish at 165°F.",
     "Cool slightly, then slice or chop for salads, bowls, or meal prep."
   ],
+  "macros": {
+    "calories": 333,
+    "protein": 53,
+    "carbs": 2,
+    "fat": 11
+  },
   "notes": "If cooking whole chicken breasts instead of chunks, air fry 9–12 minutes per side at 380°F. Excellent with Lemon–Garlic Yogurt Dressing."
 }

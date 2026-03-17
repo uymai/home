@@ -5,7 +5,12 @@
   "cookTime": "25–30 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["sweet potato", "side dish", "roasted", "high-fiber"],
+  "tags": [
+    "sweet potato",
+    "side dish",
+    "roasted",
+    "high-fiber"
+  ],
   "ingredients": [
     "2 large sweet potatoes, cut into thick wedges",
     "1.5 tbsp olive oil",
@@ -23,5 +28,11 @@
     "Roast for 25–30 minutes, flipping halfway, until edges are crisp and centers are tender.",
     "Let rest 2 minutes before serving."
   ],
+  "macros": {
+    "calories": 135,
+    "protein": 2,
+    "carbs": 21,
+    "fat": 5
+  },
   "notes": "For even crispier results, soak the raw wedges in cold water for 20 minutes, then pat dry before seasoning. Air fryer option: 400°F for 15–18 minutes, shaking halfway."
 }

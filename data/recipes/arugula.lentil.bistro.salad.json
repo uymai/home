@@ -5,7 +5,15 @@
   "cookTime": "20 minutes",
   "servings": 3,
   "difficulty": "Easy",
-  "tags": ["salad", "lentils", "arugula", "bistro", "healthy", "vegetarian", "meal-prep"],
+  "tags": [
+    "salad",
+    "lentils",
+    "arugula",
+    "bistro",
+    "healthy",
+    "vegetarian",
+    "meal-prep"
+  ],
   "ingredients": [
     "1 cup dry French green lentils (or Unico brown lentils)",
     "1 bay leaf (optional, for flavor)",
@@ -26,5 +34,11 @@
     "Drizzle dressing and toss gently.",
     "Sprinkle goat cheese/blue cheese on top just before serving."
   ],
+  "macros": {
+    "calories": 567,
+    "protein": 22,
+    "carbs": 53,
+    "fat": 31
+  },
   "notes": "Eat immediately, or keep components separate for meal prep (lentils & dressing hold well for 4 days, arugula/cheese/apple add fresh)."
 }

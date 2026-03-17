@@ -5,7 +5,15 @@
   "cookTime": "0 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["sauce", "condiment", "honey", "mustard", "aioli", "quick", "gluten-free"],
+  "tags": [
+    "sauce",
+    "condiment",
+    "honey",
+    "mustard",
+    "aioli",
+    "quick",
+    "gluten-free"
+  ],
   "ingredients": [
     "2 tbsp Greek yogurt (or mayo)",
     "1 tsp Dijon mustard",
@@ -20,5 +28,11 @@
     "Add a tiny squeeze of lemon juice and stir to combine.",
     "Taste and adjust seasoning as needed. Serve immediately or refrigerate for up to 3 days."
   ],
+  "macros": {
+    "calories": 11,
+    "protein": 1,
+    "carbs": 2,
+    "fat": 0
+  },
   "notes": "This aioli is perfect for chicken dishes, especially when the chicken already has lemon. The Greek yogurt version is lighter, while mayo gives it a richer taste. Adjust honey and mustard ratios to your preference - more honey for sweetness, more mustard for sharpness."
 }

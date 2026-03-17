@@ -5,7 +5,13 @@
   "cookTime": "12-15 minutes",
   "servings": 2,
   "difficulty": "Easy",
-  "tags": ["tofu", "air fryer", "soup topping", "high protein", "vegetarian"],
+  "tags": [
+    "tofu",
+    "air fryer",
+    "soup topping",
+    "high protein",
+    "vegetarian"
+  ],
   "ingredients": [
     "1 block extra-firm tofu (pressed; freezing/thawing optional)",
     "1–2 tsp canola oil or extra virgin olive oil",
@@ -26,5 +32,11 @@
     "Air fry tofu for 12–15 minutes, shaking halfway, until edges are golden and crisp.",
     "Add to soup bowls right before serving so the exterior stays crisp."
   ],
+  "macros": {
+    "calories": 224,
+    "protein": 20,
+    "carbs": 7,
+    "fat": 14
+  },
   "notes": "Cornstarch helps the tofu stay crisp even after sitting in broth for a few minutes. If you want maximum crisp, use the freezing/thawing method for better texture absorption."
 }

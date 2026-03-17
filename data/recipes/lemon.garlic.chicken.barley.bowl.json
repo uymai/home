@@ -5,7 +5,12 @@
   "cookTime": "25 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["chicken", "bowl", "barley", "high-protein"],
+  "tags": [
+    "chicken",
+    "bowl",
+    "barley",
+    "high-protein"
+  ],
   "ingredients": [
     "1.5 lb chicken breast, cubed or sliced",
     "2 tbsp lemon juice",
@@ -26,5 +31,11 @@
     "Whisk tahini, maple syrup, soy sauce, and water for dressing.",
     "Assemble bowls with barley, veggies, and chicken. Drizzle dressing."
   ],
+  "macros": {
+    "calories": 466,
+    "protein": 60,
+    "carbs": 31,
+    "fat": 10
+  },
   "notes": "Great for meal prep; keeps well for next-day lunch."
 }

@@ -5,7 +5,13 @@
   "cookTime": "20 minutes",
   "servings": 8,
   "difficulty": "Medium",
-  "tags": ["high-protein", "meal-prep", "turkey", "family-friendly", "comfort-food"],
+  "tags": [
+    "high-protein",
+    "meal-prep",
+    "turkey",
+    "family-friendly",
+    "comfort-food"
+  ],
   "ingredients": [
     "500 g lean ground turkey (93–95%)",
     "1 medium white onion, diced",
@@ -40,5 +46,11 @@
     "Bake for 18–22 minutes until golden and firm.",
     "Cool slightly before serving."
   ],
+  "macros": {
+    "calories": 356,
+    "protein": 36,
+    "carbs": 36,
+    "fat": 8
+  },
   "notes": "Vital wheat gluten is the main protein booster here and keeps the dough chewy and sturdy. If unavailable, the recipe still works with all flour but with lower protein. These reheat well: Microwave for 1-2 minutes on high, then airfry for 4 minutes at 380F. Pair with air-fried sweet potatoes and a kale salad to round out fiber and micronutrients."
 }

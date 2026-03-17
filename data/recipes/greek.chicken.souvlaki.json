@@ -5,7 +5,15 @@
   "cookTime": "15 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["greek", "chicken", "grilled", "marinated", "skewers", "mediterranean", "gluten-free"],
+  "tags": [
+    "greek",
+    "chicken",
+    "grilled",
+    "marinated",
+    "skewers",
+    "mediterranean",
+    "gluten-free"
+  ],
   "ingredients": [
     "1 ½ lbs boneless skinless chicken thighs (juicier than breast, but breast works)",
     "3 tbsp olive oil",
@@ -25,5 +33,11 @@
     "Cook: Grill on medium-high for 8–10 min total, turning once or twice. Or oven broil 6–8 min per side on a sheet pan with rack. Or stovetop pan: Cast-iron skillet, 3–4 min per side until charred and cooked through (165°F internal).",
     "Rest 5 minutes before serving."
   ],
+  "macros": {
+    "calories": 394,
+    "protein": 30,
+    "carbs": 1,
+    "fat": 28
+  },
   "notes": "Serve with falafel, pita, and lots of dips: tzatziki, toum (garlic sauce), hummus. Add toppings: tomato, cucumber, red onion, olives, feta, pickled turnip. Grain option: bulgur, rice pilaf, or couscous."
 }

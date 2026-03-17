@@ -5,7 +5,15 @@
   "cookTime": "0 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["sauce", "garlic", "lebanese", "dip", "quick", "mayo", "gluten-free"],
+  "tags": [
+    "sauce",
+    "garlic",
+    "lebanese",
+    "dip",
+    "quick",
+    "mayo",
+    "gluten-free"
+  ],
   "ingredients": [
     "½ cup mayonnaise (full-fat works best — Greek yogurt can work too, but it's tangier)",
     "2 garlic cloves, finely grated or crushed into paste (microplane works best)",
@@ -18,5 +26,11 @@
     "Taste and adjust — more lemon for tang, more garlic if you want it spicy-garlic strong.",
     "Chill until serving (flavour deepens after 15–20 minutes)."
   ],
+  "macros": {
+    "calories": 211,
+    "protein": 0,
+    "carbs": 0,
+    "fat": 24
+  },
   "notes": "Makes about ½ cup. For best flavor, let it sit for 15-20 minutes before serving to allow the garlic flavor to develop."
 }

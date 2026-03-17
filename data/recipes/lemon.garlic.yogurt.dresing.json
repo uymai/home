@@ -5,7 +5,13 @@
   "cookTime": "0 minutes",
   "servings": 2,
   "difficulty": "Easy",
-  "tags": ["dressing", "yogurt", "lemon", "high-protein", "salad"],
+  "tags": [
+    "dressing",
+    "yogurt",
+    "lemon",
+    "high-protein",
+    "salad"
+  ],
   "ingredients": [
     "3 tbsp 0% Greek yogurt",
     "1 tbsp lemon juice (≈ juice of 1/3 lemon)",
@@ -22,5 +28,11 @@
     "Season with a pinch of salt and adjust maple syrup to taste.",
     "Use immediately or refrigerate for up to 3 days."
   ],
+  "macros": {
+    "calories": 42,
+    "protein": 3,
+    "carbs": 3,
+    "fat": 3
+  },
   "notes": "For a thinner dressing, add 1–2 tsp cold water. Excellent with Creole–Maple Air Fryer Chicken."
 }

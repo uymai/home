@@ -5,7 +5,12 @@
   "cookTime": "0 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["sauce", "dip", "greek yogurt", "kid-friendly"],
+  "tags": [
+    "sauce",
+    "dip",
+    "greek yogurt",
+    "kid-friendly"
+  ],
   "ingredients": [
     "1/2 cup Greek yogurt",
     "1/4–1/2 tsp chili powder",
@@ -19,5 +24,11 @@
     "Taste and add maple syrup if you'd like a slightly sweeter, more balanced dip.",
     "Serve immediately or refrigerate for up to 3 days."
   ],
+  "macros": {
+    "calories": 19,
+    "protein": 3,
+    "carbs": 2,
+    "fat": 0
+  },
   "notes": "For a thinner consistency, add 1–2 teaspoons of water or milk. Chili powder here refers to the mild blend, not pure chili flakes or cayenne."
 }

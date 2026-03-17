@@ -5,7 +5,13 @@
   "cookTime": "45 minutes",
   "servings": 4,
   "difficulty": "easy",
-  "tags": ["potatoes", "side dish", "rosemary", "sheet pan", "vegetarian"],
+  "tags": [
+    "potatoes",
+    "side dish",
+    "rosemary",
+    "sheet pan",
+    "vegetarian"
+  ],
   "ingredients": [
     "24 ounces baby Yukon gold potatoes",
     "1 1/2 tablespoons olive oil",
@@ -23,5 +29,11 @@
     "Combine melted butter, grated garlic, and chopped rosemary.",
     "Remove potatoes from the oven and spoon the rosemary-garlic butter over the hot potatoes. Toss to coat and serve."
   ],
+  "macros": {
+    "calories": 252,
+    "protein": 3,
+    "carbs": 30,
+    "fat": 14
+  },
   "notes": "Inspired by Pinch of Yum’s dill potatoes from their Sheet Pan Salmon recipe: https://pinchofyum.com/sheet-pan-salmon-with-dill-potatoes"
 }

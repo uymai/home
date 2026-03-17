@@ -254,6 +254,7 @@ describe('Warp Protocol engine', () => {
     expect(nextState.roundStatus).toBe('stopped');
     expect(nextState.bankedFlux).toBe(3);
     expect(nextState.bankedCredits).toBe(2);
+    expect(nextState.roundWarpCores).toBe(0);
     expect(nextState.roundFlux).toBe(0);
     expect(nextState.roundCredits).toBe(0);
     expect(nextState.roundInstability).toBe(0);
@@ -264,6 +265,7 @@ describe('Warp Protocol engine', () => {
       number: 1,
       status: 'stopped',
       bankReason: 'manual',
+      roundWarpCores: 0,
       roundFlux: 3,
       roundCredits: 2,
       roundInstability: 2,
@@ -300,6 +302,7 @@ describe('Warp Protocol engine', () => {
     expect(nextState.volatilityExceededCount).toBe(1);
     expect(nextState.bankedFlux).toBe(5);
     expect(nextState.bankedCredits).toBe(1);
+    expect(nextState.roundWarpCores).toBe(0);
     expect(nextState.roundFlux).toBe(0);
     expect(nextState.roundCredits).toBe(0);
     expect(nextState.roundInstability).toBe(0);
@@ -307,6 +310,7 @@ describe('Warp Protocol engine', () => {
     expect(nextState.discard).toEqual([volatileLens]);
     expect(nextState.lastRound).toMatchObject({
       status: 'busted',
+      roundWarpCores: 0,
       roundFlux: 4,
       roundCredits: 0,
       roundInstability: 2,
@@ -333,6 +337,7 @@ describe('Warp Protocol engine', () => {
     expect(nextState.lastRound).toMatchObject({
       status: 'stopped',
       bankReason: 'auto-capacity',
+      roundWarpCores: 0,
       drawn: [fluxCoil],
     });
   });
@@ -428,6 +433,7 @@ describe('Warp Protocol engine', () => {
     const losingRoundState: GameState = {
       ...createInitialState('lose-seed'),
       activePile: [createTestModule('warp-core', 1), createTestModule('warp-core', 2), createTestModule('warp-core', 3)],
+      roundWarpCores: 3,
       roundFlux: 3,
       roundCredits: 0,
       roundInstability: 6,
@@ -440,6 +446,7 @@ describe('Warp Protocol engine', () => {
         createTestModule('warp-core', 3),
         createTestModule('warp-core', 4),
       ],
+      roundWarpCores: 4,
       roundFlux: 4,
       roundCredits: 0,
       roundInstability: 8,
@@ -453,7 +460,104 @@ describe('Warp Protocol engine', () => {
 
     expect(winningResult.status).toBe('won');
     expect(winningResult.score).toBe(1);
+    expect(winningResult.lastRound?.roundWarpCores).toBe(4);
     expect(reduceGameState(winningResult, { type: 'draw-module' })).toBe(winningResult);
+    expect(reduceGameState(winningResult, { type: 'stop-and-bank' })).toBe(winningResult);
+    expect(reduceGameState(winningResult, { type: 'buy-module', kind: 'flux-coil' })).toBe(winningResult);
+    expect(reduceGameState(winningResult, { type: 'start-next-round' })).toBe(winningResult);
+  });
+
+  it('tracks warp cores as part of the live round state when drawing', () => {
+    const warpCore = createTestModule('warp-core', 7);
+    const state: GameState = {
+      ...createInitialState('round-warp-state-seed'),
+      bag: [warpCore],
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.roundWarpCores).toBe(1);
+    expect(nextState.activePile).toEqual([warpCore]);
+  });
+
+  it('records warp core count on busted rounds and does not award a win', () => {
+    const fourthWarpCore = createTestModule('warp-core', 8);
+    const state: GameState = {
+      ...createInitialState('bust-after-four-seed'),
+      bag: [fourthWarpCore],
+      instabilityThreshold: 8,
+      roundWarpCores: 3,
+      roundFlux: 3,
+      roundInstability: 6,
+      activePile: [
+        createTestModule('warp-core', 1),
+        createTestModule('warp-core', 2),
+        createTestModule('warp-core', 3),
+      ],
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.status).toBe('playing');
+    expect(nextState.roundStatus).toBe('busted');
+    expect(nextState.roundWarpCores).toBe(0);
+    expect(nextState.lastRound?.roundWarpCores).toBe(4);
+  });
+
+  it('awards the win when auto-bank ends a round with four warp cores', () => {
+    const fourthWarpCore = createTestModule('warp-core', 9);
+    const state: GameState = {
+      ...createInitialState('auto-bank-win-seed'),
+      bag: [fourthWarpCore],
+      slotCapacity: 4,
+      instabilityThreshold: 9,
+      roundWarpCores: 3,
+      roundFlux: 3,
+      roundInstability: 6,
+      activePile: [
+        createTestModule('warp-core', 1),
+        createTestModule('warp-core', 2),
+        createTestModule('warp-core', 3),
+      ],
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.status).toBe('won');
+    expect(nextState.roundStatus).toBe('stopped');
+    expect(nextState.lastRound?.roundWarpCores).toBe(4);
+    expect(nextState.score).toBe(1);
+  });
+
+  it('resets round warp core tracking when starting the next round and on a new run', () => {
+    const state: GameState = {
+      ...createInitialState('reset-round-warp-seed'),
+      roundStatus: 'stopped',
+      roundWarpCores: 0,
+      lastRound: {
+        number: 1,
+        status: 'stopped',
+        bankReason: 'manual',
+        drawn: [createTestModule('warp-core', 1)],
+        roundWarpCores: 1,
+        roundFlux: 1,
+        roundCredits: 0,
+        roundInstability: 2,
+      },
+      discard: [createTestModule('warp-core', 1)],
+      lastDiscarded: [createTestModule('warp-core', 1)],
+    };
+
+    const nextRoundState = reduceGameState(state, { type: 'start-next-round' });
+    const newRunState = reduceGameState(nextRoundState, {
+      type: 'new-run',
+      seed: 'fresh-seed',
+      mode: 'seeded',
+      dailyDate: null,
+    });
+
+    expect(nextRoundState.roundWarpCores).toBe(0);
+    expect(newRunState.roundWarpCores).toBe(0);
   });
 
   it('resets all run state when starting a new run', () => {

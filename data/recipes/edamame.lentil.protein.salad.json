@@ -5,7 +5,15 @@
   "cookTime": "25 minutes",
   "servings": 2,
   "difficulty": "Easy",
-  "tags": ["salad", "protein", "lentils", "edamame", "healthy", "vegetarian", "high-fiber"],
+  "tags": [
+    "salad",
+    "protein",
+    "lentils",
+    "edamame",
+    "healthy",
+    "vegetarian",
+    "high-fiber"
+  ],
   "ingredients": [
     "1 cup green or French lentils (uncooked, ~½ lb)",
     "1 cup frozen shelled edamame",
@@ -26,5 +34,11 @@
     "Make dressing: Whisk olive oil, vinegar, mustard, honey, salt, and pepper until smooth.",
     "Assemble: In a large bowl, combine lentils, edamame, kale/arugula, carrot, and celery. Toss with dressing. Sprinkle pumpkin seeds on top."
   ],
+  "macros": {
+    "calories": 450,
+    "protein": 29,
+    "carbs": 50,
+    "fat": 15
+  },
   "notes": "Serves 2 big portions. Nutrition per large serving (~½ recipe): Calories: ~450, Protein: ~28–30g, Carbs: ~50g (high-fiber), Fat: ~15g (healthy fats), Fiber: ~15g."
 }

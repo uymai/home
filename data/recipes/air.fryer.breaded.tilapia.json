@@ -5,7 +5,14 @@
   "cookTime": "12 minutes",
   "servings": 2,
   "difficulty": "Easy",
-  "tags": ["high-protein", "air-fryer", "low-oil", "fish", "tilapia", "dinner"],
+  "tags": [
+    "high-protein",
+    "air-fryer",
+    "low-oil",
+    "fish",
+    "tilapia",
+    "dinner"
+  ],
   "ingredients": [
     "2 tilapia fillets (about 300–400 g total)",
     "1 egg (or 2 tbsp Greek yogurt + 1 tbsp water)",
@@ -31,5 +38,11 @@
     "Let rest for 1 minute before serving.",
     "Serve with lemon wedges or 1 tsp lemon juice per fillet if fresh lemons aren’t available."
   ],
+  "macros": {
+    "calories": 292,
+    "protein": 42,
+    "carbs": 14,
+    "fat": 9
+  },
   "notes": "For extra crunch, add 1 tbsp nutritional yeast to the breadcrumb mix. Serve with Greek yogurt tartare sauce or spicy sriracha-soy drizzle. Great alongside air-fried sweet potato fries or kale-barley salad."
 }

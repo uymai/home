@@ -5,7 +5,12 @@
   "cookTime": "20 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["vegetarian", "tacos", "high-fiber", "family"],
+  "tags": [
+    "vegetarian",
+    "tacos",
+    "high-fiber",
+    "family"
+  ],
   "ingredients": [
     "2 cans chickpeas, drained and rinsed",
     "1 cup roasted sweet potato cubes",
@@ -23,5 +28,11 @@
     "Warm tortillas. Mash or layer chickpeas, sweet potato, and kale.",
     "Mix yogurt with lime juice and drizzle on top."
   ],
+  "macros": {
+    "calories": 396,
+    "protein": 18,
+    "carbs": 63,
+    "fat": 7
+  },
   "notes": "Turn into bowls if preferred; add avocado or feta for extra richness."
 }
