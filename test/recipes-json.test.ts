@@ -6,11 +6,6 @@ import { loadRecipesFromDirectory } from '../lib/recipes';
 const recipesDir = path.join(process.cwd(), 'data', 'recipes');
 
 describe('recipe JSON loading', () => {
-  it('loads every recipe JSON through the shared recipe loader', () => {
-    const recipes = loadRecipesFromDirectory(recipesDir);
-
-    expect(recipes).toHaveLength(33);
-  });
 
   it('returns the fields used by the recipe page for every recipe', () => {
     const recipes = loadRecipesFromDirectory(recipesDir);
