@@ -18,6 +18,13 @@ export default function FinaglingsPage() {
       icon: "/globe.svg",
       color: "bg-cyan-100 dark:bg-cyan-950",
     },
+    {
+      title: "Mealstorm",
+      description: "A dinner planner side project for figuring out what to make before the week gets away from you.",
+      url: "https://uymai.github.io/mealstorm/",
+      icon: "/next.svg",
+      color: "bg-emerald-100 dark:bg-emerald-950",
+    },
   ];
 
   return (
