@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createInitialState, formatSeed, generateDailySeed, reduceGameState } from './engine';
-import { CoreKind, CoreModule, GameAction, GameState } from './types';
+import { CoreKind, CoreModule, GameAction, GameState, ResolvedEffect } from './types';
 
 function createTestModule(kind: CoreKind, id: number): CoreModule {
   switch (kind) {
@@ -66,6 +66,60 @@ function createTestModule(kind: CoreKind, id: number): CoreModule {
         addInstability: 2,
         isWarpCore: true,
       };
+    case 'surge-tap':
+      return {
+        id: `module-${id}`,
+        name: 'Surge Tap',
+        kind,
+        tier: 2,
+        costFlux: 5,
+        costCredits: 0,
+        genFlux: 0,
+        genCredits: 0,
+        addInstability: 1,
+        effectDescription: '+1 flux per module already installed this round | +0 credits | instability +1',
+      };
+    case 'harmony-core':
+      return {
+        id: `module-${id}`,
+        name: 'Harmony Core',
+        kind,
+        tier: 2,
+        costFlux: 6,
+        costCredits: 0,
+        genFlux: 0,
+        genCredits: 0,
+        addInstability: 0,
+        effectDescription: '+0 flux | +2 credits per Stabilizer owned | instability +0',
+      };
+    case 'redline-capacitor':
+      return {
+        id: `module-${id}`,
+        name: 'Redline Capacitor',
+        kind,
+        tier: 2,
+        costFlux: 6,
+        costCredits: 0,
+        genFlux: 1,
+        genCredits: 0,
+        addInstability: 1,
+        effectDescription: '+5 flux if within 2 of instability threshold, else +1 flux | +0 credits | instability +1',
+      };
+    case 'echo-module':
+      return {
+        id: `module-${id}`,
+        name: 'Echo Module',
+        kind,
+        tier: 3,
+        costFlux: 8,
+        costCredits: 0,
+        genFlux: 0,
+        genCredits: 0,
+        addInstability: 1,
+        effectDescription: 'Copies the effect of the previously drawn module (+1 instability on top)',
+      };
+    default:
+      throw new Error(`No test module factory for kind: ${kind}`);
   }
 }
 
@@ -115,6 +169,7 @@ describe('Warp Protocol engine', () => {
       'stabilizer',
       'volatile-lens',
     ]);
+    expect(state.lastResolvedEffect).toBeNull();
   });
 
   it('applies seed instability modifiers without dropping below the floor', () => {
@@ -152,9 +207,9 @@ describe('Warp Protocol engine', () => {
     });
 
     expect(explicit.dailyDate).toBe('2026-03-01');
-    expect(explicit.seed).toBe('game-1.1.0:mods-5:daily-2026-03-01');
+    expect(explicit.seed).toBe('game-1.2.0:mods-9:daily-2026-03-01');
     expect(implicit.dailyDate).toBe('2026-03-02');
-    expect(versioned.seed).toBe('game-1.1.0:mods-5:daily-2026-03-03');
+    expect(versioned.seed).toBe('game-1.2.0:mods-9:daily-2026-03-03');
     expect(versioned.dailyDate).toBe('2026-03-03');
   });
 
@@ -181,14 +236,18 @@ describe('Warp Protocol engine', () => {
   it('deterministically selects a run-specific module lineup for newer game versions', () => {
     const first = createInitialState(formatSeed('lineup-seed'));
     const second = createInitialState(formatSeed('lineup-seed'));
-    const third = createInitialState(formatSeed('other-lineup-seed'));
 
-    expect(first.gameVersion).toBe('1.1.0');
-    expect(first.availableModuleCount).toBe(5);
-    expect(first.availableModuleKinds).toHaveLength(5);
+    expect(first.gameVersion).toBe('1.2.0');
+    expect(first.availableModuleCount).toBe(9);
+    expect(first.availableModuleKinds).toHaveLength(9);
+    // All 9 module types are always available in v1.2.0
     expect(first.availableModuleKinds).toContain('warp-core');
+    expect(first.availableModuleKinds).toContain('surge-tap');
+    expect(first.availableModuleKinds).toContain('harmony-core');
+    expect(first.availableModuleKinds).toContain('redline-capacitor');
+    expect(first.availableModuleKinds).toContain('echo-module');
+    // Same seed always produces the same lineup
     expect(first.availableModuleKinds).toEqual(second.availableModuleKinds);
-    expect(third.availableModuleKinds).not.toEqual(first.availableModuleKinds);
   });
 
   it('draws modules into the active pile and updates unbanked resources', () => {
@@ -199,9 +258,7 @@ describe('Warp Protocol engine', () => {
     expect(drawnModule).toBeDefined();
     expect(nextState.bag).toHaveLength(4);
     expect(nextState.activePile).toHaveLength(1);
-    expect(nextState.roundFlux).toBe(drawnModule.genFlux);
-    expect(nextState.roundCredits).toBe(drawnModule.genCredits);
-    expect(nextState.roundInstability).toBe(drawnModule.addInstability);
+    expect(nextState.lastResolvedEffect).not.toBeNull();
   });
 
   it('treats draw actions as no-ops outside an active round', () => {
@@ -261,6 +318,7 @@ describe('Warp Protocol engine', () => {
     expect(nextState.activePile).toEqual([]);
     expect(nextState.discard).toEqual(drawnModules);
     expect(nextState.lastDiscarded).toEqual(drawnModules);
+    expect(nextState.lastResolvedEffect).toBeNull();
     expect(nextState.lastRound).toMatchObject({
       number: 1,
       status: 'stopped',
@@ -308,6 +366,7 @@ describe('Warp Protocol engine', () => {
     expect(nextState.roundInstability).toBe(0);
     expect(nextState.activePile).toEqual([]);
     expect(nextState.discard).toEqual([volatileLens]);
+    expect(nextState.lastResolvedEffect).toBeNull();
     expect(nextState.lastRound).toMatchObject({
       status: 'busted',
       roundWarpCores: 0,
@@ -356,6 +415,7 @@ describe('Warp Protocol engine', () => {
     expect(nextState.roundStatus).toBe('drawing');
     expect(nextState.discard).toEqual([]);
     expect(nextState.bag).toEqual([createTestModule('sponsored-relay', 6), ...recycledModules]);
+    expect(nextState.lastResolvedEffect).toBeNull();
   });
 
   it('treats buy-phase actions as no-ops during the draw phase', () => {
@@ -386,13 +446,13 @@ describe('Warp Protocol engine', () => {
       isWarpCore: true,
     });
 
-    expect(slotUpgradeState.bankedCredits).toBe(6);
+    expect(slotUpgradeState.bankedCredits).toBe(5);
     expect(slotUpgradeState.slotCapacity).toBe(5);
     expect(slotUpgradeState.nextSlotCapacityCost).toBe(6);
 
-    expect(thresholdUpgradeState.bankedCredits).toBe(1);
+    expect(thresholdUpgradeState.bankedCredits).toBe(0);
     expect(thresholdUpgradeState.instabilityThreshold).toBe(slotUpgradeState.instabilityThreshold + 1);
-    expect(thresholdUpgradeState.nextInstabilityCost).toBe(8);
+    expect(thresholdUpgradeState.nextInstabilityCost).toBe(6);
   });
 
   it('refuses purchases for modules not selected for the run', () => {
@@ -426,7 +486,7 @@ describe('Warp Protocol engine', () => {
 
     expect(failedUpgradePurchase.slotCapacity).toBe(state.slotCapacity);
     expect(failedUpgradePurchase.bankedCredits).toBe(state.bankedCredits);
-    expect(failedUpgradePurchase.log.at(-1)).toBe('Not enough credits for slot capacity upgrade (cost 4).');
+    expect(failedUpgradePurchase.log.at(-1)).toBe('Not enough credits for slot capacity upgrade (cost 5).');
   });
 
   it('wins only when enough warp cores are banked in the same round and blocks further play', () => {
@@ -574,7 +634,7 @@ describe('Warp Protocol engine', () => {
       dailyDate: null,
     });
 
-    expect(newRunState.seed).toBe('game-1.1.0:mods-5:fresh-seed');
+    expect(newRunState.seed).toBe('game-1.2.0:mods-9:fresh-seed');
     expect(newRunState.mode).toBe('seeded');
     expect(newRunState.rounds).toBe(0);
     expect(newRunState.score).toBeNull();
@@ -585,5 +645,289 @@ describe('Warp Protocol engine', () => {
     expect(newRunState.activePile).toEqual([]);
     expect(newRunState.lastRound).toBeNull();
     expect(newRunState.lastDiscarded).toEqual([]);
+    expect(newRunState.lastResolvedEffect).toBeNull();
+  });
+
+  it('slot capacity upgrade costs increment by 1 per purchase', () => {
+    const state: GameState = {
+      ...createInitialState('slot-cost-seed'),
+      roundStatus: 'stopped',
+      bankedCredits: 20,
+    };
+
+    const after1 = reduceGameState(state, { type: 'buy-upgrade', kind: 'slot-capacity' });
+    const after2 = reduceGameState(after1, { type: 'buy-upgrade', kind: 'slot-capacity' });
+
+    expect(after1.nextSlotCapacityCost).toBe(6);
+    expect(after2.nextSlotCapacityCost).toBe(7);
+    expect(after2.slotCapacity).toBe(state.slotCapacity + 2);
+  });
+
+  it('instability threshold upgrade costs increment by 1 per purchase', () => {
+    const state: GameState = {
+      ...createInitialState('instab-cost-seed'),
+      roundStatus: 'stopped',
+      bankedCredits: 20,
+    };
+
+    const after1 = reduceGameState(state, { type: 'buy-upgrade', kind: 'instability-threshold' });
+    const after2 = reduceGameState(after1, { type: 'buy-upgrade', kind: 'instability-threshold' });
+
+    expect(after1.nextInstabilityCost).toBe(6);
+    expect(after2.nextInstabilityCost).toBe(7);
+    expect(after2.instabilityThreshold).toBe(state.instabilityThreshold + 2);
+  });
+
+  it('slot capacity upgrade is refused when at maximum', () => {
+    const state: GameState = {
+      ...createInitialState('slot-cap-seed'),
+      roundStatus: 'stopped',
+      bankedCredits: 999,
+      slotCapacity: 12,
+    };
+
+    const result = reduceGameState(state, { type: 'buy-upgrade', kind: 'slot-capacity' });
+
+    expect(result.slotCapacity).toBe(12);
+    expect(result.bankedCredits).toBe(999);
+    expect(result.log.at(-1)).toContain('maximum');
+  });
+
+  // ── Surge Tap ────────────────────────────────────────────────────────────────
+
+  it('Surge Tap produces +1 flux per module already in active pile', () => {
+    const surgeTap = createTestModule('surge-tap', 10);
+    const fluxCoil1 = createTestModule('flux-coil', 1);
+    const fluxCoil2 = createTestModule('flux-coil', 2);
+
+    const state: GameState = {
+      ...createInitialState('surge-tap-mid-seed'),
+      bag: [surgeTap],
+      activePile: [fluxCoil1, fluxCoil2],
+      roundFlux: 4,
+      roundInstability: 2,
+      instabilityThreshold: 10,
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.roundFlux).toBe(6);
+    expect(nextState.roundInstability).toBe(3);
+    expect(nextState.lastResolvedEffect).toMatchObject({ genFlux: 2, genCredits: 0, addInstability: 1, isWarpCore: false });
+  });
+
+  it('Surge Tap produces +0 flux when drawn as first module', () => {
+    const surgeTap = createTestModule('surge-tap', 10);
+
+    const state: GameState = {
+      ...createInitialState('surge-tap-first-seed'),
+      bag: [surgeTap],
+      activePile: [],
+      roundFlux: 0,
+      roundInstability: 0,
+      instabilityThreshold: 10,
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.roundFlux).toBe(0);
+    expect(nextState.roundInstability).toBe(1);
+    expect(nextState.lastResolvedEffect).toMatchObject({ genFlux: 0 });
+  });
+
+  // ── Harmony Core ─────────────────────────────────────────────────────────────
+
+  it('Harmony Core yields +2 credits per Stabilizer across all owned modules', () => {
+    const harmonyCore = createTestModule('harmony-core', 10);
+    const stab1 = createTestModule('stabilizer', 1);
+    const stab2 = createTestModule('stabilizer', 2);
+    const stab3 = createTestModule('stabilizer', 3);
+
+    // harmonyCore alone in bag ensures it's the drawn module; 3 Stabilizers spread across discard+activePile
+    const state: GameState = {
+      ...createInitialState('harmony-core-seed'),
+      bag: [harmonyCore],
+      discard: [stab1, stab2],
+      activePile: [stab3],
+      roundCredits: 0,
+      roundInstability: 0,
+      instabilityThreshold: 10,
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.roundCredits).toBe(6);
+    expect(nextState.roundInstability).toBe(0);
+    expect(nextState.lastResolvedEffect).toMatchObject({ genFlux: 0, genCredits: 6, addInstability: 0, isWarpCore: false });
+  });
+
+  it('Harmony Core yields zero credits with no Stabilizers owned', () => {
+    const harmonyCore = createTestModule('harmony-core', 10);
+    const fluxCoil = createTestModule('flux-coil', 1);
+
+    const state: GameState = {
+      ...createInitialState('harmony-core-empty-seed'),
+      bag: [harmonyCore],
+      discard: [],
+      activePile: [fluxCoil],
+      roundCredits: 0,
+      roundInstability: 0,
+      instabilityThreshold: 10,
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.roundCredits).toBe(0);
+    expect(nextState.lastResolvedEffect).toMatchObject({ genCredits: 0 });
+  });
+
+  // ── Redline Capacitor ─────────────────────────────────────────────────────────
+
+  it('Redline Capacitor gives +5 flux when instability is within 2 of threshold', () => {
+    const redline = createTestModule('redline-capacitor', 10);
+
+    const state: GameState = {
+      ...createInitialState('redline-near-seed'),
+      bag: [redline],
+      activePile: [],
+      roundFlux: 0,
+      roundInstability: 4,
+      instabilityThreshold: 6,
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.roundFlux).toBe(5);
+    expect(nextState.lastResolvedEffect).toMatchObject({ genFlux: 5, addInstability: 1 });
+  });
+
+  it('Redline Capacitor gives +1 flux when instability is far from threshold', () => {
+    const redline = createTestModule('redline-capacitor', 10);
+
+    const state: GameState = {
+      ...createInitialState('redline-far-seed'),
+      bag: [redline],
+      activePile: [],
+      roundFlux: 0,
+      roundInstability: 1,
+      instabilityThreshold: 10,
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.roundFlux).toBe(1);
+    expect(nextState.lastResolvedEffect).toMatchObject({ genFlux: 1, addInstability: 1 });
+  });
+
+  it('Redline Capacitor checks instability before its own +1 is applied', () => {
+    const redline = createTestModule('redline-capacitor', 10);
+
+    // threshold 6, instability 3 — 3 < 6-2=4, so NOT within range despite +1 pushing to 4
+    const state: GameState = {
+      ...createInitialState('redline-boundary-seed'),
+      bag: [redline],
+      activePile: [],
+      roundFlux: 0,
+      roundInstability: 3,
+      instabilityThreshold: 6,
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.roundFlux).toBe(1);
+  });
+
+  // ── Echo Module ──────────────────────────────────────────────────────────────
+
+  it('Echo Module copies the resolved effect of the previously drawn module', () => {
+    const fluxCoil = createTestModule('flux-coil', 1);
+    const echoModule = createTestModule('echo-module', 2);
+    const previousEffect: ResolvedEffect = { genFlux: 2, genCredits: 0, addInstability: 1, isWarpCore: false };
+
+    const state: GameState = {
+      ...createInitialState('echo-copy-seed'),
+      bag: [echoModule],
+      activePile: [fluxCoil],
+      roundFlux: 2,
+      roundCredits: 0,
+      roundInstability: 1,
+      instabilityThreshold: 10,
+      lastResolvedEffect: previousEffect,
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.roundFlux).toBe(4);
+    expect(nextState.roundCredits).toBe(0);
+    expect(nextState.roundInstability).toBe(3);
+    expect(nextState.lastResolvedEffect).toMatchObject({ genFlux: 2, genCredits: 0, addInstability: 2, isWarpCore: false });
+  });
+
+  it('Echo Module copies a Warp Core and increments roundWarpCores', () => {
+    const warpCore = createTestModule('warp-core', 1);
+    const echoModule = createTestModule('echo-module', 2);
+    const previousEffect: ResolvedEffect = { genFlux: 1, genCredits: 0, addInstability: 2, isWarpCore: true };
+
+    const state: GameState = {
+      ...createInitialState('echo-warp-seed'),
+      bag: [echoModule],
+      activePile: [warpCore],
+      roundWarpCores: 1,
+      roundFlux: 1,
+      roundInstability: 2,
+      instabilityThreshold: 10,
+      lastResolvedEffect: previousEffect,
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.roundWarpCores).toBe(2);
+    expect(nextState.roundFlux).toBe(2);
+    expect(nextState.roundInstability).toBe(5);
+    expect(nextState.lastResolvedEffect).toMatchObject({ isWarpCore: true });
+  });
+
+  it('Echo Module as first draw adds only +1 instability and nothing else', () => {
+    const echoModule = createTestModule('echo-module', 1);
+
+    const state: GameState = {
+      ...createInitialState('echo-first-seed'),
+      bag: [echoModule],
+      activePile: [],
+      roundFlux: 0,
+      roundCredits: 0,
+      roundInstability: 0,
+      instabilityThreshold: 10,
+      lastResolvedEffect: null,
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.roundFlux).toBe(0);
+    expect(nextState.roundCredits).toBe(0);
+    expect(nextState.roundInstability).toBe(1);
+    expect(nextState.roundWarpCores).toBe(0);
+    expect(nextState.lastResolvedEffect).toMatchObject({ genFlux: 0, genCredits: 0, addInstability: 1, isWarpCore: false });
+  });
+
+  it('Echo Module copies resolved Surge Tap output (not re-evaluates it)', () => {
+    const surgeTap = createTestModule('surge-tap', 1);
+    const echoModule = createTestModule('echo-module', 2);
+    const surgeTapEffect: ResolvedEffect = { genFlux: 3, genCredits: 0, addInstability: 1, isWarpCore: false };
+
+    const state: GameState = {
+      ...createInitialState('echo-surge-seed'),
+      bag: [echoModule],
+      activePile: [surgeTap],
+      roundFlux: 3,
+      roundInstability: 1,
+      instabilityThreshold: 10,
+      lastResolvedEffect: surgeTapEffect,
+    };
+
+    const nextState = reduceGameState(state, { type: 'draw-module' });
+
+    expect(nextState.roundFlux).toBe(6);
+    expect(nextState.lastResolvedEffect).toMatchObject({ genFlux: 3 });
   });
 });
