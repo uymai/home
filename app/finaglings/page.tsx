@@ -27,7 +27,7 @@ export default function FinaglingsPage() {
     },
     {
       title: "Tally Rally",
-      description: "",
+      description: "A shared list and point tracker for proving you can find anything at the grocery store.",
       url: "https://tallyrally.uymai.net",
       icon: "/window.svg",
       color: "bg-violet-100 dark:bg-violet-950",
