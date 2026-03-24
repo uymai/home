@@ -25,6 +25,13 @@ export default function FinaglingsPage() {
       icon: "/next.svg",
       color: "bg-emerald-100 dark:bg-emerald-950",
     },
+    {
+      title: "Tally Rally",
+      description: "A shared todo list, but with points!",
+      url: "https://tallyrally.uymai.net",
+      icon: "/window.svg",
+      color: "bg-violet-100 dark:bg-violet-950",
+    },
   ];
 
   return (
