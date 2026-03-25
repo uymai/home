@@ -1,0 +1,36 @@
+{
+  "title": "Brined Baked Chicken Breast for Caesar Salad",
+  "description": "Simple brined and seasoned chicken breast, baked at high heat for juicy, flavourful slices over a kale Caesar salad. Quick brine makes all the difference.",
+  "prepTime": "30 minutes (includes brine)",
+  "cookTime": "20 minutes",
+  "servings": 4,
+  "difficulty": "Easy",
+  "tags": ["high-protein", "meal-prep-friendly", "kid-friendly", "Caesar dinner"],
+  "ingredients": [
+    "4 boneless skinless chicken breasts (approx 6-7 oz each)",
+    "4 cups cold water",
+    "1 tbsp salt (for brine)",
+    "1 tbsp extra virgin olive oil",
+    "1 tsp garlic powder",
+    "1 tsp smoked paprika",
+    "½ tsp black pepper",
+    "¼ tsp salt (for seasoning)"
+  ],
+  "instructions": [
+    "Dissolve 1 tbsp salt in 4 cups cold water. Submerge chicken breasts and brine for 20-30 minutes at room temperature or up to 2 hours in the fridge.",
+    "Preheat oven to 425°F.",
+    "Remove chicken from brine and pat very dry with paper towels. Discard brine.",
+    "If any breasts are thicker than 1 inch, butterfly them or pound to even thickness so they cook evenly.",
+    "Rub chicken with olive oil, then season with garlic powder, smoked paprika, pepper, and the ¼ tsp salt.",
+    "Place on a lined baking sheet and bake for 18-22 minutes until internal temperature reaches 160°F.",
+    "Remove from oven, tent loosely with foil, and rest for 5 minutes. Carryover cooking brings it to 165°F.",
+    "Slice against the grain on a slight bias for wide, even pieces over the salad. For kid quesadillas, dice instead."
+  ],
+  "macros": {
+    "calories": 220,
+    "protein": 42,
+    "carbs": 0,
+    "fat": 5
+  },
+  "notes": "Macros are per breast assuming ~7 oz raw weight. The brine adds negligible sodium to the final product — most stays in the water. If you're meal prepping, brine and season the night before, then bake straight from the fridge (add 2-3 minutes to cook time). Sweet potato wedges bake at the same temp — toss them in 5 minutes before the chicken so everything finishes together."
+}
