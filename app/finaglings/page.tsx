@@ -5,6 +5,13 @@ import LinkCard from "../components/LinkCard";
 export default function FinaglingsPage() {
   const projects = [
     {
+      title: "Steve's Game",
+      description: "Steve picks a number 1–100. Earn $5 for a first-guess win, losing $1 for each additional try. Can you beat Steve?",
+      url: "/steves-game",
+      icon: "/window.svg",
+      color: "bg-amber-100 dark:bg-amber-950",
+    },
+    {
       title: "Warp Protocol",
       description: "A self-contained protocol game experiment with its own rules, state, and play loop.",
       url: "/warp-protocol",
