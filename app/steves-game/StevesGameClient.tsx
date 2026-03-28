@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 type Mode = 'play' | 'simulation';
-type SimStrategy = 'random' | 'middle' | 'adaptive';
+type SimStrategy = 'random' | 'middle' | 'adaptive' | 'rob';
 type GameStatus = 'playing' | 'won';
 
 interface SimResult {
@@ -42,6 +42,9 @@ function playSimGame(
       firstGuessDone = true;
     } else if (strategy === 'middle' || strategy === 'adaptive') {
       pick = Math.floor((lo + hi) / 2);
+    } else if (strategy === 'rob') {
+      // Worst-case BST: always pick lo (deepest left-spine leaf — hardest to find via binary search)
+      pick = lo;
     } else {
       pick = randomInt(lo, hi);
     }
@@ -124,7 +127,8 @@ export default function StevesGameClient() {
   const handleRunSimulation = useCallback(() => {
     const results: SimResult[] = [];
     const history: number[] = [];
-    for (let i = 0; i < simRuns; i++) {
+    const runs = simStrategy === 'rob' ? 3 : simRuns;
+    for (let i = 0; i < runs; i++) {
       const steve = randomInt(1, 100);
       results.push(playSimGame(steve, simStrategy, history));
       history.push(steve);
@@ -321,9 +325,10 @@ export default function StevesGameClient() {
                 type="number"
                 min={1}
                 max={10000}
-                value={simRuns}
+                value={simStrategy === 'rob' ? 3 : simRuns}
                 onChange={(e) => setSimRuns(Math.max(1, Math.min(10000, Number(e.target.value))))}
-                className="w-28 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+                disabled={simStrategy === 'rob'}
+                className="w-28 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <div>
@@ -338,6 +343,7 @@ export default function StevesGameClient() {
                 <option value="middle">Pick the Middle (Binary Search)</option>
                 <option value="random">Random</option>
                 <option value="adaptive">Adaptive First Guess + Binary Search</option>
+                <option value="rob">Rob&apos;s Theory (Worst-Case BST, 3 rounds)</option>
               </select>
             </div>
             <button
@@ -347,6 +353,11 @@ export default function StevesGameClient() {
               Run Simulation
             </button>
           </div>
+          {simStrategy === 'rob' && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 -mt-4 mb-4">
+              Rob&apos;s Theory: always guesses the lowest remaining number — the hardest number to find via binary search (deepest BST leaf). Runs exactly 3 rounds.
+            </p>
+          )}
 
           {/* Results */}
           {simStats && simResults && (
