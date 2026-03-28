@@ -34,6 +34,7 @@ function playSimGame(
 ): { earnings: number; guessCount: number } {
   let lo = 1, hi = 100, guesses = 0;
   let firstGuessDone = false;
+  let robRounds = 0; // tracks Rob's-theory picks used in this game
   while (true) {
     guesses++;
     let pick: number;
@@ -43,8 +44,17 @@ function playSimGame(
     } else if (strategy === 'middle' || strategy === 'adaptive') {
       pick = Math.floor((lo + hi) / 2);
     } else if (strategy === 'rob') {
-      // Worst-case BST: always pick lo (deepest left-spine leaf — hardest to find via binary search)
-      pick = lo;
+      if (robRounds < 3) {
+        // Worst-case BST: pick the depth-2 right-of-left node — harder to reach
+        // than the midpoint via binary search (e.g. 37 for range [1,100])
+        const mid = Math.floor((lo + hi) / 2);
+        const leftMid = Math.floor((lo + mid - 1) / 2);
+        pick = Math.floor((leftMid + mid) / 2);
+        robRounds++;
+      } else {
+        // After 3 Rob's-theory picks, revert to standard binary search
+        pick = Math.floor((lo + hi) / 2);
+      }
     } else {
       pick = randomInt(lo, hi);
     }
@@ -127,8 +137,7 @@ export default function StevesGameClient() {
   const handleRunSimulation = useCallback(() => {
     const results: SimResult[] = [];
     const history: number[] = [];
-    const runs = simStrategy === 'rob' ? 3 : simRuns;
-    for (let i = 0; i < runs; i++) {
+    for (let i = 0; i < simRuns; i++) {
       const steve = randomInt(1, 100);
       results.push(playSimGame(steve, simStrategy, history));
       history.push(steve);
@@ -325,10 +334,9 @@ export default function StevesGameClient() {
                 type="number"
                 min={1}
                 max={10000}
-                value={simStrategy === 'rob' ? 3 : simRuns}
+                value={simRuns}
                 onChange={(e) => setSimRuns(Math.max(1, Math.min(10000, Number(e.target.value))))}
-                disabled={simStrategy === 'rob'}
-                className="w-28 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-28 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
               />
             </div>
             <div>
@@ -343,7 +351,7 @@ export default function StevesGameClient() {
                 <option value="middle">Pick the Middle (Binary Search)</option>
                 <option value="random">Random</option>
                 <option value="adaptive">Adaptive First Guess + Binary Search</option>
-                <option value="rob">Rob&apos;s Theory (Worst-Case BST, 3 rounds)</option>
+                <option value="rob">Rob&apos;s Theory (Worst-Case BST)</option>
               </select>
             </div>
             <button
@@ -355,7 +363,7 @@ export default function StevesGameClient() {
           </div>
           {simStrategy === 'rob' && (
             <p className="text-xs text-gray-500 dark:text-gray-400 -mt-4 mb-4">
-              Rob&apos;s Theory: always guesses the lowest remaining number — the hardest number to find via binary search (deepest BST leaf). Runs exactly 3 rounds.
+              Rob&apos;s Theory: for the first 3 guesses per game, picks the depth-2 right-of-left node in the remaining range&apos;s BST (e.g. 37 for [1–100]) — numbers harder to reach via binary search. Reverts to binary search after 3 picks.
             </p>
           )}
 
