@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 type Mode = 'play' | 'simulation';
-type SimStrategy = 'random' | 'middle';
+type SimStrategy = 'random' | 'middle' | 'adaptive';
 type GameStatus = 'playing' | 'won';
 
 interface SimResult {
@@ -17,14 +17,34 @@ function randomInt(lo: number, hi: number): number {
   return Math.floor(Math.random() * (hi - lo + 1)) + lo;
 }
 
-function playSimGame(steveNumber: number, strategy: SimStrategy): { earnings: number; guessCount: number } {
+function adaptiveFirstGuess(N: number, history: number[]): number {
+  if (history.length === 0) return Math.round(N * 0.5);
+  const total = history.length;
+  const lowCount  = history.filter(n => n < N / 3).length;
+  const highCount = history.filter(n => n > (2 * N) / 3).length;
+  if (lowCount  / total > 0.4) return Math.round(N * 0.25);
+  if (highCount / total > 0.4) return Math.round(N * 0.75);
+  return Math.round(N * 0.5);
+}
+
+function playSimGame(
+  steveNumber: number,
+  strategy: SimStrategy,
+  history: number[] = [],
+): { earnings: number; guessCount: number } {
   let lo = 1, hi = 100, guesses = 0;
+  let firstGuessDone = false;
   while (true) {
     guesses++;
-    const pick =
-      strategy === 'middle'
-        ? Math.floor((lo + hi) / 2)
-        : randomInt(lo, hi);
+    let pick: number;
+    if (strategy === 'adaptive' && !firstGuessDone) {
+      pick = adaptiveFirstGuess(100, history);
+      firstGuessDone = true;
+    } else if (strategy === 'middle' || strategy === 'adaptive') {
+      pick = Math.floor((lo + hi) / 2);
+    } else {
+      pick = randomInt(lo, hi);
+    }
     if (pick === steveNumber) break;
     if (pick < steveNumber) lo = pick + 1;
     else hi = pick - 1;
@@ -103,9 +123,11 @@ export default function StevesGameClient() {
 
   const handleRunSimulation = useCallback(() => {
     const results: SimResult[] = [];
+    const history: number[] = [];
     for (let i = 0; i < simRuns; i++) {
       const steve = randomInt(1, 100);
-      results.push(playSimGame(steve, simStrategy));
+      results.push(playSimGame(steve, simStrategy, history));
+      history.push(steve);
     }
     setSimResults(results);
     setShowSimDetail(false);
@@ -315,6 +337,7 @@ export default function StevesGameClient() {
               >
                 <option value="middle">Pick the Middle (Binary Search)</option>
                 <option value="random">Random</option>
+                <option value="adaptive">Adaptive First Guess + Binary Search</option>
               </select>
             </div>
             <button
