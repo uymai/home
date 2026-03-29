@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 type Mode = 'play' | 'simulation';
-type SimStrategy = 'random' | 'middle' | 'adaptive';
+type SimStrategy = 'random' | 'middle' | 'adaptive' | 'rob' | 'rob-hard';
 type GameStatus = 'playing' | 'won';
 
 interface SimResult {
@@ -27,6 +27,21 @@ function adaptiveFirstGuess(N: number, history: number[]): number {
   return Math.round(N * 0.5);
 }
 
+function binarySearchGuesses(n: number): number {
+  let lo = 1, hi = 100, guesses = 0;
+  while (lo <= hi) {
+    guesses++;
+    const mid = Math.floor((lo + hi) / 2);
+    if (mid === n) return guesses;
+    if (mid < n) lo = mid + 1;
+    else hi = mid - 1;
+  }
+  return guesses;
+}
+
+const ROB_HARD_NUMBERS = Array.from({ length: 100 }, (_, i) => i + 1)
+  .filter(n => binarySearchGuesses(n) >= 6);
+
 function playSimGame(
   steveNumber: number,
   strategy: SimStrategy,
@@ -34,6 +49,7 @@ function playSimGame(
 ): { earnings: number; guessCount: number } {
   let lo = 1, hi = 100, guesses = 0;
   let firstGuessDone = false;
+  let robRounds = 0; // tracks Rob's-theory picks used in this game
   while (true) {
     guesses++;
     let pick: number;
@@ -42,6 +58,18 @@ function playSimGame(
       firstGuessDone = true;
     } else if (strategy === 'middle' || strategy === 'adaptive') {
       pick = Math.floor((lo + hi) / 2);
+    } else if (strategy === 'rob' || strategy === 'rob-hard') {
+      if (robRounds < 3) {
+        // Worst-case BST: pick the depth-2 right-of-left node — harder to reach
+        // than the midpoint via binary search (e.g. 37 for range [1,100])
+        const mid = Math.floor((lo + hi) / 2);
+        const leftMid = Math.floor((lo + mid - 1) / 2);
+        pick = Math.floor((leftMid + mid) / 2);
+        robRounds++;
+      } else {
+        // After 3 Rob's-theory picks, revert to standard binary search
+        pick = Math.floor((lo + hi) / 2);
+      }
     } else {
       pick = randomInt(lo, hi);
     }
@@ -125,7 +153,9 @@ export default function StevesGameClient() {
     const results: SimResult[] = [];
     const history: number[] = [];
     for (let i = 0; i < simRuns; i++) {
-      const steve = randomInt(1, 100);
+      const steve = simStrategy === 'rob-hard'
+        ? ROB_HARD_NUMBERS[randomInt(0, ROB_HARD_NUMBERS.length - 1)]
+        : randomInt(1, 100);
       results.push(playSimGame(steve, simStrategy, history));
       history.push(steve);
     }
@@ -338,6 +368,8 @@ export default function StevesGameClient() {
                 <option value="middle">Pick the Middle (Binary Search)</option>
                 <option value="random">Random</option>
                 <option value="adaptive">Adaptive First Guess + Binary Search</option>
+                <option value="rob">Rob&apos;s Theory (Worst-Case BST)</option>
+                <option value="rob-hard">Rob&apos;s Theory+ (Worst-Case BST + Hard Numbers)</option>
               </select>
             </div>
             <button
@@ -347,6 +379,16 @@ export default function StevesGameClient() {
               Run Simulation
             </button>
           </div>
+          {simStrategy === 'rob' && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 -mt-4 mb-4">
+              Rob&apos;s Theory: for the first 3 guesses per game, picks the depth-2 right-of-left node in the remaining range&apos;s BST (e.g. 37 for [1–100]) — harder to reach via binary search. Reverts to binary search after 3 picks.
+            </p>
+          )}
+          {simStrategy === 'rob-hard' && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 -mt-4 mb-4">
+              Rob&apos;s Theory+: uses Rob&apos;s Theory guessing, but Steve only picks from the ~{ROB_HARD_NUMBERS.length} numbers in [1–100] that take 6–7 guesses to find via binary search.
+            </p>
+          )}
 
           {/* Results */}
           {simStats && simResults && (
