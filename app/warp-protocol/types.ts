@@ -6,12 +6,23 @@ export type CoreKind =
   | 'warp-core'
   | 'credit-spike'
   | 'phase-anchor'
-  | 'overclock-array';
+  | 'overclock-array'
+  | 'surge-tap'
+  | 'harmony-core'
+  | 'redline-capacitor'
+  | 'echo-module';
 
 export type GameMode = 'random' | 'seeded' | 'daily';
 export type GameStatus = 'playing' | 'won';
 export type RoundStatus = 'drawing' | 'stopped' | 'busted';
-export type GameVersion = '1.0.0' | '1.1.0';
+export type GameVersion = '1.0.0' | '1.1.0' | '1.2.0';
+
+export type ResolvedEffect = {
+  genFlux: number;
+  genCredits: number;
+  addInstability: number;
+  isWarpCore: boolean;
+};
 
 export type CoreModule = {
   id: string;
@@ -23,6 +34,7 @@ export type CoreModule = {
   genFlux: number;
   genCredits: number;
   addInstability: number;
+  effectDescription?: string;
   sponsored?: boolean;
   isWarpCore?: boolean;
 };
@@ -65,6 +77,7 @@ export type GameState = {
   discard: CoreModule[];
   activePile: CoreModule[];
   lastDiscarded: CoreModule[];
+  lastResolvedEffect: ResolvedEffect | null;
   rngState: number;
   nextModuleId: number;
   lastRound: RoundSnapshot | null;

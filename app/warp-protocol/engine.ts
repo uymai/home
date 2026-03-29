@@ -7,20 +7,22 @@ import {
   GameMode,
   GameState,
   GameVersion,
+  ResolvedEffect,
   RoundSnapshot,
 } from './types';
 
 const START_BANKED_FLUX = 0;
 const START_BANKED_CREDITS = 0;
 const START_SLOT_CAPACITY = 4;
+const MAX_SLOT_CAPACITY = 12;
 const START_INSTABILITY_THRESHOLD = 4;
-const START_SLOT_CAPACITY_COST = 4;
+const START_SLOT_CAPACITY_COST = 5;
 const START_INSTABILITY_COST = 5;
 const WARP_CORE_TARGET = 4;
 const LEGACY_GAME_VERSION: GameVersion = '1.0.0';
-const CURRENT_GAME_VERSION: GameVersion = '1.1.0';
+const CURRENT_GAME_VERSION: GameVersion = '1.2.0';
 const LEGACY_AVAILABLE_MODULE_COUNT = 5;
-const CURRENT_AVAILABLE_MODULE_COUNT = 5;
+const CURRENT_AVAILABLE_MODULE_COUNT = 9;
 
 type ParsedSeed = {
   originalSeed: string;
@@ -35,6 +37,14 @@ type CatalogConfig = {
   shopPool: FluxPurchaseKind[];
   alwaysAvailable: FluxPurchaseKind[];
   defaultAvailableModuleCount: number;
+};
+
+type DrawContext = {
+  activePile: CoreModule[];
+  ownedModules: CoreModule[];
+  roundInstability: number;
+  instabilityThreshold: number;
+  lastResolvedEffect: ResolvedEffect | null;
 };
 
 const MODULE_BLUEPRINTS: Record<CoreKind, Omit<CoreModule, 'id'>> = {
@@ -120,6 +130,77 @@ const MODULE_BLUEPRINTS: Record<CoreKind, Omit<CoreModule, 'id'>> = {
     genCredits: 1,
     addInstability: 3,
   },
+  'surge-tap': {
+    name: 'Surge Tap',
+    kind: 'surge-tap',
+    tier: 2,
+    costFlux: 5,
+    costCredits: 0,
+    genFlux: 0,
+    genCredits: 0,
+    addInstability: 1,
+    effectDescription: '+1 flux per module already installed this round | +0 credits | instability +1',
+  },
+  'harmony-core': {
+    name: 'Harmony Core',
+    kind: 'harmony-core',
+    tier: 2,
+    costFlux: 6,
+    costCredits: 0,
+    genFlux: 0,
+    genCredits: 0,
+    addInstability: 0,
+    effectDescription: '+0 flux | +2 credits per Stabilizer owned | instability +0',
+  },
+  'redline-capacitor': {
+    name: 'Redline Capacitor',
+    kind: 'redline-capacitor',
+    tier: 2,
+    costFlux: 6,
+    costCredits: 0,
+    genFlux: 1,
+    genCredits: 0,
+    addInstability: 1,
+    effectDescription: '+5 flux if within 2 of instability threshold, else +1 flux | +0 credits | instability +1',
+  },
+  'echo-module': {
+    name: 'Echo Module',
+    kind: 'echo-module',
+    tier: 3,
+    costFlux: 8,
+    costCredits: 0,
+    genFlux: 0,
+    genCredits: 0,
+    addInstability: 1,
+    effectDescription: 'Copies the effect of the previously drawn module (+1 instability on top)',
+  },
+};
+
+const EFFECT_RESOLVERS: Partial<Record<CoreKind, (ctx: DrawContext) => ResolvedEffect>> = {
+  'surge-tap': (ctx) => ({
+    genFlux: ctx.activePile.length,
+    genCredits: 0,
+    addInstability: 1,
+    isWarpCore: false,
+  }),
+  'harmony-core': (ctx) => ({
+    genFlux: 0,
+    genCredits: ctx.ownedModules.filter((m) => m.kind === 'stabilizer').length * 2,
+    addInstability: 0,
+    isWarpCore: false,
+  }),
+  'redline-capacitor': (ctx) => ({
+    genFlux: ctx.roundInstability >= ctx.instabilityThreshold - 2 ? 5 : 1,
+    genCredits: 0,
+    addInstability: 1,
+    isWarpCore: false,
+  }),
+  'echo-module': (ctx) => ({
+    genFlux: ctx.lastResolvedEffect?.genFlux ?? 0,
+    genCredits: ctx.lastResolvedEffect?.genCredits ?? 0,
+    addInstability: (ctx.lastResolvedEffect?.addInstability ?? 0) + 1,
+    isWarpCore: ctx.lastResolvedEffect?.isWarpCore ?? false,
+  }),
 };
 
 const CATALOGS: Record<GameVersion, CatalogConfig> = {
@@ -140,6 +221,22 @@ const CATALOGS: Record<GameVersion, CatalogConfig> = {
       'credit-spike',
       'phase-anchor',
       'overclock-array',
+    ],
+    alwaysAvailable: ['warp-core'],
+    defaultAvailableModuleCount: LEGACY_AVAILABLE_MODULE_COUNT,
+  },
+  '1.2.0': {
+    startingBag: ['flux-coil', 'flux-coil', 'sponsored-relay', 'stabilizer'],
+    shopPool: [
+      'flux-coil',
+      'sponsored-relay',
+      'stabilizer',
+      'volatile-lens',
+      'surge-tap',
+      'harmony-core',
+      'redline-capacitor',
+      'echo-module',
+      'warp-core',
     ],
     alwaysAvailable: ['warp-core'],
     defaultAvailableModuleCount: CURRENT_AVAILABLE_MODULE_COUNT,
@@ -278,6 +375,19 @@ function drawModuleFromBag(bag: CoreModule[], rngState: number): { drawnModule: 
   return { drawnModule, bag: nextBag, rngState: random.nextState };
 }
 
+function resolveModuleEffect(drawnModule: CoreModule, ctx: DrawContext): ResolvedEffect {
+  const resolver = EFFECT_RESOLVERS[drawnModule.kind];
+  if (resolver) {
+    return resolver(ctx);
+  }
+  return {
+    genFlux: drawnModule.genFlux,
+    genCredits: drawnModule.genCredits,
+    addInstability: drawnModule.addInstability,
+    isWarpCore: drawnModule.isWarpCore ?? false,
+  };
+}
+
 function applyRoundWinCheck(state: GameState, roundWarpCores: number, roundNumber: number): GameState {
   if (roundWarpCores < state.warpCoreTarget) {
     return state;
@@ -314,6 +424,7 @@ function bankRound(state: GameState, bankReason: 'manual' | 'auto-capacity'): Ga
     activePile: [],
     lastDiscarded: discarded,
     lastRound: roundResult,
+    lastResolvedEffect: null,
     roundWarpCores: 0,
     roundFlux: 0,
     roundCredits: 0,
@@ -350,6 +461,7 @@ function bustRound(state: GameState, extraLog: string, volatilityExceeded: boole
     activePile: [],
     lastDiscarded: discarded,
     lastRound: roundResult,
+    lastResolvedEffect: null,
     roundWarpCores: 0,
     roundFlux: 0,
     roundCredits: 0,
@@ -385,10 +497,22 @@ function drawModule(state: GameState): GameState {
 
   const draw = drawModuleFromBag(bag, rngState);
   const activePile = [...state.activePile, draw.drawnModule];
-  const roundWarpCores = state.roundWarpCores + (draw.drawnModule.isWarpCore ? 1 : 0);
-  const roundFlux = state.roundFlux + draw.drawnModule.genFlux;
-  const roundCredits = state.roundCredits + draw.drawnModule.genCredits;
-  const roundInstability = state.roundInstability + draw.drawnModule.addInstability;
+  const ownedModules = [...draw.bag, ...discard, ...activePile];
+
+  const ctx: DrawContext = {
+    activePile: state.activePile,
+    ownedModules,
+    roundInstability: state.roundInstability,
+    instabilityThreshold: state.instabilityThreshold,
+    lastResolvedEffect: state.lastResolvedEffect,
+  };
+
+  const effect = resolveModuleEffect(draw.drawnModule, ctx);
+
+  const roundWarpCores = state.roundWarpCores + (effect.isWarpCore ? 1 : 0);
+  const roundFlux = state.roundFlux + effect.genFlux;
+  const roundCredits = state.roundCredits + effect.genCredits;
+  const roundInstability = state.roundInstability + effect.addInstability;
   const nextLog = [...log, `Drew ${draw.drawnModule.name}. Unbanked: ${roundFlux} flux, ${roundCredits} credits. Instability ${roundInstability}/${state.instabilityThreshold}.`];
 
   if (roundWarpCores === state.warpCoreTarget) {
@@ -405,6 +529,7 @@ function drawModule(state: GameState): GameState {
     roundFlux,
     roundCredits,
     roundInstability,
+    lastResolvedEffect: effect,
     log: nextLog,
   };
 
@@ -460,6 +585,9 @@ function buyUpgrade(state: GameState, kind: CreditUpgradeKind): GameState {
     return state;
   }
   if (kind === 'slot-capacity') {
+    if (state.slotCapacity >= MAX_SLOT_CAPACITY) {
+      return { ...state, log: [...state.log, `Slot capacity is already at maximum (${MAX_SLOT_CAPACITY}).`] };
+    }
     if (state.bankedCredits < state.nextSlotCapacityCost) {
       return { ...state, log: [...state.log, `Not enough credits for slot capacity upgrade (cost ${state.nextSlotCapacityCost}).`] };
     }
@@ -467,7 +595,7 @@ function buyUpgrade(state: GameState, kind: CreditUpgradeKind): GameState {
       ...state,
       bankedCredits: state.bankedCredits - state.nextSlotCapacityCost,
       slotCapacity: state.slotCapacity + 1,
-      nextSlotCapacityCost: state.nextSlotCapacityCost + 2,
+      nextSlotCapacityCost: state.nextSlotCapacityCost + 1,
       log: [...state.log, `Upgraded slot capacity to ${state.slotCapacity + 1}.`],
     };
   }
@@ -479,7 +607,7 @@ function buyUpgrade(state: GameState, kind: CreditUpgradeKind): GameState {
       ...state,
       bankedCredits: state.bankedCredits - state.nextInstabilityCost,
       instabilityThreshold: state.instabilityThreshold + 1,
-      nextInstabilityCost: state.nextInstabilityCost + 3,
+      nextInstabilityCost: state.nextInstabilityCost + 1,
       log: [...state.log, `Upgraded instability threshold to ${state.instabilityThreshold + 1}.`],
     };
   }
@@ -497,6 +625,7 @@ function startNextRound(state: GameState): GameState {
     ...state,
     bag: [...state.bag, ...recycled],
     discard: [],
+    lastResolvedEffect: null,
     roundStatus: 'drawing',
     log: [...state.log, `Starting round ${state.rounds + 1}. Recycled ${recycled.length} modules back into bag.`],
   };
@@ -568,6 +697,7 @@ export function createInitialState(seed: string, options?: { mode?: GameMode; da
     discard: [],
     activePile: [],
     lastDiscarded: [],
+    lastResolvedEffect: null,
     rngState: seedHash,
     nextModuleId: bag.length + 1,
     lastRound: null,

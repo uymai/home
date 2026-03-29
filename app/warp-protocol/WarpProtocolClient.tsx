@@ -36,7 +36,10 @@ function moduleFlags(core: CoreModule): string {
 
 function moduleStatLine(core: CoreModule): string {
   const flags = moduleFlags(core);
-  const base = `Tier ${core.tier} | Cost ${core.costFlux} flux${core.costCredits > 0 ? ` + ${core.costCredits} credits` : ''} | +${core.genFlux} flux | +${core.genCredits} credits | instability ${core.addInstability >= 0 ? '+' : ''}${core.addInstability}`;
+  const costPart = `Tier ${core.tier} | Cost ${core.costFlux} flux${core.costCredits > 0 ? ` + ${core.costCredits} credits` : ''}`;
+  const effectPart = core.effectDescription
+    ?? `+${core.genFlux} flux | +${core.genCredits} credits | instability ${core.addInstability >= 0 ? '+' : ''}${core.addInstability}`;
+  const base = `${costPart} | ${effectPart}`;
   return flags ? `${base} | ${flags}` : base;
 }
 
