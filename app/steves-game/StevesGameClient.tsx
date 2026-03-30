@@ -27,20 +27,13 @@ function adaptiveFirstGuess(N: number, history: number[]): number {
   return Math.round(N * 0.5);
 }
 
-function binarySearchGuesses(n: number): number {
-  let lo = 1, hi = 100, guesses = 0;
-  while (lo <= hi) {
-    guesses++;
-    const mid = Math.floor((lo + hi) / 2);
-    if (mid === n) return guesses;
-    if (mid < n) lo = mid + 1;
-    else hi = mid - 1;
-  }
-  return guesses;
-}
-
-const ROB_HARD_NUMBERS = Array.from({ length: 100 }, (_, i) => i + 1)
-  .filter(n => binarySearchGuesses(n) >= 6);
+// Numbers 1–100 that require 6+ binary-search guesses (never changes)
+const ROB_HARD_NUMBERS = [
+  1, 2, 4, 5, 7, 8, 10, 11, 13, 14, 16, 17, 19, 20, 22, 23, 24,
+  26, 27, 29, 30, 32, 33, 35, 36, 38, 39, 41, 42, 44, 45, 47, 48, 49,
+  51, 52, 54, 55, 57, 58, 60, 61, 63, 64, 66, 67, 69, 70, 72, 73, 74,
+  76, 77, 79, 80, 82, 83, 85, 86, 87, 89, 90, 92, 93, 95, 96, 98, 99, 100,
+];
 
 function playSimGame(
   steveNumber: number,
