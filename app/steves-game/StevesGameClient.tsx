@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -11,6 +11,19 @@ type GameStatus = 'playing' | 'won';
 interface SimResult {
   earnings: number;
   guessCount: number;
+}
+
+interface StepSimState {
+  steveNumber: number;
+  picks: number[];
+  lo: number;
+  hi: number;
+  robRounds: number;
+  firstGuessDone: boolean;
+  history: number[];        // previous steve numbers (for adaptive strategy)
+  roundIndex: number;       // 0-based
+  roundResults: SimResult[];
+  roundDone: boolean;
 }
 
 function randomInt(lo: number, hi: number): number {
@@ -34,6 +47,55 @@ const ROB_HARD_NUMBERS = [
   51, 52, 54, 55, 57, 58, 60, 61, 63, 64, 66, 67, 69, 70, 72, 73, 74,
   76, 77, 79, 80, 82, 83, 85, 86, 87, 89, 90, 92, 93, 95, 96, 98, 99, 100,
 ];
+
+function initRoundState(
+  strategy: SimStrategy,
+  history: number[],
+  roundIndex: number,
+  roundResults: SimResult[],
+): StepSimState {
+  const steveNumber =
+    strategy === 'rob-hard'
+      ? ROB_HARD_NUMBERS[randomInt(0, ROB_HARD_NUMBERS.length - 1)]
+      : randomInt(1, 100);
+  return {
+    steveNumber,
+    picks: [],
+    lo: 1,
+    hi: 100,
+    robRounds: 0,
+    firstGuessDone: false,
+    history,
+    roundIndex,
+    roundResults,
+    roundDone: false,
+  };
+}
+
+function computeNextPick(
+  strategy: SimStrategy,
+  lo: number,
+  hi: number,
+  robRounds: number,
+  firstGuessDone: boolean,
+  history: number[],
+): number {
+  if (strategy === 'adaptive' && !firstGuessDone) {
+    return adaptiveFirstGuess(100, history);
+  } else if (strategy === 'middle' || strategy === 'adaptive') {
+    return Math.floor((lo + hi) / 2);
+  } else if (strategy === 'rob' || strategy === 'rob-hard') {
+    if (robRounds < 3) {
+      const mid = Math.floor((lo + hi) / 2);
+      const leftMid = Math.floor((lo + mid - 1) / 2);
+      return Math.floor((leftMid + mid) / 2);
+    } else {
+      return Math.floor((lo + hi) / 2);
+    }
+  } else {
+    return randomInt(lo, hi);
+  }
+}
 
 function playSimGame(
   steveNumber: number,
@@ -102,6 +164,11 @@ export default function StevesGameClient() {
   const [simStrategy, setSimStrategy] = useState<SimStrategy>('middle');
   const [simResults, setSimResults] = useState<SimResult[] | null>(null);
   const [showSimDetail, setShowSimDetail] = useState(false);
+  const [stepSim, setStepSim] = useState<StepSimState | null>(null);
+
+  useEffect(() => {
+    setStepSim(null);
+  }, [simStrategy, simRuns]);
 
   const currentEarnings = 6 - (guesses.length + (gameStatus === 'won' ? 1 : 0));
 
@@ -141,6 +208,107 @@ export default function StevesGameClient() {
     setGameStatus('playing');
     setLastHint(null);
   }, []);
+
+  const handleNextPick = useCallback(() => {
+    setStepSim((prev) => {
+      // All rounds done — no-op
+      if (prev !== null && prev.roundDone && prev.roundIndex + 1 >= simRuns) {
+        return prev;
+      }
+
+      let state: StepSimState;
+      if (prev === null) {
+        state = initRoundState(simStrategy, [], 0, []);
+      } else if (prev.roundDone) {
+        state = initRoundState(
+          simStrategy,
+          [...prev.history, prev.steveNumber],
+          prev.roundIndex + 1,
+          prev.roundResults,
+        );
+      } else {
+        state = prev;
+      }
+
+      const pick = computeNextPick(
+        simStrategy, state.lo, state.hi, state.robRounds, state.firstGuessDone, state.history,
+      );
+      const newPicks = [...state.picks, pick];
+      const newFirstGuessDone = state.firstGuessDone || simStrategy === 'adaptive';
+      const newRobRounds =
+        (simStrategy === 'rob' || simStrategy === 'rob-hard') && state.robRounds < 3
+          ? state.robRounds + 1
+          : state.robRounds;
+
+      if (pick === state.steveNumber) {
+        const guessCount = newPicks.length;
+        return {
+          ...state,
+          picks: newPicks,
+          firstGuessDone: newFirstGuessDone,
+          robRounds: newRobRounds,
+          roundDone: true,
+          roundResults: [...state.roundResults, { earnings: 6 - guessCount, guessCount }],
+        };
+      }
+      return {
+        ...state,
+        picks: newPicks,
+        firstGuessDone: newFirstGuessDone,
+        robRounds: newRobRounds,
+        lo: pick < state.steveNumber ? pick + 1 : state.lo,
+        hi: pick > state.steveNumber ? pick - 1 : state.hi,
+      };
+    });
+  }, [simRuns, simStrategy]);
+
+  const handleNextRound = useCallback(() => {
+    setStepSim((prev) => {
+      // All rounds done — no-op
+      if (prev !== null && prev.roundDone && prev.roundIndex + 1 >= simRuns) {
+        return prev;
+      }
+
+      let state: StepSimState;
+      if (prev === null) {
+        state = initRoundState(simStrategy, [], 0, []);
+      } else if (prev.roundDone) {
+        state = initRoundState(
+          simStrategy,
+          [...prev.history, prev.steveNumber],
+          prev.roundIndex + 1,
+          prev.roundResults,
+        );
+      } else {
+        state = prev;
+      }
+
+      // Run to completion
+      let { lo, hi, robRounds, firstGuessDone } = state;
+      let picks = [...state.picks];
+      while (true) {
+        const pick = computeNextPick(simStrategy, lo, hi, robRounds, firstGuessDone, state.history);
+        picks = [...picks, pick];
+        if (simStrategy === 'adaptive' && !firstGuessDone) firstGuessDone = true;
+        if ((simStrategy === 'rob' || simStrategy === 'rob-hard') && robRounds < 3) robRounds++;
+        if (pick === state.steveNumber) {
+          const guessCount = picks.length;
+          return {
+            ...state,
+            picks,
+            lo,
+            hi,
+            robRounds,
+            firstGuessDone,
+            roundDone: true,
+            roundResults: [...state.roundResults, { earnings: 6 - guessCount, guessCount }],
+          };
+        }
+        if (pick < state.steveNumber) lo = pick + 1;
+        else hi = pick - 1;
+      }
+    });
+  }, [simRuns, simStrategy]);
 
   const handleRunSimulation = useCallback(() => {
     const results: SimResult[] = [];
@@ -371,6 +539,20 @@ export default function StevesGameClient() {
             >
               Run Simulation
             </button>
+            <button
+              onClick={handleNextPick}
+              disabled={stepSim !== null && stepSim.roundDone && stepSim.roundIndex + 1 >= simRuns}
+              className="px-5 py-2 bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-full font-semibold transition-colors"
+            >
+              Next Pick
+            </button>
+            <button
+              onClick={handleNextRound}
+              disabled={stepSim !== null && stepSim.roundDone && stepSim.roundIndex + 1 >= simRuns}
+              className="px-5 py-2 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-full font-semibold transition-colors"
+            >
+              Next Round
+            </button>
           </div>
           {simStrategy === 'rob' && (
             <p className="text-xs text-gray-500 dark:text-gray-400 -mt-4 mb-4">
@@ -381,6 +563,84 @@ export default function StevesGameClient() {
             <p className="text-xs text-gray-500 dark:text-gray-400 -mt-4 mb-4">
               Rob&apos;s Theory+: uses Rob&apos;s Theory guessing, but Steve only picks from the ~{ROB_HARD_NUMBERS.length} numbers in [1–100] that take 6–7 guesses to find via binary search.
             </p>
+          )}
+
+          {/* Step-through display */}
+          {stepSim && (
+            <div className="mb-8 p-5 bg-blue-50 dark:bg-blue-950 rounded-xl">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-gray-800 dark:text-gray-200 text-lg">
+                  Step-Through: Round {stepSim.roundIndex + 1} of {simRuns}
+                </h3>
+                {stepSim.roundResults.length > 0 && (
+                  <div className="flex gap-4 text-sm">
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Done: <span className="font-semibold text-gray-800 dark:text-gray-200">{stepSim.roundResults.length}</span>
+                    </span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Total:{' '}
+                      <span className={`font-semibold ${earningsColor(stepSim.roundResults.reduce((s, r) => s + r.earnings, 0))}`}>
+                        {formatEarnings(stepSim.roundResults.reduce((s, r) => s + r.earnings, 0))}
+                      </span>
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {stepSim.picks.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400 italic">No picks yet this round.</p>
+              ) : (
+                <ol className="space-y-1 mb-3">
+                  {stepSim.picks.map((pick, idx) => {
+                    const isLast = idx === stepSim.picks.length - 1;
+                    const isCorrect = isLast && stepSim.roundDone;
+                    const hint = isCorrect ? null : pick < stepSim.steveNumber ? 'higher' : 'lower';
+                    return (
+                      <li key={idx} className="flex items-center gap-2 text-sm">
+                        <span className="w-6 text-right text-gray-400 dark:text-gray-500 font-mono text-xs">{idx + 1}.</span>
+                        <span className={`font-bold text-base ${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-gray-800 dark:text-gray-200'}`}>
+                          {pick}
+                        </span>
+                        {isCorrect ? (
+                          <span className="text-green-600 dark:text-green-400 font-semibold">Correct!</span>
+                        ) : (
+                          <span className={hint === 'higher' ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}>
+                            Go {hint}
+                          </span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+
+              {!stepSim.roundDone && stepSim.picks.length > 0 && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Current range: <span className="font-semibold">{stepSim.lo}–{stepSim.hi}</span>
+                </p>
+              )}
+
+              {stepSim.roundDone && (() => {
+                const lastResult = stepSim.roundResults[stepSim.roundResults.length - 1];
+                return (
+                  <div className="mt-3 flex flex-wrap gap-4 text-sm">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Steve&apos;s number was{' '}
+                      <span className="font-bold text-gray-900 dark:text-gray-100">{stepSim.steveNumber}</span>
+                    </span>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      Guesses: <span className="font-bold">{lastResult.guessCount}</span>
+                    </span>
+                    <span className={`font-bold ${earningsColor(lastResult.earnings)}`}>
+                      {formatEarnings(lastResult.earnings)}
+                    </span>
+                    {stepSim.roundIndex + 1 >= simRuns && (
+                      <span className="text-amber-600 dark:text-amber-400 font-semibold">All rounds complete!</span>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
           )}
 
           {/* Results */}
