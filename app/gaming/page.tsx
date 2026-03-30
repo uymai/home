@@ -14,8 +14,8 @@ export default function Gaming() {
     },
     {
       title: "Steam",
-      description: "Check out my Steam profile and games collection",
-      url: "https://steamcommunity.com/id/yoursteamid", // Replace with actual Steam profile
+      description: "View my live Steam activity — recent games and achievements",
+      url: "/steam",
       icon: "/window.svg",
       color: "bg-slate-100 dark:bg-slate-900"
     },
