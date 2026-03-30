@@ -1,0 +1,4 @@
+interface:
+  display_name: "Recipe Dev"
+  short_description: "Add recipes and work on the recipes page"
+  default_prompt: "Use $recipe-dev to help with this recipe-related change."
