@@ -20,7 +20,7 @@ export default function SteamPage() {
 
       <div className="mt-12 text-center">
         <Link
-          href="/gaming"
+          href="/"
           className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline"
         >
           <svg
@@ -32,7 +32,7 @@ export default function SteamPage() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to Gaming
+          Back to homepage
         </Link>
       </div>
 
