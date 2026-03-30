@@ -1,0 +1,4 @@
+interface:
+  display_name: "Warp Protocol Dev"
+  short_description: "Add modules, tune balance, and debug the Warp Protocol engine"
+  default_prompt: "Use $warp-protocol-dev to implement this change to the Warp Protocol game engine."
