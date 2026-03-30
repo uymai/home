@@ -26,6 +26,13 @@ export default function Home() {
       color: "bg-indigo-100 dark:bg-indigo-950",
     },
     {
+      title: "Steam",
+      description: "Live Steam activity — recent games and achievements",
+      url: "/steam",
+      icon: "/window.svg",
+      color: "bg-slate-100 dark:bg-slate-900",
+    },
+    {
       title: "Finaglings",
       description: "A drawer of one-off experiments, prototypes, and odd little projects worth keeping around",
       url: "/finaglings",
