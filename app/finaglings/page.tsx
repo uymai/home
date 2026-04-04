@@ -41,7 +41,7 @@ export default function FinaglingsPage() {
     },
     {
       title: "Warp Protocol Dark Pulse",
-      description: "A darker take on the Warp Protocol experiment.",
+      description: "A more recent finagling crossed with a really old school project.",
       url: "https://warp-protocol-dark-pulse.uymai.net",
       icon: "/window.svg",
       color: "bg-slate-100 dark:bg-slate-950",
