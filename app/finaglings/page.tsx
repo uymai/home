@@ -39,6 +39,13 @@ export default function FinaglingsPage() {
       icon: "/window.svg",
       color: "bg-violet-100 dark:bg-violet-950",
     },
+    {
+      title: "Warp Protocol Dark Pulse",
+      description: "A darker take on the Warp Protocol experiment.",
+      url: "https://warp-protocol-dark-pulse.uymai.net",
+      icon: "/window.svg",
+      color: "bg-slate-100 dark:bg-slate-950",
+    },
   ];
 
   return (
