@@ -1,0 +1,39 @@
+{
+  "title": "Proper Portion Yogurt Taco Sauce",
+  "description": "A creamy, tangy taco sauce made entirely from 0% Greek yogurt. Light, high-protein, and done in seconds — perfect drizzled over tacos, bowls, or wraps.",
+  "prepTime": "2 minutes",
+  "cookTime": "0 minutes",
+  "servings": 1,
+  "difficulty": "Easy",
+  "tags": [
+    "sauce",
+    "condiment",
+    "taco",
+    "greek yogurt",
+    "high-protein",
+    "low-calorie"
+  ],
+  "ingredients": [
+    "1/4 cup 0% Greek yogurt",
+    "2 tsp lemon juice (or juice from 1/4 lemon)",
+    "1–2 tsp water (to thin)",
+    "1/4 tsp garlic powder",
+    "1/4 tsp cumin",
+    "Pinch of smoked paprika",
+    "Salt to taste",
+    "Hot sauce to taste (optional)"
+  ],
+  "instructions": [
+    "Combine Greek yogurt, lemon juice, garlic powder, cumin, and smoked paprika in a small bowl.",
+    "Add water 1 tsp at a time until you reach your desired drizzle consistency.",
+    "Season with salt and hot sauce to taste.",
+    "Whisk until smooth and serve immediately."
+  ],
+  "macros": {
+    "calories": 40,
+    "protein": 6,
+    "carbs": 3,
+    "fat": 0
+  },
+  "notes": "Macros are for the full single-bowl batch (1 serving). Uses 0% fat Greek yogurt for maximum protein with minimal calories. Great on chickpea tacos, fish tacos, or burrito bowls."
+}
