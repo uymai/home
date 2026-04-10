@@ -46,6 +46,13 @@ export default function FinaglingsPage() {
       icon: "/window.svg",
       color: "bg-slate-100 dark:bg-slate-950",
     },
+    {
+      title: "Number Grid",
+      description: "Visualize numbers 1–1000 with highlights for skip counting, primes, and Fibonacci numbers.",
+      url: "/number-grid",
+      icon: "/window.svg",
+      color: "bg-indigo-100 dark:bg-indigo-950",
+    },
   ];
 
   return (
