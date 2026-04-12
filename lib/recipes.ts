@@ -3,6 +3,13 @@ import path from 'path';
 
 import type { Recipe } from '../app/recipes/types';
 
+export function generateRecipeSlug(title: string): string {
+  return title.toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 export function isValidRecipe(value: unknown): value is Recipe {
   if (!value || typeof value !== 'object') {
     return false;
