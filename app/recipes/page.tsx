@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import type { Recipe } from './types';
-import { generateRecipeSlug } from '../../lib/recipes';
 
 type WakeLockSentinelLike = {
   addEventListener?: (type: 'release', listener: () => void) => void;
@@ -211,6 +210,14 @@ function RecipesContent() {
     const randomIndex = Math.floor(Math.random() * filteredRecipes.length);
     return filteredRecipes[randomIndex];
   }, [filteredRecipes]);
+
+  // Generate URL-friendly slug from recipe title
+  const generateRecipeSlug = (title: string) => {
+    return title.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
 
   // Generate shareable URL for a recipe
   const getRecipeUrl = (recipe: Recipe) => {
