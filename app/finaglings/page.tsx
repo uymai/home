@@ -54,6 +54,13 @@ export default function FinaglingsPage() {
       icon: "/window.svg",
       color: "bg-indigo-100 dark:bg-indigo-950",
     },
+    {
+      title: "Big O Complexity",
+      description: "Visualize time complexity curves for all common Big O notations, with code examples and a speed-improvement calculator.",
+      url: "/finaglings/big-o",
+      icon: "/window.svg",
+      color: "bg-violet-100 dark:bg-violet-950",
+    },
   ];
 
   const claudeSkills = [
