@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -348,8 +348,12 @@ export default function BigOVisualizer() {
   const hasExplosive = selectedDefs.some((d) =>
     ["O2N", "ONfact"].includes(d.key)
   );
-  const normalized = hasExplosive && !logScale;
   const domainMax = Math.max(...selectedDefs.map((d) => d.maxN));
+
+  // Auto-enable log scale when explosive complexities are added
+  useEffect(() => {
+    if (hasExplosive) setLogScale(true);
+  }, [hasExplosive]);
 
   function handleToggle(key: ComplexityKey) {
     setSelected((prev) => {
@@ -381,20 +385,9 @@ export default function BigOVisualizer() {
 
   // Compute scale
   const { toSvgY, rangeMax } = useMemo(() => {
-    if (normalized) {
-      return {
-        rangeMax: 1,
-        toSvgY: (raw: number, def: ComplexityDef) => {
-          const curveMax = def.fn(def.maxN);
-          const norm = curveMax > 0 ? raw / curveMax : 0;
-          return PAD_T + CH - norm * CH;
-        },
-      };
-    }
-    const allYs = curves.flatMap(({ def, pts }) => {
-      if (logScale) return pts.map(({ raw }) => Math.log10(raw + 1));
-      return pts.map(({ raw }) => (def.fn === (() => 1) ? raw : raw));
-    });
+    const allYs = curves.flatMap(({ pts }) =>
+      pts.map(({ raw }) => (logScale ? Math.log10(raw + 1) : raw))
+    );
     const maxY = Math.max(...allYs.filter(isFinite), 1) * 1.05;
     return {
       rangeMax: maxY,
@@ -403,22 +396,21 @@ export default function BigOVisualizer() {
         return PAD_T + CH - (v / maxY) * CH;
       },
     };
-  }, [curves, normalized, logScale]);
+  }, [curves, logScale]);
 
   function toSvgX(n: number) {
     return PAD_L + ((n - 1) / (domainMax - 1)) * CW;
   }
 
-  function buildPoints(pts: { n: number; raw: number }[], def: ComplexityDef) {
+  function buildPoints(pts: { n: number; raw: number }[]) {
     return pts
       .filter(({ raw }) => isFinite(raw) && raw >= 0)
-      .map(({ n, raw }) => `${toSvgX(n).toFixed(1)},${(normalized ? toSvgY(raw, def) : (toSvgY as (r: number) => number)(raw)).toFixed(1)}`)
+      .map(({ n, raw }) => `${toSvgX(n).toFixed(1)},${toSvgY(raw).toFixed(1)}`)
       .join(" ");
   }
 
   // Y-axis tick labels
   function yTickLabel(frac: number): string {
-    if (normalized) return `${Math.round(frac * 100)}%`;
     const v = frac * rangeMax;
     return logScale ? `10^${v.toFixed(1)}` : formatOps(v);
   }
@@ -490,9 +482,9 @@ export default function BigOVisualizer() {
 
       {/* Graph */}
       <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-        {normalized && (
-          <div className="px-4 py-2 text-xs text-amber-400 border-b border-slate-800 bg-amber-950/30">
-            Y-axis is normalized per complexity — actual values differ by orders of magnitude
+        {logScale && hasExplosive && (
+          <div className="px-4 py-2 text-xs text-sky-400 border-b border-slate-800 bg-sky-950/20">
+            Log scale active — exponential and factorial growth would dwarf all other curves on a linear axis
           </div>
         )}
         <svg
@@ -599,14 +591,14 @@ export default function BigOVisualizer() {
             fill="#475569"
             transform={`rotate(-90, 12, ${PAD_T + CH / 2})`}
           >
-            {normalized ? "relative" : logScale ? "log(ops)" : "operations"}
+            {logScale ? "log(ops)" : "operations"}
           </text>
 
           {/* Curves */}
           {curves.map(({ def, pts }) => (
             <polyline
               key={def.key}
-              points={buildPoints(pts, def)}
+              points={buildPoints(pts)}
               fill="none"
               stroke={def.color}
               strokeWidth={active === def.key ? 2.5 : 1.5}
