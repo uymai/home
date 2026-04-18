@@ -687,24 +687,36 @@ export default function BigOVisualizer() {
 
       {/* Code panel */}
       <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-        <div className="flex items-start justify-between px-5 py-3 border-b border-slate-800">
-          <div>
-            <span
-              className="text-sm font-bold font-mono"
-              style={{ color: activeDef.color }}
-            >
-              {activeDef.label}
-            </span>
-            <p className="text-xs text-slate-400 mt-0.5">{activeDef.description}</p>
-          </div>
+        {/* Tabs */}
+        <div className="flex items-center border-b border-slate-800 overflow-x-auto">
+          {selectedDefs.map((def) => {
+            const isAct = active === def.key;
+            return (
+              <button
+                key={def.key}
+                onClick={() => setActive(def.key)}
+                style={isAct ? { color: def.color, borderBottomColor: def.color } : undefined}
+                className={`shrink-0 px-4 py-2.5 text-xs font-bold font-mono border-b-2 transition-colors cursor-pointer ${
+                  isAct
+                    ? "border-current"
+                    : "border-transparent text-slate-500 hover:text-slate-300"
+                }`}
+              >
+                {def.label}
+              </button>
+            );
+          })}
           <button
             onClick={handleCopy}
-            className="text-xs px-2.5 py-1 rounded border border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-500 transition-colors cursor-pointer shrink-0 ml-4 mt-0.5"
+            className="ml-auto shrink-0 text-xs px-3 py-2 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
           >
             {copied ? "copied!" : "copy"}
           </button>
         </div>
-        <pre className="p-5 text-sm font-mono leading-relaxed overflow-x-auto text-slate-300">
+        <div className="px-5 pt-3 pb-1">
+          <p className="text-xs text-slate-400">{activeDef.description}</p>
+        </div>
+        <pre className="px-5 pb-5 pt-2 text-sm font-mono leading-relaxed overflow-x-auto text-slate-300">
           <code>{highlight(activeDef.code)}</code>
         </pre>
       </div>
