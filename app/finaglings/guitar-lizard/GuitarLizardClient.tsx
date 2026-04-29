@@ -18,7 +18,7 @@ type NavigatorWithWakeLock = Navigator & {
 const FRET_WIDTH = 65;
 const STRING_GAP = 48;
 const LEFT_MARGIN = 36;
-const TOP_MARGIN = 28;
+const TOP_MARGIN = 50;
 const RIGHT_PAD = 12;
 const BOT_PAD = 12;
 const DOT_R = 16;
@@ -44,7 +44,7 @@ export default function GuitarLizardClient() {
   if (startFret < 0) startFret += 12;
 
   const svgWidth = LEFT_MARGIN + position.windowSize * FRET_WIDTH + RIGHT_PAD;
-  const svgHeight = TOP_MARGIN + 5 * STRING_GAP + BOT_PAD;
+  const svgHeight = TOP_MARGIN + 5 * STRING_GAP + DOT_R + BOT_PAD;
 
   const requestWakeLock = useCallback(async () => {
     if (!wakeLockSupported || wakeLockRef.current) return;
