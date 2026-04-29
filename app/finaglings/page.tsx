@@ -61,6 +61,13 @@ export default function FinaglingsPage() {
       icon: "/window.svg",
       color: "bg-violet-100 dark:bg-violet-950",
     },
+    {
+      title: "Guitar Lizard",
+      description: "Phone-friendly guitar scale practice — fretboard diagrams for the 5 pentatonic positions across minor, blues, and major, with screen stay-on.",
+      url: "/finaglings/guitar-lizard",
+      icon: "/window.svg",
+      color: "bg-lime-100 dark:bg-lime-950",
+    },
   ];
 
   const claudeSkills = [
