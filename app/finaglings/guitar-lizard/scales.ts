@@ -187,8 +187,35 @@ const MAJOR_PENTA_POSITIONS: ScalePosition[] = [
   },
 ];
 
+// Open string pitches in semitones from low E=0 (standard tuning)
+const OPEN_STRINGS_FROM_E = [0, 5, 10, 3, 7, 0] as const;
+
+// Generates fretboard positions from a sorted scale interval array.
+// Each scale degree becomes one position; the B-string 4-semitone gap is
+// handled automatically via OPEN_STRINGS_FROM_E.
+function generateScalePositions(intervals: number[]): ScalePosition[] {
+  const intervalSet = new Set(intervals);
+  return intervals.map((startInterval, posIdx) => {
+    const dots: ScaleDot[] = [];
+    let maxOffset = 0;
+    for (let s = 0; s < 6; s++) {
+      for (let o = 0; o <= 4; o++) {
+        const ni = (OPEN_STRINGS_FROM_E[s] + startInterval + o) % 12;
+        if (intervalSet.has(ni)) {
+          dots.push({ stringIdx: s, fretOffset: o, type: ni === 0 ? 'root' : 'note' });
+          maxOffset = Math.max(maxOffset, o);
+        }
+      }
+    }
+    return { label: `Position ${posIdx + 1}`, startOffset: startInterval, dots, windowSize: maxOffset + 1 };
+  });
+}
+
 export const SCALES: Scale[] = [
-  { id: 'minor-penta', name: 'Minor Pentatonic', positions: MINOR_PENTA_POSITIONS },
-  { id: 'blues', name: 'Blues', positions: BLUES_POSITIONS },
-  { id: 'major-penta', name: 'Major Pentatonic', positions: MAJOR_PENTA_POSITIONS },
+  { id: 'minor-penta',   name: 'Minor Pentatonic', positions: MINOR_PENTA_POSITIONS },
+  { id: 'blues',         name: 'Blues',            positions: BLUES_POSITIONS },
+  { id: 'major-penta',   name: 'Major Pentatonic', positions: MAJOR_PENTA_POSITIONS },
+  { id: 'natural-minor', name: 'Natural Minor',    positions: generateScalePositions([0, 2, 3, 5, 7, 8, 10]) },
+  { id: 'major',         name: 'Major',            positions: generateScalePositions([0, 2, 4, 5, 7, 9, 11]) },
+  { id: 'dorian',        name: 'Dorian',           positions: generateScalePositions([0, 2, 3, 5, 7, 9, 10]) },
 ];
