@@ -37,3 +37,13 @@ npm run lint       # ESLint
 Tests use Vitest. Run `npm test` before committing. The `prebuild` script runs tests automatically.
 
 Test files live in both `test/` and colocated with source (e.g., `app/warp-protocol/engine.test.ts`).
+
+## Guitar Lizard (`/finaglings/guitar-lizard`)
+
+Scale data lives in `app/finaglings/guitar-lizard/scales.ts`. To add a new scale, call `generateScalePositions` with a sorted interval array (semitones from root) and append an entry to `SCALES`:
+
+```ts
+{ id: 'my-scale', name: 'My Scale', positions: generateScalePositions([0, 2, 4, 7, 9]) }
+```
+
+`generateScalePositions` produces one fretboard position per scale degree. It uses `OPEN_STRINGS_FROM_E = [0, 5, 10, 3, 7, 0]` (standard tuning pitches from low E=0), which correctly handles the B-string 4-semitone gap. The `startOffset` of each position equals its scale degree interval, so positions anchor correctly for all 12 keys via `ROOT_FRETS` in the client.
