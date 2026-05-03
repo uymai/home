@@ -1,0 +1,58 @@
+{
+  "title": "Chipotle Chicken Tortas",
+  "description": "A high-protein torta with grilled spiced chicken breast, smoky chipotle yogurt sauce, and creamy black beans on a toasted whole wheat bun.",
+  "prepTime": "20 minutes",
+  "cookTime": "25 minutes",
+  "servings": 4,
+  "difficulty": "Easy",
+  "tags": ["Mexican", "high-protein", "sandwich", "meal-prep"],
+  "ingredients": [
+    "700g (1.5 lbs) chicken breast, sliced thin or butterflied",
+    "4 whole wheat sandwich thin buns or light hamburger buns (~100 cal each), split and toasted",
+    "Lettuce leaves",
+    "1 large tomato, sliced",
+    "½ red onion, sliced thin",
+    "1 avocado, quartered (¼ avocado per torta)",
+
+    "CHIPOTLE YOGURT SAUCE:",
+    "1 cup (250g) plain 0% Greek yogurt",
+    "3 tbsp chipotle hot sauce (adjust to taste)",
+    "1 tbsp ground chia seeds",
+    "1 tsp lemon juice / 1 tsp bottled lemon juice",
+    "½ tsp garlic powder",
+    "Pinch of salt",
+
+    "CREAMY BLACK BEANS:",
+    "1 tsp canola oil",
+    "1 yellow onion, chopped",
+    "3 cloves garlic, minced",
+    "1 tbsp chili powder",
+    "¾ tsp ground cumin",
+    "3 cups cooked black beans (or two 15 oz cans, drained and rinsed)",
+    "1 cup low-sodium vegetable broth",
+    "Juice of 1 lime (about 2 tbsp lime juice)",
+    "Salt to taste",
+
+    "CHICKEN SEASONING:",
+    "1 tsp chili powder",
+    "1 tsp garlic powder",
+    "½ tsp cumin",
+    "½ tsp smoked paprika",
+    "½ tsp salt",
+    "¼ tsp black pepper"
+  ],
+  "instructions": [
+    "BRINE THE CHICKEN: Dissolve 1 tbsp salt in 2 cups cold water. Submerge chicken breasts and brine for 20–30 minutes. Rinse and pat dry.",
+    "MAKE THE SAUCE: Combine 1 cup plain 0% Greek yogurt, 3 tbsp chipotle hot sauce, 1 tbsp ground chia seeds, 1 tsp lemon juice, and ½ tsp garlic powder in a bowl. Stir well, taste, and adjust heat. Refrigerate until needed — it will thicken as it sits.",
+    "MAKE THE BEANS: Heat 1 tsp canola oil in a large pan over medium heat. Sauté chopped onion until golden, about 5 minutes. Add minced garlic, 1 tbsp chili powder, and ¾ tsp cumin; cook 30 seconds. Add beans and 1 cup broth, stir and bring to a simmer. Reduce heat and mash beans with a spoon or masher to a chunky texture. Add lime juice, taste, and adjust seasoning.",
+    "SEASON AND COOK THE CHICKEN: Combine 1 tsp chili powder, 1 tsp garlic powder, ½ tsp cumin, ½ tsp smoked paprika, ½ tsp salt, and ¼ tsp black pepper. Coat brined chicken evenly. Grill or air fry at 400°F (200°C) for 12–15 minutes, flipping halfway, until internal temp hits 165°F (74°C). Rest 5 minutes, then slice thin.",
+    "BUILD THE TORTA: Spread a generous spoonful of chipotle yogurt sauce on both halves of the toasted bun. Layer sliced chicken, a big scoop of black beans, lettuce, tomato, red onion, and ¼ avocado. Serve immediately."
+  ],
+  "macros": {
+    "calories": 490,
+    "protein": 48,
+    "carbs": 48,
+    "fat": 10
+  },
+  "notes": "Black beans contribute meaningful protein but also significant carbs — if you want to tighten carbs further, reduce beans to ½ cup per torta and add more chicken. The yogurt sauce keeps in the fridge 3–4 days and works well as a dip or salad dressing. Bun choice is the biggest carb lever in this recipe."
+}
