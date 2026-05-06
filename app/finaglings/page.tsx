@@ -68,6 +68,13 @@ export default function FinaglingsPage() {
       icon: "/window.svg",
       color: "bg-lime-100 dark:bg-lime-950",
     },
+    {
+      title: "Dart Game",
+      description: "Throw 3 darts on a regulation dartboard — click to aim and see your score.",
+      url: "/finaglings/dart-game",
+      icon: "/window.svg",
+      color: "bg-rose-100 dark:bg-rose-950",
+    },
   ];
 
   const claudeSkills = [
