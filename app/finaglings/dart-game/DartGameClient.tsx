@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 
-const CX = 170;
-const CY = 170;
+const CX = 190;
+const CY = 190;
 const R_DOUBLE_BULL = 6.35;
 const R_SINGLE_BULL = 15.9;
 const R_SINGLE_INNER = 99;
@@ -66,8 +66,8 @@ export default function DartGameClient() {
   function handleBoardClick(e: React.MouseEvent<SVGSVGElement>) {
     if (darts.length >= 3) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const svgX = ((e.clientX - rect.left) / rect.width) * 340;
-    const svgY = ((e.clientY - rect.top) / rect.height) * 340;
+    const svgX = ((e.clientX - rect.left) / rect.width) * 380;
+    const svgY = ((e.clientY - rect.top) / rect.height) * 380;
     setDarts(prev => [...prev, scoreClick(svgX, svgY)]);
   }
 
@@ -77,7 +77,7 @@ export default function DartGameClient() {
     <div className="flex flex-col gap-4">
       <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
         <svg
-          viewBox="0 0 340 340"
+          viewBox="0 0 380 380"
           width="100%"
           onClick={handleBoardClick}
           className={darts.length < 3 ? 'cursor-crosshair' : 'cursor-default'}
@@ -165,7 +165,7 @@ export default function DartGameClient() {
 
           {/* Number labels */}
           {NUMBERS.map((num, i) => {
-            const pos = polarToXY(CX, CY, 183, i * SEG_ANGLE);
+            const pos = polarToXY(CX, CY, 184, i * SEG_ANGLE);
             return (
               <text
                 key={`n${i}`}
