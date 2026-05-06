@@ -75,6 +75,13 @@ export default function FinaglingsPage() {
       icon: "/window.svg",
       color: "bg-rose-100 dark:bg-rose-950",
     },
+    {
+      title: "Bob's 27",
+      description: "Track your score in the classic doubles practice game — 3 darts per double, rounds 1–20.",
+      url: "/finaglings/bobs-27",
+      icon: "/window.svg",
+      color: "bg-orange-100 dark:bg-orange-950",
+    },
   ];
 
   const claudeSkills = [
