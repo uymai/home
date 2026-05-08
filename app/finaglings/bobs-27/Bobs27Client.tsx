@@ -1,6 +1,18 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+type WakeLockSentinelLike = {
+  addEventListener?: (type: 'release', listener: () => void) => void;
+  onrelease?: (() => void) | null;
+  release?: () => Promise<void>;
+};
+
+type NavigatorWithWakeLock = Navigator & {
+  wakeLock?: {
+    request: (type: 'screen') => Promise<WakeLockSentinelLike>;
+  };
+};
 
 type RoundResult = {
   number: number;
@@ -24,6 +36,66 @@ export default function Bobs27Client() {
   const startX = useRef<number | null>(null);
   const startY = useRef<number | null>(null);
   const swipeDir = useRef<'h' | 'v' | null>(null);
+
+  const wakeLockRef = useRef<WakeLockSentinelLike | null>(null);
+  const [stayOnEnabled, setStayOnEnabled] = useState(false);
+  const [wakeLockSupported, setWakeLockSupported] = useState(false);
+
+  const requestWakeLock = useCallback(async () => {
+    if (!wakeLockSupported || wakeLockRef.current) return;
+    try {
+      if (document.visibilityState !== 'visible') return;
+      const sentinel = await (navigator as NavigatorWithWakeLock).wakeLock?.request('screen');
+      if (!sentinel) return;
+      wakeLockRef.current = sentinel;
+      const onRelease = () => { wakeLockRef.current = null; };
+      sentinel.addEventListener?.('release', onRelease);
+      sentinel.onrelease = onRelease;
+    } catch {
+      wakeLockRef.current = null;
+    }
+  }, [wakeLockSupported]);
+
+  const releaseWakeLock = async () => {
+    try {
+      await wakeLockRef.current?.release?.();
+    } catch {
+      // ignore
+    } finally {
+      wakeLockRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined') {
+      try {
+        const supported = Boolean((navigator as NavigatorWithWakeLock).wakeLock?.request);
+        setWakeLockSupported(supported);
+      } catch {
+        setWakeLockSupported(false);
+      }
+    }
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible' && stayOnEnabled && !wakeLockRef.current) {
+        void requestWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release?.().catch(() => {}).finally(() => { wakeLockRef.current = null; });
+      }
+    };
+  }, [requestWakeLock, stayOnEnabled]);
+
+  const toggleWakeLock = async () => {
+    if (!wakeLockSupported) return;
+    const next = !stayOnEnabled;
+    setStayOnEnabled(next);
+    if (next) await requestWakeLock();
+    else await releaseWakeLock();
+  };
 
   const currentRound = results.length + 1;
   const gameComplete = results.length === 20;
@@ -104,6 +176,20 @@ export default function Bobs27Client() {
           {score}
         </div>
         <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">points</div>
+        {wakeLockSupported && (
+          <button
+            onClick={toggleWakeLock}
+            aria-pressed={stayOnEnabled}
+            className={`mt-3 px-3 py-1 rounded-lg text-sm flex items-center gap-2 border font-medium mx-auto transition-colors ${
+              stayOnEnabled
+                ? 'bg-green-600 text-white border-green-700 hover:bg-green-700'
+                : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+            }`}
+          >
+            <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${stayOnEnabled ? 'bg-white' : 'bg-gray-400 dark:bg-gray-500'}`} />
+            {stayOnEnabled ? 'Stay On: ON' : 'Stay On: OFF'}
+          </button>
+        )}
       </div>
 
       {!gameOver && (
