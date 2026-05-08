@@ -3,8 +3,36 @@ import Header from "../components/Header";
 import LinkCard from "../components/LinkCard";
 import SkillCard from "../components/SkillCard";
 
+type Project = {
+  title: string;
+  description: string;
+  url: string;
+  icon: string;
+  color: string;
+};
+
+function ProjectSection({ title, projects }: { title: string; projects: Project[] }) {
+  return (
+    <section className="mt-12">
+      <h2 className="text-2xl font-bold mb-6">{title}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        {projects.map((project, index) => (
+          <LinkCard
+            key={index}
+            title={project.title}
+            description={project.description}
+            url={project.url}
+            icon={project.icon}
+            color={project.color}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function FinaglingsPage() {
-  const projects = [
+  const misc: Project[] = [
     {
       title: "Steve's Game",
       description: "Steve picks a number 1–100. Earn $5 for a first-guess win, losing $1 for each additional try. Can you beat Steve?",
@@ -13,40 +41,15 @@ export default function FinaglingsPage() {
       color: "bg-amber-100 dark:bg-amber-950",
     },
     {
-      title: "Warp Protocol",
-      description: "A self-contained protocol game experiment with its own rules, state, and play loop.",
-      url: "/warp-protocol",
+      title: "Guitar Lizard",
+      description: "Phone-friendly guitar scale practice — fretboard diagrams for the 5 pentatonic positions across minor, blues, and major, with screen stay-on.",
+      url: "/finaglings/guitar-lizard",
       icon: "/window.svg",
-      color: "bg-sky-100 dark:bg-sky-950",
+      color: "bg-lime-100 dark:bg-lime-950",
     },
-    {
-      title: "Magic Square",
-      description: "A one-off number toy that generates 4 x 4 magic squares for custom target sums.",
-      url: "/magic-square",
-      icon: "/globe.svg",
-      color: "bg-cyan-100 dark:bg-cyan-950",
-    },
-    {
-      title: "Mealstorm",
-      description: "A dinner planner side project for figuring out what to make before the week gets away from you.",
-      url: "https://uymai.github.io/mealstorm/",
-      icon: "/next.svg",
-      color: "bg-emerald-100 dark:bg-emerald-950",
-    },
-    {
-      title: "Tally Rally",
-      description: "A shared todo list, but with points!",
-      url: "https://tallyrally.uymai.net",
-      icon: "/window.svg",
-      color: "bg-violet-100 dark:bg-violet-950",
-    },
-    {
-      title: "Warp Protocol Dark Pulse",
-      description: "A more recent finagling crossed with a really old school project.",
-      url: "https://warp-protocol-dark-pulse.uymai.net",
-      icon: "/window.svg",
-      color: "bg-slate-100 dark:bg-slate-950",
-    },
+  ];
+
+  const mathProjects: Project[] = [
     {
       title: "Number Grid",
       description: "Visualize numbers 1–1000 with highlights for skip counting, primes, and Fibonacci numbers.",
@@ -62,11 +65,55 @@ export default function FinaglingsPage() {
       color: "bg-violet-100 dark:bg-violet-950",
     },
     {
-      title: "Guitar Lizard",
-      description: "Phone-friendly guitar scale practice — fretboard diagrams for the 5 pentatonic positions across minor, blues, and major, with screen stay-on.",
-      url: "/finaglings/guitar-lizard",
+      title: "Magic Square",
+      description: "A one-off number toy that generates 4 x 4 magic squares for custom target sums.",
+      url: "/magic-square",
+      icon: "/globe.svg",
+      color: "bg-cyan-100 dark:bg-cyan-950",
+    },
+  ];
+
+  const adultingApps: Project[] = [
+    {
+      title: "Mealstorm",
+      description: "A dinner planner side project for figuring out what to make before the week gets away from you.",
+      url: "https://uymai.github.io/mealstorm/",
+      icon: "/next.svg",
+      color: "bg-emerald-100 dark:bg-emerald-950",
+    },
+    {
+      title: "Tally Rally",
+      description: "A shared todo list, but with points!",
+      url: "https://tallyrally.uymai.net",
       icon: "/window.svg",
-      color: "bg-lime-100 dark:bg-lime-950",
+      color: "bg-violet-100 dark:bg-violet-950",
+    },
+  ];
+
+  const notGames: Project[] = [
+    {
+      title: "Warp Protocol",
+      description: "A self-contained protocol game experiment with its own rules, state, and play loop.",
+      url: "/warp-protocol",
+      icon: "/window.svg",
+      color: "bg-sky-100 dark:bg-sky-950",
+    },
+    {
+      title: "Warp Protocol Dark Pulse",
+      description: "A more recent finagling crossed with a really old school project.",
+      url: "https://warp-protocol-dark-pulse.uymai.net",
+      icon: "/window.svg",
+      color: "bg-slate-100 dark:bg-slate-950",
+    },
+  ];
+
+  const dartsProjects: Project[] = [
+    {
+      title: "Bob's 27",
+      description: "Track your score in the classic doubles practice game — 3 darts per double, rounds 1–20.",
+      url: "/finaglings/bobs-27",
+      icon: "/window.svg",
+      color: "bg-orange-100 dark:bg-orange-950",
     },
     {
       title: "Dart Game",
@@ -74,13 +121,6 @@ export default function FinaglingsPage() {
       url: "/finaglings/dart-game",
       icon: "/window.svg",
       color: "bg-rose-100 dark:bg-rose-950",
-    },
-    {
-      title: "Bob's 27",
-      description: "Track your score in the classic doubles practice game — 3 darts per double, rounds 1–20.",
-      url: "/finaglings/bobs-27",
-      icon: "/window.svg",
-      color: "bg-orange-100 dark:bg-orange-950",
     },
   ];
 
@@ -101,7 +141,7 @@ export default function FinaglingsPage() {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {projects.map((project, index) => (
+        {misc.map((project, index) => (
           <LinkCard
             key={index}
             title={project.title}
@@ -112,6 +152,11 @@ export default function FinaglingsPage() {
           />
         ))}
       </div>
+
+      <ProjectSection title="Just a little bit of math" projects={mathProjects} />
+      <ProjectSection title="Adulting Apps" projects={adultingApps} />
+      <ProjectSection title="I'd call these games if they were fun" projects={notGames} />
+      <ProjectSection title="Darts" projects={dartsProjects} />
 
       <section className="mt-16">
         <h2 className="text-2xl font-bold mb-2">Claude Skills</h2>
