@@ -1,0 +1,36 @@
+{
+  "title": "High-Protein Cookies & Cream Waffles",
+  "description": "Macro-friendly waffles using Leanfit C&C whey — high protein, moderate carb, kid-approved flavour.",
+  "prepTime": "5 minutes",
+  "cookTime": "15 minutes",
+  "servings": 2,
+  "difficulty": "Easy",
+  "tags": ["breakfast", "high-protein", "waffles"],
+  "ingredients": [
+    "2 scoops (66g) Leanfit Cookies & Cream whey protein",
+    "1/2 cup (60g) oat flour (blend rolled oats if needed)",
+    "1 tsp baking powder",
+    "1/4 tsp salt",
+    "2 large eggs",
+    "1/2 cup (120ml) 1% milk",
+    "1/4 cup (60g) 0% plain Greek yogurt",
+    "1 tsp vanilla extract",
+    "1 tsp maple syrup",
+    "cooking spray (canola)"
+  ],
+  "instructions": [
+    "Whisk together 2 scoops (66g) whey protein, 1/2 cup oat flour, 1 tsp baking powder, and 1/4 tsp salt in a large bowl.",
+    "In a separate bowl, whisk 2 eggs, 1/2 cup milk, 1/4 cup Greek yogurt, 1 tsp vanilla, and 1 tsp maple syrup until smooth.",
+    "Pour wet ingredients into dry and mix until just combined — don't overwork it. Batter will be thick.",
+    "Preheat waffle iron and spray with canola cooking spray.",
+    "Pour half the batter (roughly 1/2 cup) onto the iron, close, and cook 3–4 minutes until steam subsides and waffles release cleanly.",
+    "Repeat with remaining batter. Serve immediately or cool on a rack to freeze."
+  ],
+  "macros": {
+    "calories": 370,
+    "protein": 42,
+    "carbs": 30,
+    "fat": 9
+  },
+  "notes": "Per serving (1 large waffle). Freeze extras and reheat in the toaster — texture holds well. Greek yogurt keeps these moist without adding fat. If batter is too thick, add 1–2 tbsp milk. Carb note: oat flour is whole grain so glycemic load is lower than the number suggests."
+}
