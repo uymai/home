@@ -122,6 +122,13 @@ export default function FinaglingsPage() {
       icon: "/window.svg",
       color: "bg-rose-100 dark:bg-rose-950",
     },
+    {
+      title: "Checkout Chart",
+      description: "Quick-reference checkout guide — enter your score and see the optimal darts to finish on a double.",
+      url: "/finaglings/dart-checkout",
+      icon: "/window.svg",
+      color: "bg-red-100 dark:bg-red-950",
+    },
   ];
 
   const claudeSkills = [
