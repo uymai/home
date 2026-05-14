@@ -51,6 +51,13 @@ export default function FinaglingsPage() {
 
   const mathProjects: Project[] = [
     {
+      title: "Toilet Paper Math",
+      description: "Which pack is the better deal? Enter price and count for two options and see the price-per-unit breakdown instantly.",
+      url: "/finaglings/toilet-paper-math",
+      icon: "/window.svg",
+      color: "bg-yellow-100 dark:bg-yellow-950",
+    },
+    {
       title: "Number Grid",
       description: "Visualize numbers 1–1000 with highlights for skip counting, primes, and Fibonacci numbers.",
       url: "/number-grid",
