@@ -29,6 +29,8 @@ function RecipesContent() {
   // Pinned recipes for cook mode
   const [pinnedRecipes, setPinnedRecipes] = useState<Recipe[]>([]);
   const touchStartX = useRef<number>(0);
+  const [animPhase, setAnimPhase] = useState<'idle' | 'exit' | 'enter'>('idle');
+  const [animDir, setAnimDir] = useState<'left' | 'right'>('left');
 
   // Screen Wake Lock state
   const wakeLockRef = useRef<WakeLockSentinelLike | null>(null);
@@ -138,15 +140,21 @@ function RecipesContent() {
   const isInPinnedView = currentPinnedIndex !== -1 && pinnedRecipes.length > 1;
 
   const navigatePinned = useCallback((dir: 'prev' | 'next') => {
-    setPinnedRecipes(prev => {
-      const idx = prev.findIndex(r => r.title === selectedRecipe!.title);
-      const next = dir === 'next'
-        ? (idx + 1) % prev.length
-        : (idx - 1 + prev.length) % prev.length;
-      setSelectedRecipe(prev[next]);
-      return prev;
-    });
-  }, [selectedRecipe]);
+    if (animPhase !== 'idle') return;
+    const idx = pinnedRecipes.findIndex(r => r.title === selectedRecipe!.title);
+    const nextIdx = dir === 'next'
+      ? (idx + 1) % pinnedRecipes.length
+      : (idx - 1 + pinnedRecipes.length) % pinnedRecipes.length;
+    const nextRecipe = pinnedRecipes[nextIdx];
+    const swipeDir = dir === 'next' ? 'left' : 'right';
+    setAnimDir(swipeDir);
+    setAnimPhase('exit');
+    setTimeout(() => {
+      setSelectedRecipe(nextRecipe);
+      setAnimPhase('enter');
+      setTimeout(() => setAnimPhase('idle'), 220);
+    }, 160);
+  }, [selectedRecipe, pinnedRecipes, animPhase]);
 
   // Handle escape key to close modal and arrow keys for pinned navigation
   useEffect(() => {
@@ -225,6 +233,24 @@ function RecipesContent() {
     if (isInPinnedView && Math.abs(delta) > 50) {
       navigatePinned(delta < 0 ? 'next' : 'prev');
     }
+  };
+
+  const getSwipeStyle = (): React.CSSProperties => {
+    if (animPhase === 'exit') {
+      return {
+        transform: animDir === 'left' ? 'translateX(-48px)' : 'translateX(48px)',
+        opacity: 0,
+        transition: 'transform 160ms ease, opacity 160ms ease',
+      };
+    }
+    if (animPhase === 'enter') {
+      return {
+        animation: animDir === 'left'
+          ? 'recipe-slide-in-from-right 220ms ease forwards'
+          : 'recipe-slide-in-from-left 220ms ease forwards',
+      };
+    }
+    return {};
   };
 
   // Get all unique tags for filtering
@@ -565,28 +591,31 @@ function RecipesContent() {
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
-            <div className="p-6">
-              {/* Pinned navigation strip */}
-              {isInPinnedView && (
-                <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
-                  <button
-                    onClick={() => navigatePinned('prev')}
-                    className="px-3 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium"
-                  >
-                    ← Prev
-                  </button>
-                  <span className="font-medium">
-                    {currentPinnedIndex + 1} / {pinnedRecipes.length}
-                  </span>
-                  <button
-                    onClick={() => navigatePinned('next')}
-                    className="px-3 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium"
-                  >
-                    Next →
-                  </button>
-                  <span className="hidden sm:inline text-xs opacity-60">swipe or ←→ keys</span>
-                </div>
-              )}
+            {/* Pinned navigation strip — outside animated div so it stays stable */}
+            {isInPinnedView && (
+              <div className="flex items-center gap-3 px-6 pt-5 pb-3 border-b border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
+                <button
+                  onClick={() => navigatePinned('prev')}
+                  disabled={animPhase !== 'idle'}
+                  className="px-3 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium disabled:opacity-40"
+                >
+                  ← Prev
+                </button>
+                <span className="font-medium">
+                  {currentPinnedIndex + 1} / {pinnedRecipes.length}
+                </span>
+                <button
+                  onClick={() => navigatePinned('next')}
+                  disabled={animPhase !== 'idle'}
+                  className="px-3 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium disabled:opacity-40"
+                >
+                  Next →
+                </button>
+                <span className="hidden sm:inline text-xs opacity-60">swipe or ←→ keys</span>
+              </div>
+            )}
+            <div className="p-6 overflow-hidden">
+            <div style={getSwipeStyle()}>
 
               <div className="flex justify-between items-start mb-6">
                 <div>
@@ -713,7 +742,8 @@ function RecipesContent() {
                   <p className="text-yellow-700 dark:text-yellow-300">{selectedRecipe.notes}</p>
                 </div>
               )}
-            </div>
+            </div>{/* end swipe-animated div */}
+            </div>{/* end p-6 overflow-hidden */}
           </div>
         </div>
       )}
