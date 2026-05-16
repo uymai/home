@@ -26,6 +26,12 @@ function RecipesContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
+  // Pinned recipes for cook mode
+  const [pinnedRecipes, setPinnedRecipes] = useState<Recipe[]>([]);
+  const touchStartX = useRef<number>(0);
+  const [animPhase, setAnimPhase] = useState<'idle' | 'exit' | 'enter'>('idle');
+  const [animDir, setAnimDir] = useState<'left' | 'right'>('left');
+
   // Screen Wake Lock state
   const wakeLockRef = useRef<WakeLockSentinelLike | null>(null);
   // wakeLockActive reflects the actual acquired state; stayOnEnabled is the user's intent
@@ -118,7 +124,7 @@ function RecipesContent() {
     const recipeParam = searchParams.get('recipe');
     if (recipeParam && recipes.length > 0) {
       // Find recipe by the same slug format used for share links
-      const recipe = recipes.find(r => 
+      const recipe = recipes.find(r =>
         recipeParam === generateRecipeSlug(r.title)
       );
       if (recipe) {
@@ -127,19 +133,46 @@ function RecipesContent() {
     }
   }, [searchParams, recipes]);
 
-  // Handle escape key to close modal
+  // Derived pinned-view state
+  const currentPinnedIndex = selectedRecipe
+    ? pinnedRecipes.findIndex(r => r.title === selectedRecipe.title)
+    : -1;
+  const isInPinnedView = currentPinnedIndex !== -1 && pinnedRecipes.length > 1;
+
+  const navigatePinned = useCallback((dir: 'prev' | 'next') => {
+    if (animPhase !== 'idle') return;
+    const idx = pinnedRecipes.findIndex(r => r.title === selectedRecipe!.title);
+    const nextIdx = dir === 'next'
+      ? (idx + 1) % pinnedRecipes.length
+      : (idx - 1 + pinnedRecipes.length) % pinnedRecipes.length;
+    const nextRecipe = pinnedRecipes[nextIdx];
+    const swipeDir = dir === 'next' ? 'left' : 'right';
+    setAnimDir(swipeDir);
+    setAnimPhase('exit');
+    setTimeout(() => {
+      setSelectedRecipe(nextRecipe);
+      setAnimPhase('enter');
+      setTimeout(() => setAnimPhase('idle'), 220);
+    }, 160);
+  }, [selectedRecipe, pinnedRecipes, animPhase]);
+
+  // Handle escape key to close modal and arrow keys for pinned navigation
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setSelectedRecipe(null);
+      }
+      if (isInPinnedView) {
+        if (e.key === 'ArrowRight') navigatePinned('next');
+        if (e.key === 'ArrowLeft') navigatePinned('prev');
       }
     };
 
     if (selectedRecipe) {
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
     }
-  }, [selectedRecipe]);
+  }, [selectedRecipe, isInPinnedView, navigatePinned]);
 
   // Release wake lock when modal closes
   useEffect(() => {
@@ -179,6 +212,45 @@ function RecipesContent() {
     } else {
       await releaseWakeLock();
     }
+  };
+
+  const togglePin = useCallback((recipe: Recipe) => {
+    setPinnedRecipes(prev => {
+      const already = prev.some(r => r.title === recipe.title);
+      return already ? prev.filter(r => r.title !== recipe.title) : [...prev, recipe];
+    });
+  }, []);
+
+  const isPinned = useCallback((recipe: Recipe) =>
+    pinnedRecipes.some(r => r.title === recipe.title), [pinnedRecipes]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const delta = e.changedTouches[0].clientX - touchStartX.current;
+    if (isInPinnedView && Math.abs(delta) > 50) {
+      navigatePinned(delta < 0 ? 'next' : 'prev');
+    }
+  };
+
+  const getSwipeStyle = (): React.CSSProperties => {
+    if (animPhase === 'exit') {
+      return {
+        transform: animDir === 'left' ? 'translateX(-48px)' : 'translateX(48px)',
+        opacity: 0,
+        transition: 'transform 160ms ease, opacity 160ms ease',
+      };
+    }
+    if (animPhase === 'enter') {
+      return {
+        animation: animDir === 'left'
+          ? 'recipe-slide-in-from-right 220ms ease forwards'
+          : 'recipe-slide-in-from-left 220ms ease forwards',
+      };
+    }
+    return {};
   };
 
   // Get all unique tags for filtering
@@ -302,9 +374,9 @@ function RecipesContent() {
   }
 
   return (
-    <div className="min-h-screen p-8 sm:p-12 max-w-6xl mx-auto">
+    <div className={`min-h-screen p-8 sm:p-12 max-w-6xl mx-auto${pinnedRecipes.length > 0 ? ' pb-24' : ''}`}>
       <Header title="Recipes" subtitle="Discover delicious recipes from my collection" />
-      
+
       {/* Search and Filter Controls */}
       <div className="mb-8 space-y-4">
         <div className="flex flex-col sm:flex-row gap-4">
@@ -332,13 +404,13 @@ function RecipesContent() {
             </select>
           </div>
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setSelectedTag('')}
             className={`px-3 py-1 rounded-full text-sm ${
-              selectedTag === '' 
-                ? 'bg-blue-500 text-white' 
+              selectedTag === ''
+                ? 'bg-blue-500 text-white'
                 : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
             }`}
           >
@@ -349,8 +421,8 @@ function RecipesContent() {
               key={tag}
               onClick={() => setSelectedTag(tag)}
               className={`px-3 py-1 rounded-full text-sm ${
-                selectedTag === tag 
-                  ? 'bg-blue-500 text-white' 
+                selectedTag === tag
+                  ? 'bg-blue-500 text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
               }`}
             >
@@ -364,7 +436,7 @@ function RecipesContent() {
       {randomRecipe && (
         <div className="mb-12">
           <h2 className="text-2xl font-bold mb-6 text-center">Recipe of the Moment</h2>
-          <div 
+          <div
             className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-xl p-8 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02]"
             onClick={() => setSelectedRecipe(randomRecipe)}
           >
@@ -439,12 +511,12 @@ function RecipesContent() {
       {/* Recipe Grid */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold mb-6">
-          {filteredRecipes.length === recipes.length 
-            ? `All Recipes (${recipes.length})` 
+          {filteredRecipes.length === recipes.length
+            ? `All Recipes (${recipes.length})`
             : `Search Results (${filteredRecipes.length} of ${recipes.length})`
           }
         </h2>
-        
+
         {filteredRecipes.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-600 dark:text-gray-400 text-lg">
@@ -463,11 +535,13 @@ function RecipesContent() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRecipes.map((recipe, index) => (
-              <RecipeCard 
-                key={index} 
-                recipe={recipe} 
+              <RecipeCard
+                key={index}
+                recipe={recipe}
                 onClick={() => setSelectedRecipe(recipe)}
                 onShare={copyRecipeUrl}
+                isPinned={isPinned(recipe)}
+                onPin={togglePin}
               />
             ))}
           </div>
@@ -476,17 +550,73 @@ function RecipesContent() {
 
       <Footer />
 
+      {/* Pinned recipes sticky bar */}
+      {pinnedRecipes.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between shadow-lg z-40">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-amber-500 shrink-0">📌</span>
+            <span className="font-medium text-sm shrink-0">
+              {pinnedRecipes.length} pinned
+            </span>
+            <span className="hidden sm:inline text-gray-500 dark:text-gray-400 text-xs truncate">
+              {pinnedRecipes.map(r => r.title).join(' · ')}
+            </span>
+          </div>
+          <div className="flex gap-2 shrink-0 ml-3">
+            <button
+              onClick={() => setPinnedRecipes([])}
+              className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              onClick={() => setSelectedRecipe(pinnedRecipes[0])}
+              className="px-4 py-1 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm font-medium"
+            >
+              Start Cooking →
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Recipe Modal */}
       {selectedRecipe && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
           onClick={() => setSelectedRecipe(null)}
         >
-          <div 
+          <div
             className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
           >
-            <div className="p-6">
+            {/* Pinned navigation strip — outside animated div so it stays stable */}
+            {isInPinnedView && (
+              <div className="flex items-center gap-3 px-6 pt-5 pb-3 border-b border-gray-200 dark:border-gray-700 text-sm text-gray-500 dark:text-gray-400">
+                <button
+                  onClick={() => navigatePinned('prev')}
+                  disabled={animPhase !== 'idle'}
+                  className="px-3 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium disabled:opacity-40"
+                >
+                  ← Prev
+                </button>
+                <span className="font-medium">
+                  {currentPinnedIndex + 1} / {pinnedRecipes.length}
+                </span>
+                <button
+                  onClick={() => navigatePinned('next')}
+                  disabled={animPhase !== 'idle'}
+                  className="px-3 py-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors font-medium disabled:opacity-40"
+                >
+                  Next →
+                </button>
+                <span className="hidden sm:inline text-xs opacity-60">swipe or ←→ keys</span>
+              </div>
+            )}
+            <div className="p-6 overflow-hidden">
+            <div style={getSwipeStyle()}>
+
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -502,7 +632,18 @@ function RecipesContent() {
                     <span>📊 {selectedRecipe.difficulty}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap justify-end">
+                  <button
+                    onClick={() => togglePin(selectedRecipe)}
+                    className={`px-3 py-1 rounded-lg transition-colors text-sm flex items-center gap-1 border font-medium ${
+                      isPinned(selectedRecipe)
+                        ? 'bg-amber-500 text-white border-amber-600 hover:bg-amber-600'
+                        : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
+                    }`}
+                    title={isPinned(selectedRecipe) ? 'Remove from cook list' : 'Add to cook list'}
+                  >
+                    📌 {isPinned(selectedRecipe) ? 'Pinned' : 'Pin'}
+                  </button>
                   <button
                     onClick={toggleWakeLock}
                     disabled={!wakeLockSupported}
@@ -511,7 +652,7 @@ function RecipesContent() {
                     title={wakeLockSupported ? (stayOnEnabled ? 'Screen will attempt to stay on. Click to turn off.' : 'Prevent screen from sleeping while viewing this recipe') : 'Not supported on this device/browser'}
                   >
                     <span className={`inline-block w-2.5 h-2.5 rounded-full ${stayOnEnabled ? 'bg-white' : 'bg-gray-400 dark:bg-gray-300'}`} aria-hidden="true"></span>
-                    <span className="text-sm tracking-wide">{wakeLockSupported ? (stayOnEnabled ? 'Stay On: ON' : 'Stay On: OFF') : 'Stay On: Not Supported'}</span>
+                    <span className="text-sm tracking-wide">{wakeLockSupported ? (stayOnEnabled ? 'Stay On: ON' : 'Stay On: OFF') : 'Stay On: N/A'}</span>
                   </button>
                   <button
                     onClick={() => copyRecipeUrl(selectedRecipe)}
@@ -601,7 +742,8 @@ function RecipesContent() {
                   <p className="text-yellow-700 dark:text-yellow-300">{selectedRecipe.notes}</p>
                 </div>
               )}
-            </div>
+            </div>{/* end swipe-animated div */}
+            </div>{/* end p-6 overflow-hidden */}
           </div>
         </div>
       )}
@@ -609,9 +751,15 @@ function RecipesContent() {
   );
 }
 
-function RecipeCard({ recipe, onClick, onShare }: { recipe: Recipe; onClick: () => void; onShare: (recipe: Recipe) => void }) {
+function RecipeCard({ recipe, onClick, onShare, isPinned, onPin }: {
+  recipe: Recipe;
+  onClick: () => void;
+  onShare: (recipe: Recipe) => void;
+  isPinned: boolean;
+  onPin: (recipe: Recipe) => void;
+}) {
   return (
-    <div 
+    <div
       className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer border border-gray-200 dark:border-gray-700 overflow-hidden hover:scale-105"
       onClick={onClick}
     >
@@ -622,7 +770,7 @@ function RecipeCard({ recipe, onClick, onShare }: { recipe: Recipe; onClick: () 
         <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">
           {recipe.description}
         </p>
-        
+
         <div className="flex flex-wrap gap-2 mb-4">
           {recipe.tags.slice(0, 3).map(tag => (
             <span
@@ -638,14 +786,14 @@ function RecipeCard({ recipe, onClick, onShare }: { recipe: Recipe; onClick: () 
             </span>
           )}
         </div>
-        
+
         <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
           <span>⏱️ {recipe.prepTime}</span>
           <span>🔥 {recipe.cookTime}</span>
           <span>👥 {recipe.servings}</span>
           <span>📊 {recipe.difficulty}</span>
         </div>
-        
+
         <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
           <p className="mb-2">
             <strong>Ingredients:</strong> {recipe.ingredients.length} items
@@ -654,10 +802,20 @@ function RecipeCard({ recipe, onClick, onShare }: { recipe: Recipe; onClick: () 
             <strong>Instructions:</strong> {recipe.instructions.length} steps
           </p>
         </div>
-        
+
         <div className="flex items-center justify-between text-blue-600 dark:text-blue-400 text-sm font-medium">
           <span>View Full Recipe</span>
           <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onPin(recipe);
+              }}
+              className={`p-1 rounded transition-colors ${isPinned ? 'text-amber-500 hover:text-amber-600' : 'text-gray-400 hover:text-amber-400'}`}
+              title={isPinned ? 'Unpin recipe' : 'Pin recipe for cooking'}
+            >
+              📌
+            </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
