@@ -27,8 +27,10 @@ export function isValidRecipe(value: unknown): value is Recipe {
     Array.isArray(recipe.tags) &&
     recipe.tags.every((tag) => typeof tag === 'string') &&
     Array.isArray(recipe.ingredients) &&
+    recipe.ingredients.length > 0 &&
     recipe.ingredients.every((ingredient) => typeof ingredient === 'string') &&
     Array.isArray(recipe.instructions) &&
+    recipe.instructions.length > 0 &&
     recipe.instructions.every((instruction) => typeof instruction === 'string') &&
     (recipe.notes === undefined || typeof recipe.notes === 'string') &&
     recipe.macros !== undefined &&
