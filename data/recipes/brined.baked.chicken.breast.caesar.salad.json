@@ -5,7 +5,11 @@
   "cookTime": "20 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["high-protein", "meal-prep-friendly", "kid-friendly", "Caesar dinner"],
+  "tags": [
+    "high-protein",
+    "meal-prep",
+    "kid-friendly"
+  ],
   "ingredients": [
     "4 boneless skinless chicken breasts (approx 6-7 oz each)",
     "4 cups cold water",
