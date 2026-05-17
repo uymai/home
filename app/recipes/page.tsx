@@ -361,16 +361,7 @@ function RecipesContent() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen p-8 sm:p-12 max-w-6xl mx-auto">
-        <Header title="Recipes" subtitle="Discover delicious recipes" />
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading recipes...</p>
-        </div>
-        <Footer />
-      </div>
-    );
+    return <RecipesLoadingScreen />;
   }
 
   return (
@@ -838,18 +829,63 @@ function RecipeCard({ recipe, onClick, onShare, isPinned, onPin }: {
   );
 }
 
+function RecipesLoadingScreen() {
+  return (
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-white dark:bg-gray-950">
+      <div className="flex flex-col items-center gap-6">
+        <div className="relative">
+          {/* Pulsing orange glow ring */}
+          <div
+            className="absolute inset-0 rounded-full bg-orange-400 opacity-30"
+            style={{ animation: 'recipes-pulse 1.8s ease-in-out infinite', transform: 'scale(1.15)' }}
+          />
+          <img
+            src="/icons/icon-192x192.png"
+            alt="Recipes"
+            width={120}
+            height={120}
+            className="relative rounded-full shadow-xl"
+            style={{ animation: 'recipes-pop-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both' }}
+          />
+        </div>
+        <div style={{ animation: 'recipes-fade-up 0.5s 0.2s ease both' }}>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Rob&apos;s Recipes</p>
+        </div>
+        <div className="flex gap-2" style={{ animation: 'recipes-fade-up 0.5s 0.35s ease both' }}>
+          {[0, 1, 2].map(i => (
+            <div
+              key={i}
+              className="w-2 h-2 rounded-full bg-orange-400"
+              style={{ animation: `recipes-bounce 1.2s ${i * 0.2}s ease-in-out infinite` }}
+            />
+          ))}
+        </div>
+      </div>
+      <style>{`
+        @keyframes recipes-pop-in {
+          from { transform: scale(0.6); opacity: 0; }
+          to   { transform: scale(1);   opacity: 1; }
+        }
+        @keyframes recipes-fade-up {
+          from { transform: translateY(10px); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
+        }
+        @keyframes recipes-pulse {
+          0%, 100% { transform: scale(1.15); opacity: 0.3; }
+          50%       { transform: scale(1.35); opacity: 0.15; }
+        }
+        @keyframes recipes-bounce {
+          0%, 80%, 100% { transform: translateY(0);    opacity: 0.4; }
+          40%            { transform: translateY(-8px); opacity: 1; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function RecipesPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen p-8 sm:p-12 max-w-6xl mx-auto">
-        <Header title="Recipes" subtitle="Discover delicious recipes" />
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading recipes...</p>
-        </div>
-        <Footer />
-      </div>
-    }>
+    <Suspense fallback={<RecipesLoadingScreen />}>
       <RecipesContent />
     </Suspense>
   );
