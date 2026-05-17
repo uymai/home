@@ -5,7 +5,13 @@
   "cookTime": "20 minutes",
   "servings": 4,
   "difficulty": "Easy",
-  "tags": ["soup", "tofu", "vegetarian", "comfort food", "high protein"],
+  "tags": [
+    "soup",
+    "tofu",
+    "vegetarian",
+    "comfort-food",
+    "high-protein"
+  ],
   "ingredients": [
     "2 blocks extra-firm tofu, pressed",
     "2–3 tsp canola oil or extra virgin olive oil",
