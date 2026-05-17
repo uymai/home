@@ -1,0 +1,39 @@
+{
+  "title": "Oven Lemon Pepper Chicken with Potatoes and Broccoli",
+  "description": "One-pan lemon pepper chicken breasts with roasted potatoes and broccoli.",
+  "prepTime": "15 minutes",
+  "cookTime": "30 minutes",
+  "servings": 4,
+  "difficulty": "Easy",
+  "tags": ["high-protein", "oven", "one-pan", "meal-prep", "mediterranean", "testing"],
+  "ingredients": [
+    "4 boneless skinless chicken breasts (~170g / 6oz each)",
+    "4 medium Yukon Gold or red potatoes (~600g), cut into 1-inch chunks",
+    "4 cups broccoli florets (~300g)",
+    "2 tbsp extra virgin olive oil (for chicken)",
+    "2 tbsp extra virgin olive oil (for vegetables)",
+    "3 tbsp lemon juice (about 1 lemon)",
+    "1 tsp lemon zest (optional)",
+    "2 tsp lemon pepper seasoning",
+    "1 tsp garlic powder",
+    "1/2 tsp onion powder",
+    "1/2 tsp smoked paprika",
+    "1/2 tsp salt",
+    "1 tbsp maple syrup"
+  ],
+  "instructions": [
+    "Preheat oven to 425°F. Line a large sheet pan with foil and coat with cooking spray.",
+    "Toss potato chunks with 2 tbsp olive oil, 1/4 tsp salt, and 1/2 tsp garlic powder. Spread on the sheet pan and roast for 15 minutes.",
+    "While potatoes par-cook, whisk together 2 tbsp olive oil, 3 tbsp lemon juice, 1 tbsp maple syrup, 2 tsp lemon pepper seasoning, 1/2 tsp garlic powder, 1/2 tsp onion powder, 1/2 tsp smoked paprika, and 1/4 tsp salt. Coat chicken breasts thoroughly.",
+    "After 15 minutes, push potatoes to the sides. Add chicken breasts to the center of the pan.",
+    "Roast for 10 minutes, then add 4 cups broccoli florets around the chicken. Continue roasting 10–15 more minutes until chicken reaches 165°F internal temp and broccoli is lightly charred.",
+    "Rest chicken 5 minutes before slicing. Spoon pan juices over everything before serving."
+  ],
+  "macros": {
+    "calories": 480,
+    "protein": 45,
+    "carbs": 42,
+    "fat": 12
+  },
+  "notes": "Staggering the cook times is key — potatoes need a head start or they'll be underdone. Broccoli goes in last so it roasts rather than steams. If your sheet pan is small, use two pans to avoid crowding, which kills the roast."
+}
