@@ -1,0 +1,37 @@
+{
+  "title": "Air Fryer BBQ Chicken for Pizza",
+  "description": "Simply seasoned chicken breast tossed in homemade BBQ sauce and air fried for caramelized, pizza-ready chicken that won't soggy your crust.",
+  "prepTime": "5 minutes",
+  "cookTime": "14 minutes",
+  "servings": 4,
+  "difficulty": "Easy",
+  "tags": [
+    "air fryer",
+    "chicken",
+    "bbq",
+    "pizza topping",
+    "high protein",
+    "testing"
+  ],
+  "ingredients": [
+    "500g (about 2 medium) chicken breasts, diced into 2cm cubes",
+    "2 tbsp BBQ sauce (homemade)",
+    "1/2 tsp garlic powder",
+    "1/2 tsp smoked paprika",
+    "Salt and pepper to taste"
+  ],
+  "instructions": [
+    "Dice 500g chicken breast into roughly 2cm cubes.",
+    "In a bowl, toss the diced chicken with 1/2 tsp garlic powder, 1/2 tsp smoked paprika, and salt and pepper to taste.",
+    "Add 2 tbsp of BBQ sauce and toss until evenly coated.",
+    "Air fry at 400°F for 12–14 minutes, shaking the basket halfway through, until chicken is cooked through and caramelized at the edges.",
+    "Let rest 2–3 minutes before adding to your pizza."
+  ],
+  "macros": {
+    "calories": 155,
+    "protein": 29,
+    "carbs": 4,
+    "fat": 2
+  },
+  "notes": "Dice chicken uniformly so pieces cook evenly. The BBQ sauce will caramelize — that's the goal. Don't overcrowd the air fryer basket or you'll steam instead of caramelize. Cook in batches if needed."
+}
