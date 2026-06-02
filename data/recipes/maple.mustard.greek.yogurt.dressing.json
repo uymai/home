@@ -1,0 +1,31 @@
+{
+  "title": "Maple Mustard Greek Yogurt Dressing",
+  "description": "A tangy, protein-forward dressing built on 0% Greek yogurt instead of mayo or oil. Woodsy maple and sharp Dijon over chicken breast and spinach without spending your fat budget.",
+  "prepTime": "5 minutes",
+  "cookTime": "0 minutes",
+  "servings": 4,
+  "difficulty": "Easy",
+  "tags": ["dressing", "high-protein", "low-fat", "no-cook"],
+  "ingredients": [
+    "1/2 cup (120 g) 0% plain Greek yogurt",
+    "2 tbsp Dijon mustard",
+    "1 tbsp maple syrup",
+    "1 tbsp lemon juice (about 1/2 lemon)",
+    "1 tsp extra virgin olive oil",
+    "1/4 tsp garlic powder",
+    "Salt and pepper to taste"
+  ],
+  "instructions": [
+    "In a small bowl, whisk the 1/2 cup (120 g) 0% plain Greek yogurt and 2 tbsp Dijon mustard until smooth.",
+    "Whisk in the 1 tbsp maple syrup and 1 tbsp lemon juice (about 1/2 lemon) until fully combined.",
+    "Stir in the 1 tsp extra virgin olive oil and 1/4 tsp garlic powder, then season with salt and pepper to taste.",
+    "Thin with water 1 tsp at a time if you want a more pourable consistency. Drizzle over chicken and spinach, or use as a dip."
+  ],
+  "macros": {
+    "calories": 45,
+    "protein": 3,
+    "carbs": 5,
+    "fat": 1
+  },
+  "notes": "Macros are per serving (about 2 tbsp); the batch makes roughly 1/2 cup. Keeps 4-5 days refrigerated in a sealed jar. Maple is thinner than honey so go easy when adding water to adjust consistency. For a sharper version, drop the maple to 2 tsp and add an extra teaspoon of Dijon."
+}
