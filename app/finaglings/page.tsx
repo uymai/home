@@ -79,6 +79,13 @@ export default function FinaglingsPage() {
       color: "bg-purple-100 dark:bg-purple-950",
     },
     {
+      title: "Sorting Algorithms",
+      description: "Animated step-through demos for Bubble, Insertion, Quick, Merge, Heap, and Tim Sort — with Python code and kid-friendly explanations.",
+      url: "/finaglings/sorting-algorithms",
+      icon: "/window.svg",
+      color: "bg-teal-100 dark:bg-teal-950",
+    },
+    {
       title: "Magic Square",
       description: "A one-off number toy that generates 4 x 4 magic squares for custom target sums.",
       url: "/magic-square",
