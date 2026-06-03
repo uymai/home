@@ -6,7 +6,7 @@ export type SortStep = {
   pivot?: number;
 };
 
-export type AlgorithmId = "bubble" | "insertion" | "quick" | "merge" | "heap" | "tim";
+export type AlgorithmId = "bubble" | "bubble-opt" | "insertion" | "quick" | "merge" | "heap" | "tim";
 
 export type AlgorithmMeta = {
   id: AlgorithmId;
@@ -43,6 +43,28 @@ function bubbleSteps(input: number[]): SortStep[] {
   steps.push(snap(arr, [], [], sorted));
 
   for (let i = 0; i < n - 1; i++) {
+    for (let j = 0; j < n - 1 - i; j++) {
+      steps.push(snap(arr, [j, j + 1], [], sorted));
+      if (arr[j] > arr[j + 1]) {
+        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+        steps.push(snap(arr, [], [j, j + 1], sorted));
+      }
+    }
+    sorted.add(n - 1 - i);
+  }
+  sorted.add(0);
+  steps.push(snap(arr, [], [], sorted));
+  return steps;
+}
+
+function bubbleOptSteps(input: number[]): SortStep[] {
+  const arr = [...input];
+  const n = arr.length;
+  const sorted = new Set<number>();
+  const steps: SortStep[] = [];
+  steps.push(snap(arr, [], [], sorted));
+
+  for (let i = 0; i < n - 1; i++) {
     let swapped = false;
     for (let j = 0; j < n - 1 - i; j++) {
       steps.push(snap(arr, [j, j + 1], [], sorted));
@@ -54,6 +76,7 @@ function bubbleSteps(input: number[]): SortStep[] {
     }
     sorted.add(n - 1 - i);
     if (!swapped) {
+      // Early exit: no swaps means everything remaining is already sorted
       for (let k = 0; k < n - 1 - i; k++) sorted.add(k);
       break;
     }
@@ -287,6 +310,7 @@ function timSteps(input: number[]): SortStep[] {
 export function generateSteps(id: AlgorithmId, input: number[]): SortStep[] {
   switch (id) {
     case "bubble": return bubbleSteps(input);
+    case "bubble-opt": return bubbleOptSteps(input);
     case "insertion": return insertionSteps(input);
     case "quick": return quickSteps(input);
     case "merge": return mergeSteps(input);
@@ -328,6 +352,29 @@ export const ALGORITHMS: AlgorithmMeta[] = [
     return arr`,
     altPythonLabel: "Optimized version — O(n) best case",
     altExplanation: "The naive version always runs every comparison no matter what — even if the list is already sorted, it keeps going. That's O(n²) in all cases. The optimized version tracks whether any swaps happened during a pass. If nothing got swapped, the list must already be sorted, so it stops early with `break`. On an already-sorted list, it only needs one pass — that's O(n)! The animation above uses the naive version so you can see every step clearly.",
+  },
+  {
+    id: "bubble-opt",
+    name: "Bubble Sort+",
+    emoji: "🫧",
+    metaphor: "Same bubbles, but smarter — it knows when to stop early!",
+    description:
+      "This is the same as Bubble Sort, but with one clever trick: we keep track of whether any swaps happened during a full pass. If we get all the way through without swapping anything, that means the list is already sorted — so we stop immediately! On a list that's already sorted, we only need one pass instead of n passes. On a nearly-sorted list, we stop much sooner too. Try shuffling and see how often it exits early!",
+    timeComplexity: { best: "O(n)", avg: "O(n²)", worst: "O(n²)" },
+    spaceComplexity: "O(1)",
+    stable: true,
+    funFact: "This tiny one-line change (tracking the swapped flag) is the difference between always-slow and sometimes-fast. A small idea can make a big difference!",
+    pythonCode: `def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        swapped = False
+        for j in range(n - i - 1):
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+        if not swapped:
+            break  # already sorted — stop early!
+    return arr`,
   },
   {
     id: "insertion",
