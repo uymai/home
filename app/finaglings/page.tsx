@@ -72,6 +72,13 @@ export default function FinaglingsPage() {
       color: "bg-violet-100 dark:bg-violet-950",
     },
     {
+      title: "NP-Complete",
+      description: "The hardest problems in math, explained for a 10-year-old — with an interactive backpack packing game.",
+      url: "/finaglings/np-complete",
+      icon: "/window.svg",
+      color: "bg-purple-100 dark:bg-purple-950",
+    },
+    {
       title: "Magic Square",
       description: "A one-off number toy that generates 4 x 4 magic squares for custom target sums.",
       url: "/magic-square",
