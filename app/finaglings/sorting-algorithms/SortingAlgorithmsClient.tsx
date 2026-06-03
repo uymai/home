@@ -164,7 +164,6 @@ export default function SortingAlgorithmsClient() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(300);
   const [copied, setCopied] = useState(false);
-  const [copiedAlt, setCopiedAlt] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Regenerate steps when algorithm or array changes
@@ -223,14 +222,6 @@ export default function SortingAlgorithmsClient() {
     await navigator.clipboard.writeText(algo.pythonCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
-  }, [activeTab]);
-
-  const handleCopyAlt = useCallback(async () => {
-    const algo = ALGORITHMS.find((a) => a.id === activeTab);
-    if (!algo?.altPythonCode) return;
-    await navigator.clipboard.writeText(algo.altPythonCode);
-    setCopiedAlt(true);
-    setTimeout(() => setCopiedAlt(false), 1500);
   }, [activeTab]);
 
   const handleTabChange = useCallback((tab: AlgorithmId | "compare") => {
@@ -345,28 +336,12 @@ export default function SortingAlgorithmsClient() {
           </div>
 
           {/* Python code */}
-          <div className="space-y-3">
-            <CodePanel
-              label={currentAlgo.pythonCodeLabel ?? "🐍 Python"}
-              code={currentAlgo.pythonCode}
-              onCopy={handleCopy}
-              copied={copied}
-            />
-            {currentAlgo.altPythonCode && (
-              <>
-                <div className="bg-amber-950/40 border border-amber-800/50 rounded-xl p-4 text-sm text-amber-200/80 leading-relaxed">
-                  <span className="font-semibold text-amber-300">Two versions? Here&apos;s why: </span>
-                  {currentAlgo.altExplanation}
-                </div>
-                <CodePanel
-                  label={currentAlgo.altPythonLabel ?? "🐍 Python (alt)"}
-                  code={currentAlgo.altPythonCode}
-                  onCopy={handleCopyAlt}
-                  copied={copiedAlt}
-                />
-              </>
-            )}
-          </div>
+          <CodePanel
+            label="🐍 Python"
+            code={currentAlgo.pythonCode}
+            onCopy={handleCopy}
+            copied={copied}
+          />
 
           {/* Complexity summary */}
           <div className="bg-slate-900 rounded-xl border border-slate-800 p-5">
@@ -386,11 +361,6 @@ export default function SortingAlgorithmsClient() {
                 </div>
               ))}
             </div>
-            {currentAlgo.altPythonCode && (
-              <p className="mt-3 text-xs text-slate-500">
-                * Best case is O(n²) for the naive version shown above. The optimized version with early exit achieves O(n) on an already-sorted list.
-              </p>
-            )}
             <div className="mt-3 flex items-center gap-2 text-sm">
               <span className="text-slate-400">Stable sort?</span>
               <span className={currentAlgo.stable ? "text-emerald-400 font-semibold" : "text-red-400 font-semibold"}>
