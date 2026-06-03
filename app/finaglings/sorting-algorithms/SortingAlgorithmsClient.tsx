@@ -61,6 +61,37 @@ function complexityColor(s: string): string {
   return "text-slate-300";
 }
 
+function complexityDisplay(s: string): React.ReactNode {
+  if (!s.endsWith("*")) return s;
+  return <>{s.slice(0, -1)}<sup>*</sup></>;
+}
+
+// ─── Code panel ───────────────────────────────────────────────────────────────
+
+function CodePanel({ label, code, onCopy, copied }: {
+  label: string;
+  code: string;
+  onCopy: () => void;
+  copied: boolean;
+}) {
+  return (
+    <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
+      <div className="flex items-center px-4 py-2.5 border-b border-slate-800">
+        <span className="text-sm font-semibold text-slate-300">🐍 {label}</span>
+        <button
+          onClick={onCopy}
+          className="ml-auto text-xs text-slate-400 hover:text-slate-200 transition-colors px-2 py-1 rounded hover:bg-slate-800"
+        >
+          {copied ? "✓ copied!" : "copy"}
+        </button>
+      </div>
+      <pre className="px-5 py-4 text-sm font-mono leading-relaxed overflow-x-auto text-slate-300 whitespace-pre">
+        <code>{highlight(code)}</code>
+      </pre>
+    </div>
+  );
+}
+
 // ─── Bar chart ────────────────────────────────────────────────────────────────
 
 function BarChart({ step, showPivot }: { step: SortStep; showPivot: boolean }) {
@@ -133,6 +164,7 @@ export default function SortingAlgorithmsClient() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(300);
   const [copied, setCopied] = useState(false);
+  const [copiedAlt, setCopiedAlt] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Regenerate steps when algorithm or array changes
@@ -191,6 +223,14 @@ export default function SortingAlgorithmsClient() {
     await navigator.clipboard.writeText(algo.pythonCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
+  }, [activeTab]);
+
+  const handleCopyAlt = useCallback(async () => {
+    const algo = ALGORITHMS.find((a) => a.id === activeTab);
+    if (!algo?.altPythonCode) return;
+    await navigator.clipboard.writeText(algo.altPythonCode);
+    setCopiedAlt(true);
+    setTimeout(() => setCopiedAlt(false), 1500);
   }, [activeTab]);
 
   const handleTabChange = useCallback((tab: AlgorithmId | "compare") => {
@@ -305,19 +345,27 @@ export default function SortingAlgorithmsClient() {
           </div>
 
           {/* Python code */}
-          <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-            <div className="flex items-center px-4 py-2.5 border-b border-slate-800">
-              <span className="text-sm font-semibold text-slate-300">🐍 Python</span>
-              <button
-                onClick={handleCopy}
-                className="ml-auto text-xs text-slate-400 hover:text-slate-200 transition-colors px-2 py-1 rounded hover:bg-slate-800"
-              >
-                {copied ? "✓ copied!" : "copy"}
-              </button>
-            </div>
-            <pre className="px-5 py-4 text-sm font-mono leading-relaxed overflow-x-auto text-slate-300 whitespace-pre">
-              <code>{highlight(currentAlgo.pythonCode)}</code>
-            </pre>
+          <div className="space-y-3">
+            <CodePanel
+              label={currentAlgo.pythonCodeLabel ?? "🐍 Python"}
+              code={currentAlgo.pythonCode}
+              onCopy={handleCopy}
+              copied={copied}
+            />
+            {currentAlgo.altPythonCode && (
+              <>
+                <div className="bg-amber-950/40 border border-amber-800/50 rounded-xl p-4 text-sm text-amber-200/80 leading-relaxed">
+                  <span className="font-semibold text-amber-300">Two versions? Here&apos;s why: </span>
+                  {currentAlgo.altExplanation}
+                </div>
+                <CodePanel
+                  label={currentAlgo.altPythonLabel ?? "🐍 Python (alt)"}
+                  code={currentAlgo.altPythonCode}
+                  onCopy={handleCopyAlt}
+                  copied={copiedAlt}
+                />
+              </>
+            )}
           </div>
 
           {/* Complexity summary */}
@@ -332,12 +380,17 @@ export default function SortingAlgorithmsClient() {
               ].map(({ label, value }) => (
                 <div key={label} className="bg-slate-800 rounded-lg p-3 text-center">
                   <div className={`font-mono font-bold text-sm ${complexityColor(value)}`}>
-                    {value}
+                    {complexityDisplay(value)}
                   </div>
                   <div className="text-xs text-slate-500 mt-1">{label}</div>
                 </div>
               ))}
             </div>
+            {currentAlgo.altPythonCode && (
+              <p className="mt-3 text-xs text-slate-500">
+                * Best case is O(n²) for the naive version shown above. The optimized version with early exit achieves O(n) on an already-sorted list.
+              </p>
+            )}
             <div className="mt-3 flex items-center gap-2 text-sm">
               <span className="text-slate-400">Stable sort?</span>
               <span className={currentAlgo.stable ? "text-emerald-400 font-semibold" : "text-red-400 font-semibold"}>
@@ -403,16 +456,16 @@ export default function SortingAlgorithmsClient() {
                       </span>
                     </td>
                     <td className={`text-center px-3 py-3 font-mono text-xs font-semibold ${complexityColor(algo.timeComplexity.best)}`}>
-                      {algo.timeComplexity.best}
+                      {complexityDisplay(algo.timeComplexity.best)}
                     </td>
                     <td className={`text-center px-3 py-3 font-mono text-xs font-semibold ${complexityColor(algo.timeComplexity.avg)}`}>
-                      {algo.timeComplexity.avg}
+                      {complexityDisplay(algo.timeComplexity.avg)}
                     </td>
                     <td className={`text-center px-3 py-3 font-mono text-xs font-semibold ${complexityColor(algo.timeComplexity.worst)}`}>
-                      {algo.timeComplexity.worst}
+                      {complexityDisplay(algo.timeComplexity.worst)}
                     </td>
                     <td className={`text-center px-3 py-3 font-mono text-xs font-semibold ${complexityColor(algo.spaceComplexity)}`}>
-                      {algo.spaceComplexity}
+                      {complexityDisplay(algo.spaceComplexity)}
                     </td>
                     <td className="text-center px-3 py-3">
                       <span className={algo.stable ? "text-emerald-400 font-bold" : "text-red-400 font-bold"}>
@@ -446,6 +499,11 @@ export default function SortingAlgorithmsClient() {
             This matters when you&apos;re sorting something like a list of students by grade — you want
             students with the same grade to stay in alphabetical order!
           </div>
+
+          <p className="text-xs text-slate-600">
+            * Bubble Sort&apos;s best case is O(n²) for the naive version. With an early-exit optimization
+            (stopping when no swaps occur in a pass), the best case improves to O(n).
+          </p>
         </div>
       )}
     </div>

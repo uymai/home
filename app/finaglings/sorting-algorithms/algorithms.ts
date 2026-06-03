@@ -19,6 +19,10 @@ export type AlgorithmMeta = {
   stable: boolean;
   funFact: string;
   pythonCode: string;
+  pythonCodeLabel?: string;
+  altPythonCode?: string;
+  altPythonLabel?: string;
+  altExplanation?: string;
 };
 
 function snap(arr: number[], comparing: number[], swapping: number[], sorted: Set<number>, pivot?: number): SortStep {
@@ -299,11 +303,19 @@ export const ALGORITHMS: AlgorithmMeta[] = [
     metaphor: "Like bubbles rising to the surface — big numbers float to the end!",
     description:
       "Imagine you have a row of numbered cards. You look at two cards next to each other. If the bigger number is on the left, you swap them. Then you move one step to the right and check again. After one full pass, the BIGGEST number has \"bubbled\" all the way to the end! You keep doing this over and over, and each pass, the next biggest number finds its home.",
-    timeComplexity: { best: "O(n)", avg: "O(n²)", worst: "O(n²)" },
+    timeComplexity: { best: "O(n²)*", avg: "O(n²)", worst: "O(n²)" },
     spaceComplexity: "O(1)",
     stable: true,
     funFact: "Bubble sort is so slow that computer scientists use it as the classic example of what NOT to do — but it's great for learning!",
     pythonCode: `def bubble_sort(arr):
+    n = len(arr)
+    for i in range(n):
+        for j in range(n - i - 1):
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+    return arr`,
+    pythonCodeLabel: "Naive version — O(n²) always",
+    altPythonCode: `def bubble_sort(arr):
     n = len(arr)
     for i in range(n):
         swapped = False
@@ -314,6 +326,8 @@ export const ALGORITHMS: AlgorithmMeta[] = [
         if not swapped:
             break  # already sorted!
     return arr`,
+    altPythonLabel: "Optimized version — O(n) best case",
+    altExplanation: "The naive version always runs every comparison no matter what — even if the list is already sorted, it keeps going. That's O(n²) in all cases. The optimized version tracks whether any swaps happened during a pass. If nothing got swapped, the list must already be sorted, so it stops early with `break`. On an already-sorted list, it only needs one pass — that's O(n)! The animation above uses the naive version so you can see every step clearly.",
   },
   {
     id: "insertion",
