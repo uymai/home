@@ -46,7 +46,7 @@ export function loadRecipesFromDirectory(recipesDir: string): Recipe[] {
     return [];
   }
 
-  const files = fs.readdirSync(recipesDir).filter((file) => file.endsWith('.json'));
+  const files = fs.readdirSync(recipesDir).filter((file) => file.endsWith('.json') && file !== 'index.json');
 
   return files.map((file) => {
     const filePath = path.join(recipesDir, file);
