@@ -8,6 +8,11 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+const CACHE_HEADERS = {
+  ...CORS_HEADERS,
+  'Cache-Control': 'public, max-age=60',
+};
+
 export async function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
@@ -21,7 +26,7 @@ export async function GET() {
       slug: generateRecipeSlug(recipe.title),
     }));
 
-    return NextResponse.json(recipesWithSlugs, { headers: CORS_HEADERS });
+    return NextResponse.json(recipesWithSlugs, { headers: CACHE_HEADERS });
   } catch (error) {
     console.error('Error reading recipes:', error);
     return NextResponse.json({ error: 'Failed to load recipes' }, { status: 500, headers: CORS_HEADERS });
