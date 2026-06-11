@@ -33,6 +33,13 @@ export function isValidRecipe(value: unknown): value is Recipe {
     recipe.instructions.length > 0 &&
     recipe.instructions.every((instruction) => typeof instruction === 'string') &&
     (recipe.notes === undefined || typeof recipe.notes === 'string') &&
+    (recipe.inspiredBy === undefined ||
+      (typeof recipe.inspiredBy === 'object' &&
+       recipe.inspiredBy !== null &&
+       typeof (recipe.inspiredBy as { name?: unknown }).name === 'string' &&
+       typeof (recipe.inspiredBy as { source?: unknown }).source === 'string' &&
+       ((recipe.inspiredBy as { url?: unknown }).url === undefined ||
+        typeof (recipe.inspiredBy as { url?: unknown }).url === 'string'))) &&
     recipe.macros !== undefined &&
     typeof recipe.macros.calories === 'number' &&
     typeof recipe.macros.protein === 'number' &&
