@@ -336,6 +336,16 @@ function RecipesContent() {
             recipe.notes,
           ]
         : []),
+      ...(recipe.inspiredBy
+        ? [
+            '',
+            '## Inspired By',
+            '',
+            recipe.inspiredBy.url
+              ? `[${recipe.inspiredBy.name}](${recipe.inspiredBy.url}) via ${recipe.inspiredBy.source}`
+              : `${recipe.inspiredBy.name} via ${recipe.inspiredBy.source}`,
+          ]
+        : []),
     ].join('\n');
   };
 
@@ -732,6 +742,25 @@ function RecipesContent() {
                   <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-2">Notes</h4>
                   <p className="text-yellow-700 dark:text-yellow-300">{selectedRecipe.notes}</p>
                 </div>
+              )}
+
+              {selectedRecipe.inspiredBy && (
+                <p className="mt-4 text-sm text-gray-400 dark:text-gray-500 italic">
+                  Inspired by{' '}
+                  {selectedRecipe.inspiredBy.url ? (
+                    <a
+                      href={selectedRecipe.inspiredBy.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    >
+                      {selectedRecipe.inspiredBy.name}
+                    </a>
+                  ) : (
+                    selectedRecipe.inspiredBy.name
+                  )}
+                  {' '}via {selectedRecipe.inspiredBy.source}
+                </p>
               )}
             </div>{/* end swipe-animated div */}
             </div>{/* end p-6 overflow-hidden */}
