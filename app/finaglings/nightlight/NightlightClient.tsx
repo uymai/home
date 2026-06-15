@@ -207,13 +207,11 @@ export default function NightlightClient() {
   const [stayOnEnabled, setStayOnEnabled] = useState(false);
   const [wakeLockSupported, setWakeLockSupported] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showIosHint, setShowIosHint] = useState(false);
+  const [isIos, setIsIos] = useState(false);
   const [speed, setSpeed] = useState<Speed>(1);
 
   const wakeLockRef = useRef<WakeLockSentinelLike | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const fakeFsRef = useRef(false);
   const startXRef = useRef(0);
   const startYRef = useRef(0);
   const pointerOnMenuRef = useRef(false);
@@ -243,6 +241,7 @@ export default function NightlightClient() {
       try {
         setWakeLockSupported(Boolean((navigator as NavigatorWithWakeLock).wakeLock?.request));
       } catch { setWakeLockSupported(false); }
+      setIsIos(/iphone|ipad|ipod/i.test(navigator.userAgent));
     }
 
     // Restore persisted speed
@@ -259,7 +258,7 @@ export default function NightlightClient() {
       }
     };
     const onFullscreenChange = () => {
-      if (!fakeFsRef.current) setIsFullscreen(Boolean(document.fullscreenElement));
+      setIsFullscreen(Boolean(document.fullscreenElement));
     };
 
     document.addEventListener('visibilitychange', onVisibility);
@@ -279,63 +278,7 @@ export default function NightlightClient() {
     else await releaseWakeLock();
   };
 
-  // iOS Safari doesn't support requestFullscreen on arbitrary elements.
-  // Detect iOS (not standalone PWA) so we can use a different strategy.
-  const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
-  const isStandalone = () => ('standalone' in navigator) && (navigator as { standalone?: boolean }).standalone === true;
-
-  const enterFakeFullscreen = () => {
-    const el = rootRef.current;
-    if (!el) return;
-    fakeFsRef.current = true;
-    // Use 100dvh so the element fills the actual visible viewport
-    // (dvh shrinks when the browser chrome is visible, expands when hidden)
-    el.style.position = 'fixed';
-    el.style.top = '0';
-    el.style.left = '0';
-    el.style.width = '100vw';
-    el.style.height = '100dvh';
-    el.style.zIndex = '9999';
-    setIsFullscreen(true);
-    // Scroll trick: temporarily make body taller so Safari will scroll and hide its chrome
-    document.body.style.height = '200vh';
-    window.scrollTo({ top: 1, behavior: 'instant' });
-    setTimeout(() => { document.body.style.height = ''; }, 300);
-  };
-
-  const exitFakeFullscreen = () => {
-    const el = rootRef.current;
-    if (!el) return;
-    fakeFsRef.current = false;
-    el.style.position = '';
-    el.style.top = '';
-    el.style.left = '';
-    el.style.width = '';
-    el.style.height = '';
-    el.style.zIndex = '';
-    setIsFullscreen(false);
-    setShowIosHint(false);
-  };
-
   const toggleFullscreen = async () => {
-    if (fakeFsRef.current) {
-      exitFakeFullscreen();
-      return;
-    }
-
-    // iOS: native fullscreen API not supported
-    if (isIos()) {
-      if (isStandalone()) {
-        // Already in PWA mode — already fullscreen, nothing to do
-        return;
-      }
-      // Show hint about adding to home screen and attempt scroll trick
-      enterFakeFullscreen();
-      setShowIosHint(true);
-      setTimeout(() => setShowIosHint(false), 5000);
-      return;
-    }
-
     try {
       if (!document.fullscreenElement) {
         await document.documentElement.requestFullscreen();
@@ -433,7 +376,6 @@ export default function NightlightClient() {
       `}</style>
 
       <div
-        ref={rootRef}
         className="absolute inset-0 touch-none select-none"
         style={{ '--nl-speed': speed } as React.CSSProperties}
         onPointerDown={handlePointerDown}
@@ -509,23 +451,20 @@ export default function NightlightClient() {
               </div>
             </div>
 
-            {/* Fullscreen toggle */}
-            <button
-              onClick={toggleFullscreen}
-              style={{
-                width: '100%', padding: '12px 16px', borderRadius: 12, fontSize: 14, fontWeight: 500,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                background: isFullscreen ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.1)',
-                color: 'rgba(255,255,255,0.7)',
-                border: 'none', cursor: 'pointer',
-              }}
-            >
-              {isFullscreen ? '⛶ Exit Fullscreen' : '⛶ Enter Fullscreen'}
-            </button>
-            {showIosHint && (
-              <p style={{ margin: 0, fontSize: 12, textAlign: 'center', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
-                For true fullscreen on iPhone, tap <strong style={{ color: 'rgba(255,255,255,0.65)' }}>Share → Add to Home Screen</strong>
-              </p>
+            {/* Fullscreen toggle — hidden on iOS where the API is unsupported */}
+            {!isIos && (
+              <button
+                onClick={toggleFullscreen}
+                style={{
+                  width: '100%', padding: '12px 16px', borderRadius: 12, fontSize: 14, fontWeight: 500,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  background: isFullscreen ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.1)',
+                  color: 'rgba(255,255,255,0.7)',
+                  border: 'none', cursor: 'pointer',
+                }}
+              >
+                {isFullscreen ? '⛶ Exit Fullscreen' : '⛶ Enter Fullscreen'}
+              </button>
             )}
 
             {/* Wake lock toggle */}
