@@ -207,6 +207,7 @@ export default function NightlightClient() {
   const [stayOnEnabled, setStayOnEnabled] = useState(false);
   const [wakeLockSupported, setWakeLockSupported] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showIosHint, setShowIosHint] = useState(false);
   const [speed, setSpeed] = useState<Speed>(1);
 
   const wakeLockRef = useRef<WakeLockSentinelLike | null>(null);
@@ -263,11 +264,9 @@ export default function NightlightClient() {
 
     document.addEventListener('visibilitychange', onVisibility);
     document.addEventListener('fullscreenchange', onFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
       document.removeEventListener('fullscreenchange', onFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
       wakeLockRef.current?.release?.().catch(() => {}).finally(() => { wakeLockRef.current = null; });
     };
   }, [requestWakeLock, stayOnEnabled]);
@@ -280,18 +279,28 @@ export default function NightlightClient() {
     else await releaseWakeLock();
   };
 
+  // iOS Safari doesn't support requestFullscreen on arbitrary elements.
+  // Detect iOS (not standalone PWA) so we can use a different strategy.
+  const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = () => ('standalone' in navigator) && (navigator as { standalone?: boolean }).standalone === true;
+
   const enterFakeFullscreen = () => {
     const el = rootRef.current;
     if (!el) return;
     fakeFsRef.current = true;
+    // Use 100dvh so the element fills the actual visible viewport
+    // (dvh shrinks when the browser chrome is visible, expands when hidden)
     el.style.position = 'fixed';
-    el.style.inset = '0';
+    el.style.top = '0';
+    el.style.left = '0';
+    el.style.width = '100vw';
+    el.style.height = '100dvh';
     el.style.zIndex = '9999';
-    el.style.width = '100%';
-    el.style.height = '100%';
     setIsFullscreen(true);
-    // Scroll to top to hide browser chrome as much as possible
-    window.scrollTo(0, 1);
+    // Scroll trick: temporarily make body taller so Safari will scroll and hide its chrome
+    document.body.style.height = '200vh';
+    window.scrollTo({ top: 1, behavior: 'instant' });
+    setTimeout(() => { document.body.style.height = ''; }, 300);
   };
 
   const exitFakeFullscreen = () => {
@@ -299,44 +308,41 @@ export default function NightlightClient() {
     if (!el) return;
     fakeFsRef.current = false;
     el.style.position = '';
-    el.style.inset = '';
-    el.style.zIndex = '';
+    el.style.top = '';
+    el.style.left = '';
     el.style.width = '';
     el.style.height = '';
+    el.style.zIndex = '';
     setIsFullscreen(false);
+    setShowIosHint(false);
   };
 
   const toggleFullscreen = async () => {
-    const supportsNative = Boolean(
-      document.documentElement.requestFullscreen ||
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (document.documentElement as any).webkitRequestFullscreen
-    );
-
     if (fakeFsRef.current) {
       exitFakeFullscreen();
       return;
     }
 
-    if (!supportsNative) {
+    // iOS: native fullscreen API not supported
+    if (isIos()) {
+      if (isStandalone()) {
+        // Already in PWA mode — already fullscreen, nothing to do
+        return;
+      }
+      // Show hint about adding to home screen and attempt scroll trick
       enterFakeFullscreen();
+      setShowIosHint(true);
+      setTimeout(() => setShowIosHint(false), 5000);
       return;
     }
 
     try {
       if (!document.fullscreenElement) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const req = (document.documentElement.requestFullscreen ?? (document.documentElement as any).webkitRequestFullscreen)?.bind(document.documentElement);
-        await req?.();
+        await document.documentElement.requestFullscreen();
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const exit = (document.exitFullscreen ?? (document as any).webkitExitFullscreen)?.bind(document);
-        await exit?.();
+        await document.exitFullscreen();
       }
-    } catch {
-      // Native API failed (e.g. iOS with some future partial support) — fall back to fake
-      if (!isFullscreen) enterFakeFullscreen();
-    }
+    } catch { /* denied */ }
   };
 
   const changeSpeed = (s: Speed) => {
@@ -516,6 +522,11 @@ export default function NightlightClient() {
             >
               {isFullscreen ? '⛶ Exit Fullscreen' : '⛶ Enter Fullscreen'}
             </button>
+            {showIosHint && (
+              <p style={{ margin: 0, fontSize: 12, textAlign: 'center', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>
+                For true fullscreen on iPhone, tap <strong style={{ color: 'rgba(255,255,255,0.65)' }}>Share → Add to Home Screen</strong>
+              </p>
+            )}
 
             {/* Wake lock toggle */}
             <button
