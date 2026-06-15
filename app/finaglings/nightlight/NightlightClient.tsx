@@ -211,6 +211,8 @@ export default function NightlightClient() {
 
   const wakeLockRef = useRef<WakeLockSentinelLike | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const fakeFsRef = useRef(false);
   const startXRef = useRef(0);
   const startYRef = useRef(0);
   const pointerOnMenuRef = useRef(false);
@@ -256,14 +258,16 @@ export default function NightlightClient() {
       }
     };
     const onFullscreenChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
+      if (!fakeFsRef.current) setIsFullscreen(Boolean(document.fullscreenElement));
     };
 
     document.addEventListener('visibilitychange', onVisibility);
     document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
       document.removeEventListener('fullscreenchange', onFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', onFullscreenChange);
       wakeLockRef.current?.release?.().catch(() => {}).finally(() => { wakeLockRef.current = null; });
     };
   }, [requestWakeLock, stayOnEnabled]);
@@ -276,14 +280,63 @@ export default function NightlightClient() {
     else await releaseWakeLock();
   };
 
+  const enterFakeFullscreen = () => {
+    const el = rootRef.current;
+    if (!el) return;
+    fakeFsRef.current = true;
+    el.style.position = 'fixed';
+    el.style.inset = '0';
+    el.style.zIndex = '9999';
+    el.style.width = '100%';
+    el.style.height = '100%';
+    setIsFullscreen(true);
+    // Scroll to top to hide browser chrome as much as possible
+    window.scrollTo(0, 1);
+  };
+
+  const exitFakeFullscreen = () => {
+    const el = rootRef.current;
+    if (!el) return;
+    fakeFsRef.current = false;
+    el.style.position = '';
+    el.style.inset = '';
+    el.style.zIndex = '';
+    el.style.width = '';
+    el.style.height = '';
+    setIsFullscreen(false);
+  };
+
   const toggleFullscreen = async () => {
+    const supportsNative = Boolean(
+      document.documentElement.requestFullscreen ||
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (document.documentElement as any).webkitRequestFullscreen
+    );
+
+    if (fakeFsRef.current) {
+      exitFakeFullscreen();
+      return;
+    }
+
+    if (!supportsNative) {
+      enterFakeFullscreen();
+      return;
+    }
+
     try {
       if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const req = (document.documentElement.requestFullscreen ?? (document.documentElement as any).webkitRequestFullscreen)?.bind(document.documentElement);
+        await req?.();
       } else {
-        await document.exitFullscreen();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const exit = (document.exitFullscreen ?? (document as any).webkitExitFullscreen)?.bind(document);
+        await exit?.();
       }
-    } catch { /* browser denied or not supported */ }
+    } catch {
+      // Native API failed (e.g. iOS with some future partial support) — fall back to fake
+      if (!isFullscreen) enterFakeFullscreen();
+    }
   };
 
   const changeSpeed = (s: Speed) => {
@@ -374,6 +427,7 @@ export default function NightlightClient() {
       `}</style>
 
       <div
+        ref={rootRef}
         className="absolute inset-0 touch-none select-none"
         style={{ '--nl-speed': speed } as React.CSSProperties}
         onPointerDown={handlePointerDown}
