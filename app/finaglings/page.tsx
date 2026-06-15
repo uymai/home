@@ -34,6 +34,13 @@ function ProjectSection({ title, projects }: { title: string; projects: Project[
 export default function FinaglingsPage() {
   const misc: Project[] = [
     {
+      title: "Nightlight",
+      description: "Five glowing ambient patterns to use as a soft nightlight — swipe between them, tap to control.",
+      url: "/finaglings/nightlight",
+      icon: "/window.svg",
+      color: "bg-indigo-100 dark:bg-indigo-950",
+    },
+    {
       title: "Steve's Game",
       description: "Steve picks a number 1–100. Earn $5 for a first-guess win, losing $1 for each additional try. Can you beat Steve?",
       url: "/steves-game",
