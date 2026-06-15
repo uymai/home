@@ -16,12 +16,15 @@ type NavigatorWithWakeLock = Navigator & {
 };
 
 const PATTERNS = ['Plasma', 'Aurora', 'Lava', 'Ocean', 'Embers'] as const;
+const SPEEDS = [0.5, 1, 2, 3] as const;
+const SPEED_LABELS = ['½×', '1×', '2×', '3×'] as const;
+type Speed = typeof SPEEDS[number];
 
 function Plasma() {
   return (
     <div
       className="absolute inset-0 overflow-hidden"
-      style={{ background: '#000', animation: 'nl-hue 25s linear infinite' }}
+      style={{ background: '#000', animation: 'nl-hue calc(25s / var(--nl-speed, 1)) linear infinite' }}
     >
       <div
         className="nl-blob"
@@ -29,7 +32,7 @@ function Plasma() {
           width: '90vmax', height: '90vmax',
           background: 'radial-gradient(circle, #c800ff 0%, transparent 65%)',
           opacity: 0.22, top: '-30%', left: '-30%',
-          animation: 'nl-b1 20s ease-in-out infinite',
+          animation: 'nl-b1 calc(20s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
       <div
@@ -38,7 +41,7 @@ function Plasma() {
           width: '80vmax', height: '80vmax',
           background: 'radial-gradient(circle, #00e5ff 0%, transparent 65%)',
           opacity: 0.22, bottom: '-25%', right: '-20%',
-          animation: 'nl-b2 27s ease-in-out infinite',
+          animation: 'nl-b2 calc(27s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
       <div
@@ -47,7 +50,7 @@ function Plasma() {
           width: '70vmax', height: '70vmax',
           background: 'radial-gradient(circle, #ffd700 0%, transparent 65%)',
           opacity: 0.18, top: '20%', left: '20%',
-          animation: 'nl-b3 34s ease-in-out infinite',
+          animation: 'nl-b3 calc(34s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
     </div>
@@ -61,21 +64,21 @@ function Aurora() {
         style={{
           position: 'absolute', left: '-10%', right: '-10%', top: '22%', height: 200,
           background: 'linear-gradient(180deg, transparent 0%, #00c87a 40%, #00a896 60%, transparent 100%)',
-          filter: 'blur(40px)', animation: 'nl-a1 15s ease-in-out infinite',
+          filter: 'blur(40px)', animation: 'nl-a1 calc(15s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
       <div
         style={{
           position: 'absolute', left: '-10%', right: '-10%', top: '38%', height: 180,
           background: 'linear-gradient(180deg, transparent 0%, #0077b6 40%, #7b2ff7 60%, transparent 100%)',
-          filter: 'blur(50px)', animation: 'nl-a2 19s ease-in-out infinite',
+          filter: 'blur(50px)', animation: 'nl-a2 calc(19s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
       <div
         style={{
           position: 'absolute', left: '-10%', right: '-10%', top: '10%', height: 160,
           background: 'linear-gradient(180deg, transparent 0%, #00f5d4 50%, transparent 100%)',
-          filter: 'blur(65px)', animation: 'nl-a3 23s ease-in-out infinite',
+          filter: 'blur(65px)', animation: 'nl-a3 calc(23s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
     </div>
@@ -91,7 +94,7 @@ function Lava() {
           width: '80vmax', height: '80vmax',
           background: 'radial-gradient(circle, #ff3300 0%, transparent 65%)',
           opacity: 0.28, top: '-20%', left: '-20%',
-          animation: 'nl-b1 22s ease-in-out infinite',
+          animation: 'nl-b1 calc(22s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
       <div
@@ -100,7 +103,7 @@ function Lava() {
           width: '70vmax', height: '70vmax',
           background: 'radial-gradient(circle, #ff8800 0%, transparent 65%)',
           opacity: 0.25, bottom: '-20%', right: '-15%',
-          animation: 'nl-b2 29s ease-in-out infinite',
+          animation: 'nl-b2 calc(29s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
       <div
@@ -109,7 +112,7 @@ function Lava() {
           width: '60vmax', height: '60vmax',
           background: 'radial-gradient(circle, #cc0000 0%, transparent 65%)',
           opacity: 0.22, top: '30%', left: '25%',
-          animation: 'nl-b3 36s ease-in-out infinite',
+          animation: 'nl-b3 calc(36s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
       <div
@@ -118,7 +121,7 @@ function Lava() {
           width: '50vmax', height: '50vmax',
           background: 'radial-gradient(circle, #ffcc00 0%, transparent 65%)',
           opacity: 0.18, bottom: '10%', left: '-10%',
-          animation: 'nl-b4 30s ease-in-out infinite',
+          animation: 'nl-b4 calc(30s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
     </div>
@@ -133,7 +136,7 @@ function Ocean() {
           position: 'absolute', inset: '-20%',
           background: 'linear-gradient(135deg, #001a4d, #003366, #004080, #001a4d, #000d26)',
           backgroundSize: '400% 400%',
-          animation: 'nl-oc 18s ease infinite',
+          animation: 'nl-oc calc(18s / var(--nl-speed, 1)) ease infinite',
           opacity: 0.9,
         }}
       />
@@ -143,7 +146,7 @@ function Ocean() {
           width: '100vmax', height: '60vmax',
           background: 'radial-gradient(circle, #0066cc 0%, transparent 60%)',
           opacity: 0.2, bottom: '-30%', left: '-20%',
-          animation: 'nl-b1 24s ease-in-out infinite',
+          animation: 'nl-b1 calc(24s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
       <div
@@ -152,7 +155,7 @@ function Ocean() {
           width: '80vmax', height: '50vmax',
           background: 'radial-gradient(circle, #00cccc 0%, transparent 65%)',
           opacity: 0.15, top: '10%', right: '-20%',
-          animation: 'nl-b3 30s ease-in-out infinite',
+          animation: 'nl-b3 calc(30s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
     </div>
@@ -167,7 +170,7 @@ function Embers() {
           position: 'absolute', bottom: '-20%', left: '-20%', right: '-20%', height: '100vmax',
           background: 'radial-gradient(ellipse at 50% 90%, #ff4400 0%, #cc1100 20%, transparent 60%)',
           filter: 'blur(40px)',
-          animation: 'nl-eg 7s ease-in-out infinite',
+          animation: 'nl-eg calc(7s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
       <div
@@ -176,7 +179,7 @@ function Embers() {
           width: '60vmax', height: '60vmax',
           background: 'radial-gradient(circle, #ff8800 0%, transparent 60%)',
           opacity: 0.2, bottom: '-10%', left: '30%',
-          animation: 'nl-er 9s ease-in-out infinite',
+          animation: 'nl-er calc(9s / var(--nl-speed, 1)) ease-in-out infinite',
         }}
       />
       <div
@@ -186,7 +189,7 @@ function Embers() {
           background: 'radial-gradient(circle, #cc0000 0%, transparent 65%)',
           opacity: 0.18, bottom: '-10%', right: '10%',
           animationName: 'nl-er',
-          animationDuration: '12s',
+          animationDuration: 'calc(12s / var(--nl-speed, 1))',
           animationTimingFunction: 'ease-in-out',
           animationIterationCount: 'infinite',
           animationDelay: '2s',
@@ -203,6 +206,8 @@ export default function NightlightClient() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [stayOnEnabled, setStayOnEnabled] = useState(false);
   const [wakeLockSupported, setWakeLockSupported] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [speed, setSpeed] = useState<Speed>(1);
 
   const wakeLockRef = useRef<WakeLockSentinelLike | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -236,14 +241,29 @@ export default function NightlightClient() {
         setWakeLockSupported(Boolean((navigator as NavigatorWithWakeLock).wakeLock?.request));
       } catch { setWakeLockSupported(false); }
     }
+
+    // Restore persisted speed
+    try {
+      const saved = localStorage.getItem('nl-speed');
+      if (saved && SPEEDS.includes(Number(saved) as Speed)) {
+        setSpeed(Number(saved) as Speed);
+      }
+    } catch { /* ignore */ }
+
     const onVisibility = () => {
       if (document.visibilityState === 'visible' && stayOnEnabled && !wakeLockRef.current) {
         void requestWakeLock();
       }
     };
+    const onFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+
     document.addEventListener('visibilitychange', onVisibility);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
       wakeLockRef.current?.release?.().catch(() => {}).finally(() => { wakeLockRef.current = null; });
     };
   }, [requestWakeLock, stayOnEnabled]);
@@ -254,6 +274,21 @@ export default function NightlightClient() {
     setStayOnEnabled(next);
     if (next) await requestWakeLock();
     else await releaseWakeLock();
+  };
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch { /* browser denied or not supported */ }
+  };
+
+  const changeSpeed = (s: Speed) => {
+    setSpeed(s);
+    try { localStorage.setItem('nl-speed', String(s)); } catch { /* ignore */ }
   };
 
   // Auto-dismiss menu 4s after it appears
@@ -340,6 +375,7 @@ export default function NightlightClient() {
 
       <div
         className="absolute inset-0 touch-none select-none"
+        style={{ '--nl-speed': speed } as React.CSSProperties}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onContextMenu={e => e.preventDefault()}
@@ -388,6 +424,44 @@ export default function NightlightClient() {
                 ))}
               </div>
             </div>
+
+            {/* Speed control */}
+            <div className="flex items-center justify-between">
+              <span className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Speed</span>
+              <div className="flex gap-2">
+                {SPEEDS.map((s, i) => (
+                  <button
+                    key={s}
+                    onClick={() => changeSpeed(s)}
+                    aria-label={`Set speed to ${SPEED_LABELS[i]}`}
+                    style={{
+                      padding: '5px 10px', borderRadius: 8, fontSize: 13, fontWeight: 500,
+                      background: speed === s ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.08)',
+                      color: speed === s ? 'white' : 'rgba(255,255,255,0.45)',
+                      border: speed === s ? '1px solid rgba(255,255,255,0.3)' : '1px solid transparent',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {SPEED_LABELS[i]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Fullscreen toggle */}
+            <button
+              onClick={toggleFullscreen}
+              style={{
+                width: '100%', padding: '12px 16px', borderRadius: 12, fontSize: 14, fontWeight: 500,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                background: isFullscreen ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.1)',
+                color: 'rgba(255,255,255,0.7)',
+                border: 'none', cursor: 'pointer',
+              }}
+            >
+              {isFullscreen ? '⛶ Exit Fullscreen' : '⛶ Enter Fullscreen'}
+            </button>
 
             {/* Wake lock toggle */}
             <button
