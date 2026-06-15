@@ -206,8 +206,6 @@ export default function NightlightClient() {
   const [menuVisible, setMenuVisible] = useState(false);
   const [stayOnEnabled, setStayOnEnabled] = useState(false);
   const [wakeLockSupported, setWakeLockSupported] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isIos, setIsIos] = useState(false);
   const [speed, setSpeed] = useState<Speed>(1);
 
   const wakeLockRef = useRef<WakeLockSentinelLike | null>(null);
@@ -241,7 +239,6 @@ export default function NightlightClient() {
       try {
         setWakeLockSupported(Boolean((navigator as NavigatorWithWakeLock).wakeLock?.request));
       } catch { setWakeLockSupported(false); }
-      setIsIos(/iphone|ipad|ipod/i.test(navigator.userAgent));
     }
 
     // Restore persisted speed
@@ -257,15 +254,10 @@ export default function NightlightClient() {
         void requestWakeLock();
       }
     };
-    const onFullscreenChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
-    };
 
     document.addEventListener('visibilitychange', onVisibility);
-    document.addEventListener('fullscreenchange', onFullscreenChange);
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
-      document.removeEventListener('fullscreenchange', onFullscreenChange);
       wakeLockRef.current?.release?.().catch(() => {}).finally(() => { wakeLockRef.current = null; });
     };
   }, [requestWakeLock, stayOnEnabled]);
@@ -276,16 +268,6 @@ export default function NightlightClient() {
     setStayOnEnabled(next);
     if (next) await requestWakeLock();
     else await releaseWakeLock();
-  };
-
-  const toggleFullscreen = async () => {
-    try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen();
-      } else {
-        await document.exitFullscreen();
-      }
-    } catch { /* denied */ }
   };
 
   const changeSpeed = (s: Speed) => {
@@ -450,22 +432,6 @@ export default function NightlightClient() {
                 ))}
               </div>
             </div>
-
-            {/* Fullscreen toggle — hidden on iOS where the API is unsupported */}
-            {!isIos && (
-              <button
-                onClick={toggleFullscreen}
-                style={{
-                  width: '100%', padding: '12px 16px', borderRadius: 12, fontSize: 14, fontWeight: 500,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  background: isFullscreen ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.1)',
-                  color: 'rgba(255,255,255,0.7)',
-                  border: 'none', cursor: 'pointer',
-                }}
-              >
-                {isFullscreen ? '⛶ Exit Fullscreen' : '⛶ Enter Fullscreen'}
-              </button>
-            )}
 
             {/* Wake lock toggle */}
             <button
