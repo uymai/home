@@ -1,0 +1,45 @@
+{
+  "title": "Korean Gochujang Crispy Chicken",
+  "inspiredBy": {
+    "name": "Fairfiteats Korean Crispy Chicken",
+    "source": "fairfiteats",
+    "url": "https://www.instagram.com/fairfiteats"
+  },
+  "description": "High-protein crispy air fryer chicken tossed in a sweet-spicy Korean gochujang sauce. Marinated, cornstarch-coated, and air fried for maximum crunch with minimal fat.",
+  "prepTime": "20 minutes + 2 hours marinating",
+  "cookTime": "30 minutes (multiple air fryer batches)",
+  "servings": 10,
+  "difficulty": "Medium",
+  "tags": ["air fryer", "korean", "high-protein", "meal prep", "testing"],
+  "ingredients": [
+    "1700g (60oz) chicken breast, cut into bite-sized pieces",
+    "4 tbsp (60g) low-sodium soy sauce",
+    "1 tbsp (15g) garlic salt",
+    "1 tbsp (7g) black pepper",
+    "1 tbsp (7g) smoked paprika",
+    "2 whole eggs (100g), beaten",
+    "30g cornstarch (for coating)",
+    "0.5 cup (120g) low-sodium soy sauce",
+    "1 tbsp (15g) rice vinegar",
+    "2 tbsp (40g) gochujang paste",
+    "2 tbsp (30g) maple syrup",
+    "1 tbsp (10g) minced garlic",
+    "1 tbsp (10g) minced ginger"
+  ],
+  "instructions": [
+    "Cut 1700g chicken breast into bite-sized pieces and place in a large bowl.",
+    "Add 4 tbsp soy sauce, 1 tbsp garlic salt, 1 tbsp black pepper, 1 tbsp smoked paprika, and 2 beaten eggs to the chicken. Mix thoroughly to coat. Cover and marinate in the fridge for at least 2 hours.",
+    "While chicken marinates, make the sauce: combine 0.5 cup low-sodium soy sauce, 1 tbsp rice vinegar, 2 tbsp gochujang paste, 2 tbsp maple syrup, 1 tbsp minced garlic, and 1 tbsp minced ginger in a small saucepan. Simmer over medium heat for 3–4 minutes until slightly thickened. Set aside.",
+    "Remove chicken from marinade. Drain excess marinade and pat pieces dry with paper towel — this is critical for crust formation.",
+    "Toss dried chicken pieces in 30g cornstarch immediately before air frying. Do not do this step ahead of time.",
+    "Preheat air fryer to 400°F. Working in single-layer batches, air fry chicken for 10–12 minutes, flipping halfway, until golden and crispy. Do not crowd the basket.",
+    "Once all batches are done, toss hot chicken in the gochujang sauce and serve immediately."
+  ],
+  "macros": {
+    "calories": 239,
+    "protein": 38,
+    "carbs": 12,
+    "fat": 5
+  },
+  "notes": "Sauce goes on after air frying — never before or you lose the crisp. Low-sodium soy sauce is strongly recommended; standard soy sauce brings this to ~1,100mg sodium per serving. Maple syrup replaces honey here with no macro difference. Brown sugar from the original has been removed — the gochujang and maple syrup provide enough sweetness. Pairs well with steamed rice and edamame or a kale side."
+}
