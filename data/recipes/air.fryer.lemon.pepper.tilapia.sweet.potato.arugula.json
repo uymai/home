@@ -1,0 +1,37 @@
+{
+  "title": "Air Fryer Lemon Pepper Tilapia with Roasted Sweet Potato & Arugula",
+  "description": "Light, high-protein tilapia with crispy lemon pepper crust, paired with roasted sweet potato and a peppery arugula side.",
+  "prepTime": "10 minutes",
+  "cookTime": "20 minutes",
+  "servings": 2,
+  "difficulty": "Easy",
+  "tags": ["testing"],
+  "ingredients": [
+    "2 tilapia fillets (about 150g each)",
+    "1 tbsp lemon pepper seasoning",
+    "1 tbsp extra virgin olive oil",
+    "1 lemon / 3 tbsp lemon juice",
+    "1 medium sweet potato (about 300g), cubed",
+    "1 tsp canola oil",
+    "1/4 tsp salt",
+    "2 cups arugula",
+    "1 tsp extra virgin olive oil (for arugula)",
+    "1/4 tsp black pepper"
+  ],
+  "instructions": [
+    "Preheat air fryer to 400°F.",
+    "Toss 300g cubed sweet potato with 1 tsp canola oil and 1/4 tsp salt. Air fry at 400°F for 12-15 minutes, shaking basket halfway, until tender and crisp at edges.",
+    "Pat 2 tilapia fillets dry. Brush each with 1 tbsp extra virgin olive oil total, then squeeze 3 tbsp lemon juice over both fillets.",
+    "Sprinkle 1 tbsp lemon pepper seasoning evenly over both fillets, pressing gently to adhere.",
+    "Once sweet potatoes have about 8 minutes left, add tilapia to air fryer basket in a single layer (use a second batch or stacked rack if needed). Air fry at 400°F for 8-10 minutes, until fish flakes easily and internal temp hits 145°F.",
+    "Toss 2 cups arugula with 1 tsp extra virgin olive oil and 1/4 tsp black pepper.",
+    "Plate tilapia over arugula with sweet potato on the side."
+  ],
+  "macros": {
+    "calories": 410,
+    "protein": 35,
+    "carbs": 24,
+    "fat": 17
+  },
+  "notes": "Tilapia's protein-to-calorie ratio is strong (~17g per 100 cal), among the best lean white fish options. Don't overcrowd the air fryer basket with the fish — single layer keeps the crust from steaming. If batching with the sweet potatoes, cook fish separately for best texture."
+}
