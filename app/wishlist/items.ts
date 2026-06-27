@@ -31,11 +31,6 @@ export const WISHLIST: WishlistItem[] = [
     notes: 'Has been hard to get — Amazon scalpers are listing it for $60, so check 401 Games or local stores.',
   },
   {
-    name: 'One Shot Wonders',
-    url: 'https://rollandplaypress.com/products/one-shot-wonders',
-    priority: 'medium',
-  },
-  {
     name: 'This Game is Killer',
     url: 'https://store.401games.ca/products/this-game-is-killer',
     price: '~$18',
