@@ -7,6 +7,7 @@ export function createInitialState(): SessionState {
     programId: null,
     dayId: null,
     blocks: [],
+    currentBlockIndex: 0,
   };
 }
 
@@ -18,19 +19,41 @@ function findDay(program: ReturnType<typeof findProgram>, dayId: string | null) 
   return program?.days.find((day) => day.id === dayId) ?? null;
 }
 
-function buildBlocks(program: ReturnType<typeof findProgram>, dayId: string): BlockState[] {
+function buildBlocks(
+  program: ReturnType<typeof findProgram>,
+  dayId: string,
+  previousWeights: Record<string, string>,
+): BlockState[] {
   const day = findDay(program, dayId);
   if (!day) return [];
   return day.blocks.map((block) => ({
     id: block.id,
     label: block.label,
+    started: false,
     activities: block.activities.map((activity) => ({
       name: activity.name,
       noWeight: activity.noWeight,
-      weight: '',
+      weight: previousWeights[activity.name] ?? '',
       roundsCompleted: 0,
     })),
   }));
+}
+
+function updateActivity(
+  blocks: BlockState[],
+  blockIndex: number,
+  activityIndex: number,
+  update: (activity: BlockState['activities'][number]) => BlockState['activities'][number],
+): BlockState[] {
+  return blocks.map((block, bIndex) => {
+    if (bIndex !== blockIndex) return block;
+    return {
+      ...block,
+      activities: block.activities.map((activity, aIndex) =>
+        aIndex === activityIndex ? update(activity) : activity,
+      ),
+    };
+  });
 }
 
 export function reduceSessionState(
@@ -50,53 +73,61 @@ export function reduceSessionState(
       const program = findProgram(programs, state.programId);
       return {
         ...state,
-        phase: 'set-weights',
+        phase: 'block',
         dayId: action.dayId,
-        blocks: buildBlocks(program, action.dayId),
+        blocks: buildBlocks(program, action.dayId, action.previousWeights),
+        currentBlockIndex: 0,
       };
     }
 
     case 'set-weight': {
-      if (state.phase !== 'set-weights' && state.phase !== 'live') return state;
+      if (state.phase !== 'block') return state;
       const block = state.blocks[action.blockIndex];
       if (!block?.activities[action.activityIndex]) return state;
-      const blocks = state.blocks.map((b, bIndex) => {
-        if (bIndex !== action.blockIndex) return b;
-        return {
-          ...b,
-          activities: b.activities.map((a, aIndex) =>
-            aIndex === action.activityIndex ? { ...a, weight: action.value } : a,
-          ),
-        };
-      });
-      return { ...state, blocks };
+      return {
+        ...state,
+        blocks: updateActivity(state.blocks, action.blockIndex, action.activityIndex, (activity) => ({
+          ...activity,
+          weight: action.value,
+        })),
+      };
     }
 
-    case 'start-live':
-      return state.phase === 'set-weights' ? { ...state, phase: 'live' } : state;
+    case 'start-block': {
+      if (state.phase !== 'block') return state;
+      const blocks = state.blocks.map((block, index) =>
+        index === state.currentBlockIndex ? { ...block, started: true } : block,
+      );
+      return { ...state, blocks };
+    }
 
     case 'increment-round':
     case 'decrement-round': {
-      if (state.phase !== 'live') return state;
+      if (state.phase !== 'block') return state;
       const block = state.blocks[action.blockIndex];
-      if (!block?.activities[action.activityIndex]) return state;
+      if (!block?.activities[action.activityIndex] || !block.started) return state;
       const delta = action.type === 'increment-round' ? 1 : -1;
-      const blocks = state.blocks.map((b, bIndex) => {
-        if (bIndex !== action.blockIndex) return b;
-        return {
-          ...b,
-          activities: b.activities.map((a, aIndex) =>
-            aIndex === action.activityIndex
-              ? { ...a, roundsCompleted: Math.max(0, a.roundsCompleted + delta) }
-              : a,
-          ),
-        };
-      });
-      return { ...state, blocks };
+      return {
+        ...state,
+        blocks: updateActivity(state.blocks, action.blockIndex, action.activityIndex, (activity) => ({
+          ...activity,
+          roundsCompleted: Math.max(0, activity.roundsCompleted + delta),
+        })),
+      };
     }
 
+    case 'next-block':
+      return state.phase === 'block'
+        ? { ...state, currentBlockIndex: Math.min(state.currentBlockIndex + 1, state.blocks.length - 1) }
+        : state;
+
+    case 'prev-block':
+      return state.phase === 'block'
+        ? { ...state, currentBlockIndex: Math.max(state.currentBlockIndex - 1, 0) }
+        : state;
+
     case 'finish-day':
-      return state.phase === 'live' ? { ...state, phase: 'summary' } : state;
+      return state.phase === 'block' ? { ...state, phase: 'summary' } : state;
 
     case 'restart-day':
       return {

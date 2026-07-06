@@ -1,4 +1,4 @@
-import { SessionState } from './types';
+import { ActivityState, BlockState, SessionPhase, SessionState } from './types';
 
 export type SavedActivityResult = {
   blockLabel: string;
@@ -119,4 +119,78 @@ export function buildSavedSession(
       })),
     ),
   };
+}
+
+export function getPreviousWeights(history: SavedSession[]): Record<string, string> {
+  const weights: Record<string, string> = {};
+  for (const session of history) {
+    for (const activity of session.activities) {
+      if (activity.weight && !(activity.name in weights)) {
+        weights[activity.name] = activity.weight;
+      }
+    }
+  }
+  return weights;
+}
+
+const IN_PROGRESS_KEY = 'workout-tracker-in-progress-v1';
+const SESSION_PHASES: SessionPhase[] = ['select-program', 'select-day', 'block', 'summary'];
+
+function isValidActivityState(value: unknown): value is ActivityState {
+  if (!value || typeof value !== 'object') return false;
+  const activity = value as Partial<ActivityState>;
+  return (
+    typeof activity.name === 'string' &&
+    typeof activity.weight === 'string' &&
+    typeof activity.roundsCompleted === 'number' &&
+    (activity.noWeight === undefined || typeof activity.noWeight === 'boolean')
+  );
+}
+
+function isValidBlockState(value: unknown): value is BlockState {
+  if (!value || typeof value !== 'object') return false;
+  const block = value as Partial<BlockState>;
+  return (
+    typeof block.id === 'string' &&
+    typeof block.label === 'string' &&
+    typeof block.started === 'boolean' &&
+    Array.isArray(block.activities) &&
+    block.activities.every(isValidActivityState)
+  );
+}
+
+export function isValidSessionState(value: unknown): value is SessionState {
+  if (!value || typeof value !== 'object') return false;
+  const state = value as Partial<SessionState>;
+  return (
+    typeof state.phase === 'string' &&
+    SESSION_PHASES.includes(state.phase as SessionPhase) &&
+    (state.programId === null || typeof state.programId === 'string') &&
+    (state.dayId === null || typeof state.dayId === 'string') &&
+    Array.isArray(state.blocks) &&
+    state.blocks.every(isValidBlockState) &&
+    typeof state.currentBlockIndex === 'number'
+  );
+}
+
+export function loadInProgressSession(): SessionState | null {
+  if (!hasLocalStorage()) return null;
+  const raw = globalThis.localStorage.getItem(IN_PROGRESS_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    return isValidSessionState(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveInProgressSession(state: SessionState): void {
+  if (!hasLocalStorage()) return;
+  globalThis.localStorage.setItem(IN_PROGRESS_KEY, JSON.stringify(state));
+}
+
+export function clearInProgressSession(): void {
+  if (!hasLocalStorage()) return;
+  globalThis.localStorage.removeItem(IN_PROGRESS_KEY);
 }

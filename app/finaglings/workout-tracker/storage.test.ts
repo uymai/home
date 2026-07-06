@@ -1,15 +1,21 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   buildSavedSession,
+  clearInProgressSession,
   deleteSession,
   exportHistoryJson,
+  getPreviousWeights,
   importHistoryJson,
   isValidSavedSession,
+  isValidSessionState,
   loadHistory,
+  loadInProgressSession,
+  saveInProgressSession,
   saveSession,
   SavedSession,
 } from './storage';
 import { createInitialState } from './engine';
+import { SessionState } from './types';
 
 function fakeLocalStorage() {
   const store = new Map<string, string>();
@@ -112,6 +118,7 @@ describe('Workout Tracker storage', () => {
         {
           id: 'day1-block1',
           label: 'First block',
+          started: true,
           activities: [
             { name: 'Squat', weight: '25', roundsCompleted: 3 },
             { name: 'Press', weight: '', roundsCompleted: 2 },
@@ -133,5 +140,77 @@ describe('Workout Tracker storage', () => {
     expect(typeof saved.id).toBe('string');
     expect(saved.id.length).toBeGreaterThan(0);
     expect(() => new Date(saved.completedAt).toISOString()).not.toThrow();
+  });
+
+  it('getPreviousWeights picks the most recent weight per exercise name across programs/days', () => {
+    const older = makeSession({
+      id: 'older',
+      programId: 'program-a',
+      completedAt: '2026-01-01T00:00:00.000Z',
+      activities: [{ blockLabel: 'First block', name: 'Overhead Press', roundsCompleted: 2, weight: '20' }],
+    });
+    const newer = makeSession({
+      id: 'newer',
+      programId: 'program-b',
+      completedAt: '2026-02-01T00:00:00.000Z',
+      activities: [
+        { blockLabel: 'First block', name: 'Overhead Press', roundsCompleted: 3, weight: '25' },
+        { blockLabel: 'First block', name: 'Bent Over Row', roundsCompleted: 3, weight: '' },
+      ],
+    });
+
+    const previousWeights = getPreviousWeights([newer, older]);
+
+    expect(previousWeights['Overhead Press']).toBe('25');
+    expect(previousWeights['Bent Over Row']).toBeUndefined();
+    expect(previousWeights['Never Logged']).toBeUndefined();
+  });
+
+  function makeSessionState(overrides: Partial<SessionState> = {}): SessionState {
+    return {
+      ...createInitialState(),
+      phase: 'block',
+      programId: 'desity-with-andy-1',
+      dayId: 'day1',
+      currentBlockIndex: 1,
+      blocks: [
+        {
+          id: 'day1-block1',
+          label: 'First block',
+          started: true,
+          activities: [{ name: 'Squat', weight: '25', roundsCompleted: 2 }],
+        },
+      ],
+      ...overrides,
+    };
+  }
+
+  it('returns null when no in-progress session is saved', () => {
+    expect(loadInProgressSession()).toBeNull();
+  });
+
+  it('saves and loads an in-progress session, and clears it', () => {
+    const state = makeSessionState();
+    saveInProgressSession(state);
+
+    expect(loadInProgressSession()).toEqual(state);
+
+    clearInProgressSession();
+    expect(loadInProgressSession()).toBeNull();
+  });
+
+  it('returns null for malformed in-progress session data without throwing', () => {
+    globalThis.localStorage.setItem('workout-tracker-in-progress-v1', 'not json');
+    expect(loadInProgressSession()).toBeNull();
+
+    globalThis.localStorage.setItem('workout-tracker-in-progress-v1', JSON.stringify({ missing: 'fields' }));
+    expect(loadInProgressSession()).toBeNull();
+  });
+
+  it('validates session state with isValidSessionState', () => {
+    expect(isValidSessionState(makeSessionState())).toBe(true);
+    expect(isValidSessionState({ ...makeSessionState(), phase: 'not-a-phase' })).toBe(false);
+    expect(isValidSessionState({ ...makeSessionState(), blocks: 'nope' })).toBe(false);
+    expect(isValidSessionState(null)).toBe(false);
   });
 });

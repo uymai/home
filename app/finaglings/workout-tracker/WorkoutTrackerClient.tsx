@@ -1,16 +1,20 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createInitialState, reduceSessionState } from './engine';
 import { PROGRAMS } from './programs';
-import { SessionAction } from './types';
+import { SessionAction, SessionState } from './types';
 import {
   buildSavedSession,
+  clearInProgressSession,
   deleteSession,
   exportHistoryJson,
+  getPreviousWeights,
   importHistoryJson,
   loadHistory,
+  loadInProgressSession,
   SavedSession,
+  saveInProgressSession,
   saveSession,
 } from './storage';
 
@@ -121,16 +125,28 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 }
 
 export default function WorkoutTrackerClient() {
-  const [state, send] = useReducer(
-    (s: ReturnType<typeof createInitialState>, action: SessionAction) => reduceSessionState(s, action, PROGRAMS),
-    undefined,
-    createInitialState,
-  );
+  // Start from a fresh session on both server and first client render (matches SSR output),
+  // then resume any in-progress session in an effect below — see NightlightClient.tsx for the
+  // same read-localStorage-after-mount pattern, avoiding a hydration mismatch.
+  const [state, setState] = useState<SessionState>(createInitialState);
   const [view, setView] = useState<'session' | 'history'>('session');
   const [history, setHistory] = useState<SavedSession[]>([]);
   const [historyText, setHistoryText] = useState('');
   const [historyError, setHistoryError] = useState<string | null>(null);
   const { stayOnEnabled, wakeLockSupported, toggleWakeLock } = useScreenWakeLock();
+
+  const send = (action: SessionAction) => {
+    setState((prev) => reduceSessionState(prev, action, PROGRAMS));
+  };
+
+  useEffect(() => {
+    const resumed = loadInProgressSession();
+    if (resumed) setState(resumed);
+  }, []);
+
+  useEffect(() => {
+    if (state.phase === 'block') saveInProgressSession(state);
+  }, [state]);
 
   const refreshHistory = useCallback(() => {
     const next = loadHistory();
@@ -149,6 +165,7 @@ export default function WorkoutTrackerClient() {
     if (state.phase === 'summary' && program && day) {
       const saved = buildSavedSession(state, program.name, day.label);
       saveSession(saved);
+      clearInProgressSession();
       refreshHistory();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -174,6 +191,16 @@ export default function WorkoutTrackerClient() {
     } catch (error) {
       setHistoryError(error instanceof Error ? error.message : 'Could not import that JSON.');
     }
+  }
+
+  function restartDay() {
+    clearInProgressSession();
+    send({ type: 'restart-day' });
+  }
+
+  function restartProgram() {
+    clearInProgressSession();
+    send({ type: 'restart-program' });
   }
 
   if (view === 'history') {
@@ -268,14 +295,19 @@ export default function WorkoutTrackerClient() {
       <div className="space-y-4">
         <div className="space-y-4">
           {program?.days.map((d) => (
-            <RowCard key={d.id} onClick={() => send({ type: 'select-day', dayId: d.id })}>
+            <RowCard
+              key={d.id}
+              onClick={() =>
+                send({ type: 'select-day', dayId: d.id, previousWeights: getPreviousWeights(loadHistory()) })
+              }
+            >
               <span className="font-semibold">{d.label}</span>
               <span className="text-gray-400">›</span>
             </RowCard>
           ))}
         </div>
         <button
-          onClick={() => send({ type: 'restart-program' })}
+          onClick={restartProgram}
           className="text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
         >
           Choose a different program
@@ -284,49 +316,12 @@ export default function WorkoutTrackerClient() {
     );
   }
 
-  if (state.phase === 'set-weights') {
-    return (
-      <div className="space-y-6">
-        <h2 className="text-xl font-bold">{program?.name} · {day?.label}</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">Set a weight per activity before you start (optional).</p>
-        {state.blocks.map((block, blockIndex) => (
-          <div key={block.id} className="space-y-2">
-            <h3 className="font-semibold">{block.label}</h3>
-            {block.activities.map((activity, activityIndex) => (
-              <div
-                key={activityIndex}
-                className="flex items-center justify-between bg-gray-50 dark:bg-gray-800/60 rounded-xl px-4 py-3"
-              >
-                <span>{activity.name}</span>
-                {activity.noWeight ? (
-                  <span className="text-xs uppercase tracking-wide text-gray-400">bodyweight</span>
-                ) : (
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    value={activity.weight}
-                    onChange={(e) =>
-                      send({ type: 'set-weight', blockIndex, activityIndex, value: e.target.value })
-                    }
-                    placeholder="weight"
-                    className="w-20 text-right bg-white dark:bg-gray-700 rounded-lg px-2 py-1 border border-gray-200 dark:border-gray-600"
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-        ))}
-        <button
-          onClick={() => send({ type: 'start-live' })}
-          className="w-full px-5 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-semibold transition-colors"
-        >
-          Start
-        </button>
-      </div>
-    );
-  }
+  if (state.phase === 'block') {
+    const blockIndex = state.currentBlockIndex;
+    const block = state.blocks[blockIndex];
+    const isFirstBlock = blockIndex === 0;
+    const isLastBlock = blockIndex === state.blocks.length - 1;
 
-  if (state.phase === 'live') {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -347,17 +342,31 @@ export default function WorkoutTrackerClient() {
           )}
         </div>
 
-        {state.blocks.map((block, blockIndex) => (
-          <div key={block.id} className="space-y-3">
-            <h3 className="font-semibold">{block.label}</h3>
-            {block.activities.map((activity, activityIndex) => (
-              <div key={activityIndex} className="bg-gray-50 dark:bg-gray-800/60 rounded-xl px-4 py-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{activity.name}</span>
-                  {!activity.noWeight && activity.weight && (
-                    <span className="text-sm text-gray-500 dark:text-gray-400">{activity.weight}</span>
-                  )}
-                </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Block {blockIndex + 1} of {state.blocks.length}: {block.label}
+        </p>
+
+        <div className="space-y-3">
+          {block.activities.map((activity, activityIndex) => (
+            <div key={activityIndex} className="bg-gray-50 dark:bg-gray-800/60 rounded-xl px-4 py-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{activity.name}</span>
+                {activity.noWeight ? (
+                  <span className="text-xs uppercase tracking-wide text-gray-400">bodyweight</span>
+                ) : (
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={activity.weight}
+                    onChange={(e) =>
+                      send({ type: 'set-weight', blockIndex, activityIndex, value: e.target.value })
+                    }
+                    placeholder="weight"
+                    className="w-20 text-right bg-white dark:bg-gray-700 rounded-lg px-2 py-1 border border-gray-200 dark:border-gray-600"
+                  />
+                )}
+              </div>
+              {block.started && (
                 <div className="flex items-center justify-center gap-4">
                   <button
                     onClick={() => send({ type: 'decrement-round', blockIndex, activityIndex })}
@@ -375,10 +384,36 @@ export default function WorkoutTrackerClient() {
                     +1 Round
                   </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        ))}
+              )}
+            </div>
+          ))}
+        </div>
+
+        {!block.started && (
+          <button
+            onClick={() => send({ type: 'start-block' })}
+            className="w-full px-5 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-semibold transition-colors"
+          >
+            Start
+          </button>
+        )}
+
+        <div className="flex gap-3">
+          <button
+            onClick={() => send({ type: 'prev-block' })}
+            disabled={isFirstBlock}
+            className="flex-1 px-5 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-full font-semibold transition-colors"
+          >
+            ‹ Previous Block
+          </button>
+          <button
+            onClick={() => send({ type: 'next-block' })}
+            disabled={isLastBlock}
+            className="flex-1 px-5 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-full font-semibold transition-colors"
+          >
+            Next Block ›
+          </button>
+        </div>
 
         <button
           onClick={() => send({ type: 'finish-day' })}
@@ -413,7 +448,7 @@ export default function WorkoutTrackerClient() {
             >
               <span>{activity.name}</span>
               <span className="text-gray-500 dark:text-gray-400">
-                {activity.roundsCompleted} rounds{activity.weight ? ` @ ${activity.weight}` : ''}
+                {formatRounds(activity.roundsCompleted)}{activity.weight ? ` @ ${activity.weight}` : ''}
               </span>
             </div>
           ))}
@@ -422,13 +457,13 @@ export default function WorkoutTrackerClient() {
 
       <div className="flex gap-3">
         <button
-          onClick={() => send({ type: 'restart-day' })}
+          onClick={restartDay}
           className="flex-1 px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full font-semibold transition-colors"
         >
           Do Another Day
         </button>
         <button
-          onClick={() => send({ type: 'restart-program' })}
+          onClick={restartProgram}
           className="flex-1 px-5 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full font-semibold transition-colors"
         >
           Choose Different Program
