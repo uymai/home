@@ -4,6 +4,7 @@ import {
   clearInProgressSession,
   deleteSession,
   exportHistoryJson,
+  getExerciseProgress,
   getPreviousWeights,
   importHistoryJson,
   isValidSavedSession,
@@ -212,5 +213,40 @@ describe('Workout Tracker storage', () => {
     expect(isValidSessionState({ ...makeSessionState(), phase: 'not-a-phase' })).toBe(false);
     expect(isValidSessionState({ ...makeSessionState(), blocks: 'nope' })).toBe(false);
     expect(isValidSessionState(null)).toBe(false);
+  });
+
+  it('getExerciseProgress groups by exercise name across different days/programs, oldest-first', () => {
+    const day1Session = makeSession({
+      id: 'day1-session',
+      programId: 'program-a',
+      dayId: 'day1',
+      completedAt: '2026-02-01T00:00:00.000Z',
+      activities: [{ blockLabel: 'First block', name: 'Overhead Press', roundsCompleted: 3, weight: '20' }],
+    });
+    const day2Session = makeSession({
+      id: 'day2-session',
+      programId: 'program-b',
+      dayId: 'day2',
+      completedAt: '2026-01-01T00:00:00.000Z',
+      activities: [{ blockLabel: 'First block', name: 'Overhead Press', roundsCompleted: 2, weight: '15' }],
+    });
+
+    // pass newest-first, same order loadHistory() returns, to confirm the function re-sorts itself
+    const progress = getExerciseProgress([day1Session, day2Session]);
+
+    expect(progress['Overhead Press']).toEqual([
+      { completedAt: '2026-01-01T00:00:00.000Z', weight: '15', roundsCompleted: 2 },
+      { completedAt: '2026-02-01T00:00:00.000Z', weight: '20', roundsCompleted: 3 },
+    ]);
+  });
+
+  it('getExerciseProgress returns a single-entry list for an exercise logged only once', () => {
+    const progress = getExerciseProgress([makeSession()]);
+    expect(progress['Squat']).toHaveLength(1);
+    expect(progress['Squat'][0]).toEqual({ completedAt: '2026-01-01T00:00:00.000Z', weight: '25', roundsCompleted: 3 });
+  });
+
+  it('getExerciseProgress returns an empty object for an empty history', () => {
+    expect(getExerciseProgress([])).toEqual({});
   });
 });

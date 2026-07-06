@@ -194,3 +194,21 @@ export function clearInProgressSession(): void {
   if (!hasLocalStorage()) return;
   globalThis.localStorage.removeItem(IN_PROGRESS_KEY);
 }
+
+export type ExerciseProgressEntry = {
+  completedAt: string;
+  weight: string;
+  roundsCompleted: number;
+};
+
+export function getExerciseProgress(history: SavedSession[]): Record<string, ExerciseProgressEntry[]> {
+  const chronological = [...history].sort((a, b) => a.completedAt.localeCompare(b.completedAt));
+  const progress: Record<string, ExerciseProgressEntry[]> = {};
+  for (const session of chronological) {
+    for (const activity of session.activities) {
+      const entry = { completedAt: session.completedAt, weight: activity.weight, roundsCompleted: activity.roundsCompleted };
+      (progress[activity.name] ??= []).push(entry);
+    }
+  }
+  return progress;
+}

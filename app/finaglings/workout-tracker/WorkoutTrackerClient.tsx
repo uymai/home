@@ -9,6 +9,7 @@ import {
   clearInProgressSession,
   deleteSession,
   exportHistoryJson,
+  getExerciseProgress,
   getPreviousWeights,
   importHistoryJson,
   loadHistory,
@@ -17,6 +18,12 @@ import {
   saveInProgressSession,
   saveSession,
 } from './storage';
+
+const ALL_DAYS_FILTER = 'all';
+
+function dayFilterKey(session: Pick<SavedSession, 'programId' | 'dayId'>): string {
+  return `${session.programId}|${session.dayId}`;
+}
 
 type WakeLockSentinelLike = {
   addEventListener?: (type: 'release', listener: () => void) => void;
@@ -133,6 +140,7 @@ export default function WorkoutTrackerClient() {
   const [history, setHistory] = useState<SavedSession[]>([]);
   const [historyText, setHistoryText] = useState('');
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [dayFilter, setDayFilter] = useState<string>(ALL_DAYS_FILTER);
   const { stayOnEnabled, wakeLockSupported, toggleWakeLock } = useScreenWakeLock();
 
   const send = (action: SessionAction) => {
@@ -174,8 +182,25 @@ export default function WorkoutTrackerClient() {
   function openHistory() {
     refreshHistory();
     setHistoryError(null);
+    setDayFilter(ALL_DAYS_FILTER);
     setView('history');
   }
+
+  const dayFilterOptions = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const session of history) {
+      const key = dayFilterKey(session);
+      if (!seen.has(key)) seen.set(key, `${session.programName} · ${session.dayLabel}`);
+    }
+    return Array.from(seen, ([key, label]) => ({ key, label }));
+  }, [history]);
+
+  const filteredHistory = useMemo(
+    () => (dayFilter === ALL_DAYS_FILTER ? history : history.filter((session) => dayFilterKey(session) === dayFilter)),
+    [history, dayFilter],
+  );
+
+  const exerciseProgress = useMemo(() => getExerciseProgress(filteredHistory), [filteredHistory]);
 
   function handleRemoveSession(id: string) {
     setHistory(deleteSession(id));
@@ -219,8 +244,57 @@ export default function WorkoutTrackerClient() {
           <p className="text-sm text-gray-500 dark:text-gray-400">No saved sessions yet.</p>
         )}
 
+        {dayFilterOptions.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setDayFilter(ALL_DAYS_FILTER)}
+              className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${
+                dayFilter === ALL_DAYS_FILTER
+                  ? 'bg-orange-100 dark:bg-orange-950'
+                  : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              All
+            </button>
+            {dayFilterOptions.map((option) => (
+              <button
+                key={option.key}
+                onClick={() => setDayFilter(option.key)}
+                className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors ${
+                  dayFilter === option.key
+                    ? 'bg-orange-100 dark:bg-orange-950'
+                    : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {Object.keys(exerciseProgress).length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold">Progress</h3>
+            <div className="space-y-3">
+              {Object.entries(exerciseProgress).map(([name, entries]) => (
+                <div key={name} className="bg-gray-50 dark:bg-gray-800/60 rounded-xl px-4 py-3 space-y-1">
+                  <div className="font-medium">{name}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 space-y-0.5">
+                    {entries.map((entry, index) => (
+                      <div key={index}>
+                        {new Date(entry.completedAt).toLocaleDateString()}: {formatRounds(entry.roundsCompleted)}
+                        {entry.weight ? ` @ ${entry.weight}` : ''}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="space-y-3">
-          {history.map((session) => (
+          {filteredHistory.map((session) => (
             <div key={session.id} className="bg-gray-50 dark:bg-gray-800/60 rounded-xl px-4 py-3 space-y-2">
               <div className="flex items-center justify-between">
                 <div>
