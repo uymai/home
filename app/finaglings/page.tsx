@@ -159,6 +159,23 @@ export default function FinaglingsPage() {
     },
   ];
 
+  const fitnessProjects: Project[] = [
+    {
+      title: "Sweatsheet",
+      description: "A simple spreadsheet-style workout log for tracking exercises, sets, and weights.",
+      url: "https://uymai.github.io/SweatSheet/",
+      icon: "/window.svg",
+      color: "bg-green-100 dark:bg-green-950",
+    },
+    {
+      title: "Workout Tracker",
+      description: "Tap through preconfigured AMRAP workout programs activity by activity, logging rounds and optional weight as you go.",
+      url: "/finaglings/workout-tracker",
+      icon: "/window.svg",
+      color: "bg-blue-100 dark:bg-blue-950",
+    },
+  ];
+
   const claudeSkills = [
     {
       title: "Setlist to Apple Music",
@@ -192,6 +209,7 @@ export default function FinaglingsPage() {
       <ProjectSection title="Adulting Apps" projects={adultingApps} />
       <ProjectSection title="I'd call these games if they were fun" projects={notGames} />
       <ProjectSection title="Darts" projects={dartsProjects} />
+      <ProjectSection title="Fitness" projects={fitnessProjects} />
 
       <section className="mt-16">
         <h2 className="text-2xl font-bold mb-2">Claude Skills</h2>
