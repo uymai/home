@@ -10,6 +10,7 @@ Personal homepage built with Next.js 15, React 19, TypeScript, and Tailwind CSS 
 - **Finaglings** (`/finaglings`) — miscellaneous page
 - **Magic Square** (`/magic-square`) — magic square generator
 - **Warp Protocol** (`/warp-protocol`) — simulation with step-through (Next Pick / Next Round) buttons
+- **Checks and Creases** (`/hockey`) — self-contained hockey mini-game; roll a d20 for movement points and skate a character around a rounded rink
 - **Discord** (`/discord`) — Discord-related page
 - **Contact** (`/contact`) — contact page
 

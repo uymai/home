@@ -120,6 +120,13 @@ export default function FinaglingsPage() {
 
   const notGames: Project[] = [
     {
+      title: "Checks and Creases",
+      description: "The start of an online hockey game — skate a character around a rounded rink on rolls of a d20.",
+      url: "/hockey",
+      icon: "/window.svg",
+      color: "bg-blue-100 dark:bg-blue-950",
+    },
+    {
       title: "Warp Protocol",
       description: "A self-contained protocol game experiment with its own rules, state, and play loop.",
       url: "/warp-protocol",
