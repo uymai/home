@@ -1,18 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
   ACTIVE_CHARACTER_ID,
-  CORNER_CUTOUT_SIZE,
+  CORNER_RADIUS_FT,
   DIRECTIONS,
+  FEET_PER_CELL,
   RINK_COLS,
   RINK_ROWS,
+  RINK_WIDTH_FT,
   ROSTER,
   createInitialState,
   directionDelta,
   generateSeed,
   hashSeed,
-  isBlueLine,
-  isCenterLine,
-  isCrease,
   isPlayableCell,
   nextRandom,
   reduceGameState,
@@ -22,9 +21,9 @@ import { GameState } from './types';
 
 describe('rink geometry', () => {
   it('marks interior cells as playable', () => {
-    expect(isPlayableCell(6, 3)).toBe(true);
-    expect(isPlayableCell(2, 3)).toBe(true);
-    expect(isPlayableCell(6, 0)).toBe(true);
+    const centerCol = Math.floor(RINK_COLS / 2);
+    const centerRow = Math.floor(RINK_ROWS / 2);
+    expect(isPlayableCell(centerCol, centerRow)).toBe(true);
   });
 
   it('marks out-of-bounds cells as not playable', () => {
@@ -34,25 +33,31 @@ describe('rink geometry', () => {
     expect(isPlayableCell(3, RINK_ROWS)).toBe(false);
   });
 
-  it('marks exactly the 4 corner cutout blocks as not playable', () => {
-    const corners: Array<[number, number]> = [];
-    for (let dc = 0; dc < CORNER_CUTOUT_SIZE; dc += 1) {
-      for (let dr = 0; dr < CORNER_CUTOUT_SIZE; dr += 1) {
-        corners.push([dc, dr]);
-        corners.push([RINK_COLS - 1 - dc, dr]);
-        corners.push([dc, RINK_ROWS - 1 - dr]);
-        corners.push([RINK_COLS - 1 - dc, RINK_ROWS - 1 - dr]);
-      }
-    }
-    for (const [col, row] of corners) {
-      expect(isPlayableCell(col, row)).toBe(false);
-    }
+  it('marks the exact corner tips as not playable, symmetric across all 4 corners', () => {
+    expect(isPlayableCell(0, 0)).toBe(false);
+    expect(isPlayableCell(RINK_COLS - 1, 0)).toBe(false);
+    expect(isPlayableCell(0, RINK_ROWS - 1)).toBe(false);
+    expect(isPlayableCell(RINK_COLS - 1, RINK_ROWS - 1)).toBe(false);
   });
 
-  it('is correct at the cutout boundary (off-by-one)', () => {
-    // Immediately outside the top-left cutout block should be playable.
-    expect(isPlayableCell(CORNER_CUTOUT_SIZE, 0)).toBe(true);
-    expect(isPlayableCell(0, CORNER_CUTOUT_SIZE)).toBe(true);
+  it('marks the midpoint of each straight edge as playable', () => {
+    const centerCol = Math.floor(RINK_COLS / 2);
+    const centerRow = Math.floor(RINK_ROWS / 2);
+    expect(isPlayableCell(centerCol, 0)).toBe(true);
+    expect(isPlayableCell(centerCol, RINK_ROWS - 1)).toBe(true);
+    expect(isPlayableCell(0, centerRow)).toBe(true);
+    expect(isPlayableCell(RINK_COLS - 1, centerRow)).toBe(true);
+  });
+
+  it('marks a point well inside a corner arc as not playable', () => {
+    expect(isPlayableCell(1, 1)).toBe(false);
+  });
+
+  it('marks a point just outside the corner arc but still in bounds as playable', () => {
+    const cornerRadiusCells = CORNER_RADIUS_FT / FEET_PER_CELL;
+    const farEnough = Math.ceil(cornerRadiusCells) + 1;
+    expect(isPlayableCell(farEnough, 0)).toBe(true);
+    expect(isPlayableCell(0, farEnough)).toBe(true);
   });
 
   it('keeps the center cell playable', () => {
@@ -61,39 +66,8 @@ describe('rink geometry', () => {
     expect(isPlayableCell(centerCol, centerRow)).toBe(true);
   });
 
-  it('keeps the corner cutout smaller than half the smaller rink dimension', () => {
-    expect(CORNER_CUTOUT_SIZE).toBeLessThan(Math.min(RINK_COLS, RINK_ROWS) / 2);
-  });
-
-  it('identifies the center line at the middle column', () => {
-    const centerCol = Math.floor(RINK_COLS / 2);
-    expect(isCenterLine(centerCol)).toBe(true);
-    expect(isCenterLine(centerCol - 1)).toBe(false);
-    expect(isCenterLine(centerCol + 1)).toBe(false);
-  });
-
-  it('identifies exactly two blue lines, symmetric around center', () => {
-    const blueCols = Array.from({ length: RINK_COLS }, (_, col) => col).filter(isBlueLine);
-    expect(blueCols).toHaveLength(2);
-    const centerCol = Math.floor(RINK_COLS / 2);
-    expect(blueCols[0]).toBeLessThan(centerCol);
-    expect(blueCols[1]).toBeGreaterThan(centerCol);
-    expect(centerCol - blueCols[0]).toBe(blueCols[1] - centerCol);
-  });
-
-  it('identifies crease cells hugging each goal mouth, and only on playable ice', () => {
-    const centerRow = Math.floor(RINK_ROWS / 2);
-    expect(isCrease(0, centerRow)).toBe(true);
-    expect(isCrease(RINK_COLS - 1, centerRow)).toBe(true);
-    expect(isCrease(6, centerRow)).toBe(false);
-
-    for (let col = 0; col < RINK_COLS; col += 1) {
-      for (let row = 0; row < RINK_ROWS; row += 1) {
-        if (isCrease(col, row)) {
-          expect(isPlayableCell(col, row)).toBe(true);
-        }
-      }
-    }
+  it('keeps the corner radius smaller than half the rink width', () => {
+    expect(CORNER_RADIUS_FT).toBeLessThan(RINK_WIDTH_FT / 2);
   });
 });
 
@@ -257,18 +231,19 @@ describe('reduceGameState: step', () => {
   });
 
   it('spends the point but leaves position unchanged when the target is not playable', () => {
-    const boardsAdjacent: GameState = {
+    const centerCol = Math.floor(RINK_COLS / 2);
+    const edgeOfIce: GameState = {
       ...createInitialState('boards-seed'),
-      position: { col: 2, row: 0 },
+      position: { col: centerCol, row: 0 },
       remainingPoints: 3,
     };
-    const next = reduceGameState(boardsAdjacent, { type: 'step', direction: 'W' });
-    expect(next.position).toEqual({ col: 2, row: 0 });
+    const next = reduceGameState(edgeOfIce, { type: 'step', direction: 'N' });
+    expect(next.position).toEqual({ col: centerCol, row: 0 });
     expect(next.remainingPoints).toBe(2);
     expect(next.lastStep).toEqual({
-      direction: 'W',
-      from: { col: 2, row: 0 },
-      to: { col: 2, row: 0 },
+      direction: 'N',
+      from: { col: centerCol, row: 0 },
+      to: { col: centerCol, row: 0 },
       blocked: true,
     });
     expect(next.log.at(-1)).toMatch(/boards/i);

@@ -1,18 +1,24 @@
 'use client';
 
-import { useReducer } from 'react';
+import { useEffect, useMemo, useReducer, useRef } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import Link from 'next/link';
 import {
   ACTIVE_CHARACTER_ID,
-  RINK_COLS,
-  RINK_ROWS,
+  BLUE_LINE_X_FT,
+  CENTER_LINE_X_FT,
+  CORNER_RADIUS_FT,
+  CREASE_RADIUS_FT,
+  FACEOFF_CIRCLES,
+  FACEOFF_CIRCLE_RADIUS_FT,
+  FACEOFF_DOT_RADIUS_FT,
+  FEET_PER_CELL,
+  GOAL_LINE_X_FT,
+  RINK_LENGTH_FT,
+  RINK_WIDTH_FT,
   ROSTER,
   createInitialState,
   generateSeed,
-  isBlueLine,
-  isCenterLine,
-  isCrease,
-  isPlayableCell,
   reduceGameState,
 } from './engine';
 import { Direction } from './types';
@@ -30,29 +36,77 @@ const DIRECTION_LABELS: Record<Direction, string> = {
 
 const COMPASS_LAYOUT: Array<Direction | null> = ['NW', 'N', 'NE', 'W', null, 'E', 'SW', 'S', 'SE'];
 
-const RINK_CELLS = Array.from({ length: RINK_ROWS }, (_, row) =>
-  Array.from({ length: RINK_COLS }, (_, col) => ({ col, row })),
-).flat();
+const PX_PER_FOOT = 8;
+const RINK_PX_WIDTH = RINK_LENGTH_FT * PX_PER_FOOT;
+const RINK_PX_HEIGHT = RINK_WIDTH_FT * PX_PER_FOOT;
+const RINK_MID_WIDTH_FT = RINK_WIDTH_FT / 2;
 
-function cellClassName(col: number, row: number): string {
-  if (!isPlayableCell(col, row)) {
-    return 'bg-slate-300 dark:bg-slate-950';
-  }
-  if (isCrease(col, row)) {
-    return 'bg-sky-200 dark:bg-sky-900';
-  }
-  if (isCenterLine(col)) {
-    return 'bg-red-200 dark:bg-red-900';
-  }
-  if (isBlueLine(col)) {
-    return 'bg-blue-200 dark:bg-blue-900';
-  }
-  return 'bg-sky-50 dark:bg-slate-800';
-}
+type DragState = {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  scrollLeft: number;
+  scrollTop: number;
+};
 
 export default function HockeyClient() {
   const [state, dispatch] = useReducer(reduceGameState, generateSeed(), createInitialState);
   const midSkate = state.remainingPoints > 0;
+
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const dragStateRef = useRef<DragState | null>(null);
+  const hasCenteredRef = useRef(false);
+
+  const characterPx = useMemo(
+    () => ({
+      x: (state.position.col + 0.5) * FEET_PER_CELL * PX_PER_FOOT,
+      y: (state.position.row + 0.5) * FEET_PER_CELL * PX_PER_FOOT,
+    }),
+    [state.position],
+  );
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) {
+      return;
+    }
+    viewport.scrollTo({
+      left: characterPx.x - viewport.clientWidth / 2,
+      top: characterPx.y - viewport.clientHeight / 2,
+      behavior: hasCenteredRef.current ? 'smooth' : 'auto',
+    });
+    hasCenteredRef.current = true;
+  }, [characterPx]);
+
+  const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const viewport = viewportRef.current;
+    if (!viewport) {
+      return;
+    }
+    viewport.setPointerCapture(event.pointerId);
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      scrollLeft: viewport.scrollLeft,
+      scrollTop: viewport.scrollTop,
+    };
+  };
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const drag = dragStateRef.current;
+    const viewport = viewportRef.current;
+    if (!drag || !viewport || drag.pointerId !== event.pointerId) {
+      return;
+    }
+    viewport.scrollLeft = drag.scrollLeft - (event.clientX - drag.startX);
+    viewport.scrollTop = drag.scrollTop - (event.clientY - drag.startY);
+  };
+
+  const handlePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    viewportRef.current?.releasePointerCapture(event.pointerId);
+    dragStateRef.current = null;
+  };
 
   return (
     <div className="min-h-screen p-8 sm:p-12 max-w-4xl mx-auto">
@@ -63,33 +117,82 @@ export default function HockeyClient() {
         </Link>
       </header>
 
-      <section
-        className="relative mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-400 dark:border-slate-700"
-        style={{ aspectRatio: `${RINK_COLS} / ${RINK_ROWS}` }}
+      <div
+        ref={viewportRef}
+        className="relative mx-auto h-[65vh] w-full max-w-3xl overflow-auto rounded-2xl border border-slate-400 [touch-action:none] cursor-grab active:cursor-grabbing dark:border-slate-700"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
       >
-        <div
-          className="grid h-full w-full"
-          style={{
-            gridTemplateColumns: `repeat(${RINK_COLS}, minmax(0, 1fr))`,
-            gridTemplateRows: `repeat(${RINK_ROWS}, minmax(0, 1fr))`,
-          }}
-        >
-          {RINK_CELLS.map(({ col, row }) => (
-            <div
-              key={`${col}-${row}`}
-              className={`border border-black/5 dark:border-white/5 ${cellClassName(col, row)}`}
+        <div className="relative" style={{ width: RINK_PX_WIDTH, height: RINK_PX_HEIGHT }}>
+          <svg
+            width={RINK_PX_WIDTH}
+            height={RINK_PX_HEIGHT}
+            viewBox={`0 0 ${RINK_LENGTH_FT} ${RINK_WIDTH_FT}`}
+            className="block select-none"
+          >
+            <rect
+              x={0.5}
+              y={0.5}
+              width={RINK_LENGTH_FT - 1}
+              height={RINK_WIDTH_FT - 1}
+              rx={CORNER_RADIUS_FT}
+              ry={CORNER_RADIUS_FT}
+              className="fill-sky-50 stroke-slate-400 dark:fill-slate-800 dark:stroke-slate-600"
+              strokeWidth={0.5}
             />
-          ))}
+
+            {GOAL_LINE_X_FT.map((goalX, index) => {
+              const sweep = index === 0 ? 1 : 0;
+              return (
+                <path
+                  key={`crease-${index}`}
+                  d={`M ${goalX} ${RINK_MID_WIDTH_FT - CREASE_RADIUS_FT} A ${CREASE_RADIUS_FT} ${CREASE_RADIUS_FT} 0 0 ${sweep} ${goalX} ${
+                    RINK_MID_WIDTH_FT + CREASE_RADIUS_FT
+                  } Z`}
+                  className="fill-sky-200 dark:fill-sky-900"
+                />
+              );
+            })}
+
+            {GOAL_LINE_X_FT.map((x, index) => (
+              <line key={`goal-${index}`} x1={x} y1={0} x2={x} y2={RINK_WIDTH_FT} className="stroke-red-500" strokeWidth={0.5} />
+            ))}
+
+            {BLUE_LINE_X_FT.map((x, index) => (
+              <line key={`blue-${index}`} x1={x} y1={0} x2={x} y2={RINK_WIDTH_FT} className="stroke-blue-500" strokeWidth={0.8} />
+            ))}
+
+            <line x1={CENTER_LINE_X_FT} y1={0} x2={CENTER_LINE_X_FT} y2={RINK_WIDTH_FT} className="stroke-red-500" strokeWidth={0.8} />
+
+            {FACEOFF_CIRCLES.map((circle, index) => (
+              <g key={`faceoff-${index}`}>
+                <circle
+                  cx={circle.x}
+                  cy={circle.y}
+                  r={FACEOFF_CIRCLE_RADIUS_FT}
+                  fill="none"
+                  className={circle.color === 'blue' ? 'stroke-blue-500' : 'stroke-red-500'}
+                  strokeWidth={0.5}
+                />
+                <circle
+                  cx={circle.x}
+                  cy={circle.y}
+                  r={FACEOFF_DOT_RADIUS_FT}
+                  className={circle.color === 'blue' ? 'fill-blue-500' : 'fill-red-500'}
+                />
+              </g>
+            ))}
+          </svg>
+
+          <div
+            className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600 ring-2 ring-black transition-all duration-300 dark:ring-white"
+            style={{ left: characterPx.x, top: characterPx.y }}
+            title={state.character.name}
+          />
         </div>
-        <div
-          className="absolute h-[8%] w-[8%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600 ring-2 ring-black transition-all duration-300 dark:ring-white"
-          style={{
-            left: `${((state.position.col + 0.5) / RINK_COLS) * 100}%`,
-            top: `${((state.position.row + 0.5) / RINK_ROWS) * 100}%`,
-          }}
-          title={state.character.name}
-        />
-      </section>
+      </div>
 
       <section className="mt-8 flex flex-col items-center gap-4">
         <p className="text-lg font-semibold">Points remaining: {state.remainingPoints}</p>

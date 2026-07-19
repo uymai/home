@@ -1,36 +1,51 @@
 import { Character, DieSides, Direction, GameAction, GameState, Position, StepResult } from './types';
 
-export const RINK_COLS = 13;
-export const RINK_ROWS = 7;
-export const CORNER_CUTOUT_SIZE = 2;
+// Modeled on a real NHL rink (200ft x 85ft, 28ft corner radius) at 5ft per grid cell.
+export const FEET_PER_CELL = 5;
+export const RINK_COLS = 41;
+export const RINK_ROWS = 17;
+export const RINK_LENGTH_FT = RINK_COLS * FEET_PER_CELL;
+export const RINK_WIDTH_FT = RINK_ROWS * FEET_PER_CELL;
+export const CORNER_RADIUS_FT = 28;
 
 const CENTER_COL = Math.floor(RINK_COLS / 2);
 const CENTER_ROW = Math.floor(RINK_ROWS / 2);
-const CREASE_RADIUS = 1.5;
+
+export const CENTER_LINE_X_FT = RINK_LENGTH_FT / 2;
+export const BLUE_LINE_OFFSET_FT = 25;
+export const BLUE_LINE_X_FT: [number, number] = [CENTER_LINE_X_FT - BLUE_LINE_OFFSET_FT, CENTER_LINE_X_FT + BLUE_LINE_OFFSET_FT];
+export const GOAL_LINE_OFFSET_FT = 11;
+export const GOAL_LINE_X_FT: [number, number] = [GOAL_LINE_OFFSET_FT, RINK_LENGTH_FT - GOAL_LINE_OFFSET_FT];
+export const CREASE_RADIUS_FT = 6;
+export const FACEOFF_CIRCLE_RADIUS_FT = 15;
+export const FACEOFF_DOT_RADIUS_FT = 1;
+export const ZONE_FACEOFF_OFFSET_X_FT = 20;
+export const ZONE_FACEOFF_OFFSET_Y_FT = 22;
+
+const RINK_MID_WIDTH_FT = RINK_WIDTH_FT / 2;
+
+export type FaceoffCircle = { x: number; y: number; color: 'blue' | 'red' };
+
+export const FACEOFF_CIRCLES: FaceoffCircle[] = [
+  { x: CENTER_LINE_X_FT, y: RINK_MID_WIDTH_FT, color: 'blue' },
+  ...GOAL_LINE_X_FT.flatMap((goalLineX): FaceoffCircle[] => {
+    const zoneX = goalLineX < CENTER_LINE_X_FT ? goalLineX + ZONE_FACEOFF_OFFSET_X_FT : goalLineX - ZONE_FACEOFF_OFFSET_X_FT;
+    return [
+      { x: zoneX, y: RINK_MID_WIDTH_FT - ZONE_FACEOFF_OFFSET_Y_FT, color: 'red' },
+      { x: zoneX, y: RINK_MID_WIDTH_FT + ZONE_FACEOFF_OFFSET_Y_FT, color: 'red' },
+    ];
+  }),
+];
 
 export function isPlayableCell(col: number, row: number): boolean {
-  if (col < 0 || col >= RINK_COLS || row < 0 || row >= RINK_ROWS) {
+  const x = (col + 0.5) * FEET_PER_CELL;
+  const y = (row + 0.5) * FEET_PER_CELL;
+  if (x < 0 || x > RINK_LENGTH_FT || y < 0 || y > RINK_WIDTH_FT) {
     return false;
   }
-  const inCutoutCols = col < CORNER_CUTOUT_SIZE || col >= RINK_COLS - CORNER_CUTOUT_SIZE;
-  const inCutoutRows = row < CORNER_CUTOUT_SIZE || row >= RINK_ROWS - CORNER_CUTOUT_SIZE;
-  return !(inCutoutCols && inCutoutRows);
-}
-
-export function isCenterLine(col: number): boolean {
-  return col === Math.floor(RINK_COLS / 2);
-}
-
-export function isBlueLine(col: number): boolean {
-  const offset = Math.floor(RINK_COLS / 3);
-  const centerCol = Math.floor(RINK_COLS / 2);
-  return col === centerCol - offset || col === centerCol + offset;
-}
-
-export function isCrease(col: number, row: number): boolean {
-  const leftGoalDistance = Math.hypot(col - 0, row - CENTER_ROW);
-  const rightGoalDistance = Math.hypot(col - (RINK_COLS - 1), row - CENTER_ROW);
-  return leftGoalDistance <= CREASE_RADIUS || rightGoalDistance <= CREASE_RADIUS;
+  const dx = Math.max(CORNER_RADIUS_FT - x, x - (RINK_LENGTH_FT - CORNER_RADIUS_FT), 0);
+  const dy = Math.max(CORNER_RADIUS_FT - y, y - (RINK_WIDTH_FT - CORNER_RADIUS_FT), 0);
+  return dx * dx + dy * dy <= CORNER_RADIUS_FT * CORNER_RADIUS_FT;
 }
 
 export function hashSeed(seed: string): number {
