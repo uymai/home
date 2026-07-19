@@ -1,0 +1,36 @@
+{
+  "title": "Greek Yogurt Ranch Dip",
+  "description": "A high-protein, lightened-up ranch dip using Greek yogurt instead of sour cream and mayo — great with carrots or other veggies.",
+  "prepTime": "10 minutes",
+  "cookTime": "0 minutes",
+  "servings": 4,
+  "difficulty": "Easy",
+  "tags": ["high-protein", "no-cook", "dip", "ranch"],
+  "ingredients": [
+    "1 cup (240g) 0% plain Greek yogurt",
+    "2 tbsp low-fat buttermilk (or regular milk)",
+    "1 tsp garlic powder",
+    "1 tsp onion powder",
+    "1 tbsp fresh dill, chopped (or 1 tsp dried)",
+    "1/4 tsp salt",
+    "1/8 tsp black pepper",
+    "1/2 tsp white or apple cider vinegar"
+  ],
+  "instructions": [
+    "In a medium bowl, add 1 cup (240g) 0% plain Greek yogurt.",
+    "Stir in 2 tbsp low-fat buttermilk to thin it to a dip-like consistency.",
+    "Add 1 tsp garlic powder and 1 tsp onion powder.",
+    "Mix in 1 tbsp fresh dill.",
+    "Add 1/4 tsp salt and 1/8 tsp black pepper.",
+    "Stir in 1/2 tsp vinegar to brighten the flavor.",
+    "Whisk until fully smooth and combined.",
+    "Cover and refrigerate at least 20 minutes so the dill can bloom before serving with carrots."
+  ],
+  "macros": {
+    "calories": 40,
+    "protein": 7,
+    "carbs": 3,
+    "fat": 0
+  },
+  "notes": "If it's too thick after chilling, thin with an extra splash of buttermilk or milk. Dill and onion powder carry most of the ranch flavor here — feel free to bump garlic powder to 1.5 tsp if you want it more pronounced."
+}
