@@ -34,13 +34,20 @@ const DIRECTION_LABELS: Record<Direction, string> = {
   NW: '↖',
 };
 
+// Arranges the 8 direction buttons as a compass around a blank center cell.
 const COMPASS_LAYOUT: Array<Direction | null> = ['NW', 'N', 'NE', 'W', null, 'E', 'SW', 'S', 'SE'];
 
+// How many screen pixels represent one foot of ice. This is a purely visual "zoom"
+// constant — it lives here, not in engine.ts, because the engine doesn't care how
+// big anything is drawn, only where things are in feet/cells.
 const PX_PER_FOOT = 8;
 const RINK_PX_WIDTH = RINK_LENGTH_FT * PX_PER_FOOT;
 const RINK_PX_HEIGHT = RINK_WIDTH_FT * PX_PER_FOOT;
 const RINK_MID_WIDTH_FT = RINK_WIDTH_FT / 2;
 
+// Snapshot taken on pointerdown so pointermove can compute how far the pointer has
+// traveled and apply that as a scroll offset — see the three handlePointer* functions
+// below.
 type DragState = {
   pointerId: number;
   startX: number;
@@ -50,13 +57,24 @@ type DragState = {
 };
 
 export default function HockeyClient() {
+  // useReducer's 3-arg form calls createInitialState(generateSeed()) exactly once,
+  // on mount, to build the starting state — the same pattern warp-protocol uses.
   const [state, dispatch] = useReducer(reduceGameState, generateSeed(), createInitialState);
   const midSkate = state.remainingPoints > 0;
 
+  // viewportRef: the scrollable box the rink sits inside — both the drag-to-pan
+  // handlers and the auto-recenter effect below read/write its scrollLeft/scrollTop.
   const viewportRef = useRef<HTMLDivElement>(null);
+  // dragStateRef: only set while a pointer is actively dragging (see
+  // handlePointerDown/Up). Using a ref instead of state avoids a re-render on every
+  // pixel of mouse movement.
   const dragStateRef = useRef<DragState | null>(null);
+  // Tracks whether we've centered the view at least once, so the very first center
+  // (on page load) jumps instantly instead of visibly animating in.
   const hasCenteredRef = useRef(false);
 
+  // Character's pixel position within the (fixed-size) rink content, derived from
+  // its grid cell: cell -> feet (engine.ts's convention) -> pixels (PX_PER_FOOT).
   const characterPx = useMemo(
     () => ({
       x: (state.position.col + 0.5) * FEET_PER_CELL * PX_PER_FOOT,
@@ -65,6 +83,10 @@ export default function HockeyClient() {
     [state.position],
   );
 
+  // Camera follow: every time the character's position changes (i.e. after each
+  // step, not after rolling or ending a skate), scroll the viewport so the
+  // character stays centered. This runs on mount too, which is what centers the
+  // view on center ice initially instead of leaving it scrolled to the top-left.
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) {
@@ -78,12 +100,24 @@ export default function HockeyClient() {
     hasCenteredRef.current = true;
   }, [characterPx]);
 
+  // Drag-to-pan: lets a mouse user click-and-drag the ice around, the same way you'd
+  // pan a map. This is layered on top of the viewport's native overflow-auto scroll
+  // (trackpad/touch/scrollbar all still work) — both just move the same
+  // scrollLeft/scrollTop, so there's nothing to keep in sync between them.
+  //
+  // Pointer events (rather than separate mouse/touch handlers) cover mouse, touch,
+  // and pen with one code path. setPointerCapture keeps sending events to this
+  // element even if the pointer moves outside its bounds mid-drag.
+
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     const viewport = viewportRef.current;
     if (!viewport) {
       return;
     }
     viewport.setPointerCapture(event.pointerId);
+    // Remember where the drag started and where the scroll was at that moment, so
+    // handlePointerMove can compute an absolute offset rather than an
+    // error-accumulating relative one.
     dragStateRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -99,6 +133,8 @@ export default function HockeyClient() {
     if (!drag || !viewport || drag.pointerId !== event.pointerId) {
       return;
     }
+    // Dragging right/down should reveal content to the left/above (like pulling a
+    // map toward you), so scroll moves opposite to the pointer's own movement.
     viewport.scrollLeft = drag.scrollLeft - (event.clientX - drag.startX);
     viewport.scrollTop = drag.scrollTop - (event.clientY - drag.startY);
   };
@@ -117,6 +153,14 @@ export default function HockeyClient() {
         </Link>
       </header>
 
+      {/*
+        The pannable viewport: a fixed-size window (h-[65vh]) onto the much bigger
+        rink below. `overflow-auto` gives native scrolling for free (scrollbar,
+        trackpad, touch); `[touch-action:none]` turns off the browser's own
+        touch-scroll gesture so touch drags go through our pointer handlers instead
+        (avoiding the two fighting over the same scroll position), and `cursor-grab`
+        signals to mouse users that this area can be dragged.
+      */}
       <div
         ref={viewportRef}
         className="relative mx-auto h-[65vh] w-full max-w-3xl overflow-auto rounded-2xl border border-slate-400 [touch-action:none] cursor-grab active:cursor-grabbing dark:border-slate-700"
@@ -125,6 +169,15 @@ export default function HockeyClient() {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
+        {/*
+          The rink's real content is this fixed-size box (RINK_PX_WIDTH x
+          RINK_PX_HEIGHT) sitting inside the scrollable viewport above — it's
+          usually bigger than the viewport, which is exactly what makes panning
+          necessary. The SVG below draws every marking directly in feet (its
+          viewBox is in feet, not pixels), so none of the drawing coordinates
+          need converting — only the outer width/height attributes (which control
+          how big it renders on screen) go through PX_PER_FOOT.
+        */}
         <div className="relative" style={{ width: RINK_PX_WIDTH, height: RINK_PX_HEIGHT }}>
           <svg
             width={RINK_PX_WIDTH}
@@ -132,12 +185,22 @@ export default function HockeyClient() {
             viewBox={`0 0 ${RINK_LENGTH_FT} ${RINK_WIDTH_FT}`}
             className="block select-none"
           >
+            {/*
+              A clip path shaped exactly like the ice surface below (same rect,
+              same corner radius). Every marking is drawn inside a <g> using this
+              clip so nothing — a goal line, a faceoff circle, whatever gets added
+              later — can ever render past the rounded boards, even where a
+              marking's own math (e.g. a goal line drawn full-height) would
+              otherwise poke through a rounded corner.
+            */}
             <defs>
               <clipPath id="rink-boundary">
                 <rect x={0.5} y={0.5} width={RINK_LENGTH_FT - 1} height={RINK_WIDTH_FT - 1} rx={CORNER_RADIUS_FT} ry={CORNER_RADIUS_FT} />
               </clipPath>
             </defs>
 
+            {/* The ice surface itself — also the visual source of truth for the rounded
+                corners that engine.ts's isPlayableCell independently tests against. */}
             <rect
               x={0.5}
               y={0.5}
@@ -150,6 +213,16 @@ export default function HockeyClient() {
             />
 
             <g clipPath="url(#rink-boundary)">
+              {/*
+                Each crease is a semicircle sitting on its goal line, bulging into
+                the zone (toward center ice) rather than out past the boards. The
+                SVG arc command's sweep flag controls which of the two possible
+                semicircles gets drawn between the same two endpoints: sweep=1
+                bulges toward +x (right), sweep=0 toward -x (left). The left goal
+                line (index 0) needs to bulge right (toward center), and the right
+                goal line (index 1) needs to bulge left (toward center) — hence
+                `sweep = index === 0 ? 1 : 0`.
+              */}
               {GOAL_LINE_X_FT.map((goalX, index) => {
                 const sweep = index === 0 ? 1 : 0;
                 return (
@@ -173,6 +246,8 @@ export default function HockeyClient() {
 
               <line x1={CENTER_LINE_X_FT} y1={0} x2={CENTER_LINE_X_FT} y2={RINK_WIDTH_FT} className="stroke-red-500" strokeWidth={0.8} />
 
+              {/* One blue circle at center ice, four red circles (2 per zone) — see
+                  FACEOFF_CIRCLES in engine.ts for how their positions are computed. */}
               {FACEOFF_CIRCLES.map((circle, index) => (
                 <g key={`faceoff-${index}`}>
                   <circle
@@ -194,6 +269,9 @@ export default function HockeyClient() {
             </g>
           </svg>
 
+          {/* The character token is a plain positioned div, not part of the SVG, so it
+              can use a CSS transition to glide between cells — SVG/grid-line placement
+              can't be animated the same way. */}
           <div
             className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600 ring-2 ring-black transition-all duration-300 dark:ring-white"
             style={{ left: characterPx.x, top: characterPx.y }}
