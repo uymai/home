@@ -132,6 +132,12 @@ export default function HockeyClient() {
             viewBox={`0 0 ${RINK_LENGTH_FT} ${RINK_WIDTH_FT}`}
             className="block select-none"
           >
+            <defs>
+              <clipPath id="rink-boundary">
+                <rect x={0.5} y={0.5} width={RINK_LENGTH_FT - 1} height={RINK_WIDTH_FT - 1} rx={CORNER_RADIUS_FT} ry={CORNER_RADIUS_FT} />
+              </clipPath>
+            </defs>
+
             <rect
               x={0.5}
               y={0.5}
@@ -143,47 +149,49 @@ export default function HockeyClient() {
               strokeWidth={0.5}
             />
 
-            {GOAL_LINE_X_FT.map((goalX, index) => {
-              const sweep = index === 0 ? 1 : 0;
-              return (
-                <path
-                  key={`crease-${index}`}
-                  d={`M ${goalX} ${RINK_MID_WIDTH_FT - CREASE_RADIUS_FT} A ${CREASE_RADIUS_FT} ${CREASE_RADIUS_FT} 0 0 ${sweep} ${goalX} ${
-                    RINK_MID_WIDTH_FT + CREASE_RADIUS_FT
-                  } Z`}
-                  className="fill-sky-200 dark:fill-sky-900"
-                />
-              );
-            })}
+            <g clipPath="url(#rink-boundary)">
+              {GOAL_LINE_X_FT.map((goalX, index) => {
+                const sweep = index === 0 ? 1 : 0;
+                return (
+                  <path
+                    key={`crease-${index}`}
+                    d={`M ${goalX} ${RINK_MID_WIDTH_FT - CREASE_RADIUS_FT} A ${CREASE_RADIUS_FT} ${CREASE_RADIUS_FT} 0 0 ${sweep} ${goalX} ${
+                      RINK_MID_WIDTH_FT + CREASE_RADIUS_FT
+                    } Z`}
+                    className="fill-sky-200 dark:fill-sky-900"
+                  />
+                );
+              })}
 
-            {GOAL_LINE_X_FT.map((x, index) => (
-              <line key={`goal-${index}`} x1={x} y1={0} x2={x} y2={RINK_WIDTH_FT} className="stroke-red-500" strokeWidth={0.5} />
-            ))}
+              {GOAL_LINE_X_FT.map((x, index) => (
+                <line key={`goal-${index}`} x1={x} y1={0} x2={x} y2={RINK_WIDTH_FT} className="stroke-red-500" strokeWidth={0.5} />
+              ))}
 
-            {BLUE_LINE_X_FT.map((x, index) => (
-              <line key={`blue-${index}`} x1={x} y1={0} x2={x} y2={RINK_WIDTH_FT} className="stroke-blue-500" strokeWidth={0.8} />
-            ))}
+              {BLUE_LINE_X_FT.map((x, index) => (
+                <line key={`blue-${index}`} x1={x} y1={0} x2={x} y2={RINK_WIDTH_FT} className="stroke-blue-500" strokeWidth={0.8} />
+              ))}
 
-            <line x1={CENTER_LINE_X_FT} y1={0} x2={CENTER_LINE_X_FT} y2={RINK_WIDTH_FT} className="stroke-red-500" strokeWidth={0.8} />
+              <line x1={CENTER_LINE_X_FT} y1={0} x2={CENTER_LINE_X_FT} y2={RINK_WIDTH_FT} className="stroke-red-500" strokeWidth={0.8} />
 
-            {FACEOFF_CIRCLES.map((circle, index) => (
-              <g key={`faceoff-${index}`}>
-                <circle
-                  cx={circle.x}
-                  cy={circle.y}
-                  r={FACEOFF_CIRCLE_RADIUS_FT}
-                  fill="none"
-                  className={circle.color === 'blue' ? 'stroke-blue-500' : 'stroke-red-500'}
-                  strokeWidth={0.5}
-                />
-                <circle
-                  cx={circle.x}
-                  cy={circle.y}
-                  r={FACEOFF_DOT_RADIUS_FT}
-                  className={circle.color === 'blue' ? 'fill-blue-500' : 'fill-red-500'}
-                />
-              </g>
-            ))}
+              {FACEOFF_CIRCLES.map((circle, index) => (
+                <g key={`faceoff-${index}`}>
+                  <circle
+                    cx={circle.x}
+                    cy={circle.y}
+                    r={FACEOFF_CIRCLE_RADIUS_FT}
+                    fill="none"
+                    className={circle.color === 'blue' ? 'stroke-blue-500' : 'stroke-red-500'}
+                    strokeWidth={0.5}
+                  />
+                  <circle
+                    cx={circle.x}
+                    cy={circle.y}
+                    r={FACEOFF_DOT_RADIUS_FT}
+                    className={circle.color === 'blue' ? 'fill-blue-500' : 'fill-red-500'}
+                  />
+                </g>
+              ))}
+            </g>
           </svg>
 
           <div
