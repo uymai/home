@@ -1,0 +1,32 @@
+{
+  "title": "Greek Yogurt Whey Protein Mug Cake",
+  "description": "A quick single-serving mug cake using whey protein and Greek yogurt for moisture, avoiding the dry, rubbery texture typical of protein-powder-only mug cakes.",
+  "prepTime": "5 minutes",
+  "cookTime": "2 minutes",
+  "servings": 1,
+  "difficulty": "Easy",
+  "tags": ["high-protein", "single-serving", "microwave"],
+  "ingredients": [
+    "1 scoop (31g) whey protein powder",
+    "1/4 cup (60g) 0% plain Greek yogurt",
+    "1 large egg",
+    "1/4 tsp baking powder",
+    "1 tbsp (15ml) water",
+    "1 tsp maple syrup (optional)"
+  ],
+  "instructions": [
+    "In a microwave-safe mug, add 1 scoop (31g) whey protein powder.",
+    "Add 1/4 cup (60g) 0% plain Greek yogurt and 1 large egg, then whisk together until smooth with no dry pockets.",
+    "Stir in 1/4 tsp baking powder and 1 tbsp (15ml) water until the batter is smooth and pourable.",
+    "If you want more sweetness, stir in 1 tsp maple syrup.",
+    "Microwave on high in 30-second bursts, checking after each one, until the center is just set but still looks slightly moist - usually 75-90 seconds total. Stop before it looks fully dry on top.",
+    "Let it rest for 1 minute before eating - it firms up as it cools, and pulling it early prevents the dry, rubbery texture."
+  ],
+  "macros": {
+    "calories": 237,
+    "protein": 36,
+    "carbs": 7,
+    "fat": 6
+  },
+  "notes": "Macros calculated using a standard whey concentrate (130 cal / 24g protein / 4g carb / 1.5g fat per 31g scoop) - adjust to match your specific brand. Adding maple syrup brings it to roughly 254 cal / 36g protein / 11g carb / 6g fat. Protein-to-calorie ratio is excellent here - about 15g per 100 cal."
+}
