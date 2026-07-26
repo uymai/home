@@ -4,7 +4,7 @@
 
 Personal homepage built with Next.js 15, React 19, TypeScript, and Tailwind CSS v4. Contains several mini-apps and pages:
 
-- **Recipes** (`/recipes`) — recipe browser backed by JSON data in `data/`
+- **Recipes** (`/recipes`) — redirects to the standalone recipes app at https://grimoire.uymai.net
 - **Steve's Game** (`/steves-game`) — number-based game with hardcoded ROB_HARD_NUMBERS
 - **Gaming** (`/gaming`) — gaming-related page
 - **Finaglings** (`/finaglings`) — miscellaneous page
