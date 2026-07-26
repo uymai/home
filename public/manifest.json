@@ -1,8 +1,8 @@
 {
-  "name": "Rob's Recipes",
-  "short_name": "Recipes",
-  "description": "Browse and cook Rob's recipes",
-  "start_url": "/recipes",
+  "name": "Rob's Links",
+  "short_name": "Rob's Links",
+  "description": "Personal directory for all my links and resources",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
