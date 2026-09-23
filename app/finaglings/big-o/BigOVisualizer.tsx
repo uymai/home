@@ -59,6 +59,7 @@ function formatN(n: number | null, decimals = 0): string {
   if (n === null) return "overflow";
   if (!isFinite(n)) return "∞";
   const v = Math.round(n);
+  if (v >= 1e15) return `10^${Math.floor(Math.log10(v))}`;
   if (v >= 1e12) return `${(v / 1e12).toFixed(1)}T`;
   if (v >= 1e9) return `${(v / 1e9).toFixed(1)}B`;
   if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`;
@@ -86,7 +87,7 @@ const COMPLEXITIES: ComplexityDef[] = [
     maxN: 50,
     fn: () => 1,
     speedSolve: () => Infinity,
-    description: "Constant — always the same number of operations regardless of input size.",
+    description: "Constant: always the same amount of work, no matter how big the input is. Like grabbing the top card off a deck. It doesn't matter if the deck has 10 cards or 10,000.",
     code: `// O(1) — array index lookup
 function getFirst<T>(arr: T[]): T {
   return arr[0];
@@ -104,8 +105,9 @@ const result = getFirst([10, 20, 30, 40]);
     colorDim: "#38bdf840",
     maxN: 50,
     fn: (n) => Math.log2(n),
-    speedSolve: (n, mult) => n * mult,
-    description: "Logarithmic — operations grow very slowly; doubling input adds just one step.",
+    // log2(n') = mult * log2(n)  →  n' = n^mult
+    speedSolve: (n, mult) => (n <= 1 ? Infinity : Math.pow(n, mult)),
+    description: "Logarithmic: the work grows super slowly. Doubling the input adds only ONE more step. Like finding a word in the dictionary by opening to the middle, then the middle of the half you need, and so on.",
     code: `// O(log n) — binary search
 function binarySearch(arr: number[], target: number): number {
   let lo = 0, hi = arr.length - 1;
@@ -129,7 +131,7 @@ function binarySearch(arr: number[], target: number): number {
     maxN: 50,
     fn: (n) => n,
     speedSolve: (n, mult) => n * mult,
-    description: "Linear — operations grow proportionally with input size.",
+    description: "Linear: the work grows at the same rate as the input. Twice as many items means twice as much work. Like counting every kid in your class, one by one.",
     code: `// O(n) — linear sum
 function linearSum(arr: number[]): number {
   let total = 0;
@@ -150,7 +152,7 @@ function linearSum(arr: number[]): number {
     maxN: 50,
     fn: (n) => n * Math.log2(Math.max(n, 1)),
     speedSolve: solveNlogN,
-    description: "Linearithmic — typical of efficient sorting; slightly worse than linear.",
+    description: "n log n: a little more work than linear, but still fast. The best general-purpose sorting methods, like merge sort, work at this speed.",
     code: `// O(n log n) — merge sort
 function mergeSort(arr: number[]): number[] {
   if (arr.length <= 1) return arr;
@@ -177,7 +179,7 @@ function merge(a: number[], b: number[]): number[] {
     maxN: 50,
     fn: (n) => n * n,
     speedSolve: (n, mult) => n * Math.sqrt(mult),
-    description: "Quadratic — nested loops; doubles input means 4× the work.",
+    description: "Quadratic: a loop inside a loop. Double the input and you get 4 times the work. Like every kid in class shaking hands with every other kid.",
     code: `// O(n²) — bubble sort
 function bubbleSort(arr: number[]): number[] {
   const a = [...arr];
@@ -202,7 +204,7 @@ function bubbleSort(arr: number[]): number[] {
     maxN: 50,
     fn: (n) => n * n * n,
     speedSolve: (n, mult) => n * Math.cbrt(mult),
-    description: "Cubic — triple nested loops; quickly becomes impractical for large inputs.",
+    description: "Cubic: a loop inside a loop inside a loop. Double the input and you get 8 times the work. It gets too slow very quickly.",
     code: `// O(n³) — naive matrix multiplication
 function matMul(A: number[][], B: number[][]): number[][] {
   const n = A.length;
@@ -227,7 +229,7 @@ function matMul(A: number[][], B: number[][]): number[][] {
     maxN: 20,
     fn: (n) => Math.pow(2, n),
     speedSolve: (n, mult) => n + Math.log2(mult),
-    description: "Exponential — doubles with each added element; impractical beyond tiny inputs.",
+    description: "Exponential: every item you add DOUBLES the work. Fine for tiny inputs, hopeless for big ones.",
     code: `// O(2ⁿ) — naive recursive Fibonacci
 function fibNaive(n: number): number {
   if (n <= 1) return n;
@@ -235,9 +237,10 @@ function fibNaive(n: number): number {
 }
 
 // Each call spawns two more calls.
-// fib(40) makes ~2 billion calls.
-// fib(50) would take years on modern hardware.
-// Use memoization (O(n)) in real code!`,
+// fib(40) makes ~330 million calls.
+// fib(50) makes ~40 billion calls.
+// fib(100) would take thousands of years!
+// Use memoization (O(n)) in real code.`,
   },
   {
     key: "ONfact",
@@ -247,7 +250,7 @@ function fibNaive(n: number): number {
     maxN: 12,
     fn: factorial,
     speedSolve: solveFactorial,
-    description: "Factorial — generates all permutations; n=20 has more operations than atoms in the universe.",
+    description: "Factorial: trying every possible order of the items. Just 20 items have about 2.4 billion billion orders, and 60 items have more orders than there are atoms in the whole universe!",
     code: `// O(n!) — generate all permutations
 function permutations<T>(arr: T[]): T[][] {
   if (arr.length <= 1) return [arr];
@@ -440,6 +443,25 @@ export default function BigOVisualizer() {
 
   return (
     <div className="space-y-8">
+      {/* Intro */}
+      <div className="bg-slate-950 rounded-xl border border-slate-800 p-5 space-y-2 text-sm text-slate-300 leading-relaxed">
+        <h2 className="font-semibold text-slate-200">What is Big O?</h2>
+        <p>
+          Big O is a way to describe how much slower a computer program gets when you give it more stuff to work
+          on. The letter <span className="font-mono">n</span> means &ldquo;how many items there are.&rdquo; So{" "}
+          <span className="font-mono">O(n)</span> means the work grows at the same rate as the number of items,
+          and <span className="font-mono">O(n²)</span> means it grows like n × n.
+        </p>
+        <p>
+          Big O doesn&apos;t care about exact seconds. It only cares about the <em>shape</em> of the growth. When
+          n gets big, the shape is what matters most.
+        </p>
+        <p className="text-slate-400">
+          Try it: click the buttons below to add curves to the graph. Hover over the graph to see the numbers,
+          and read the code to see what each one looks like in a real program.
+        </p>
+      </div>
+
       {/* Toggle buttons */}
       <div className="flex flex-wrap gap-2">
         {COMPLEXITIES.map((def) => {
@@ -484,7 +506,8 @@ export default function BigOVisualizer() {
       <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
         {logScale && hasExplosive && (
           <div className="px-4 py-2 text-xs text-sky-400 border-b border-slate-800 bg-sky-950/20">
-            Log scale active — exponential and factorial growth would dwarf all other curves on a linear axis
+            Log scale is on. Each step up the side of the graph is 10 times bigger than the one below it.
+            Without this, the exponential and factorial curves would shoot off the top and squash all the others flat.
           </div>
         )}
         <svg
@@ -673,7 +696,7 @@ export default function BigOVisualizer() {
 
       {/* Reference n slider */}
       <div className="flex items-center gap-4">
-        <span className="text-sm text-slate-400 whitespace-nowrap">Reference n:</span>
+        <span className="text-sm text-slate-400 whitespace-nowrap">Pick an n:</span>
         <input
           type="range"
           min={1}
@@ -725,20 +748,22 @@ export default function BigOVisualizer() {
       <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-800">
           <h2 className="text-sm font-semibold text-slate-200">
-            Speed Improvement Calculator
+            What If Computers Got Faster?
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            If computers became faster, how many more values could the same algorithm handle in the same time? Based on n&nbsp;=&nbsp;{refN}.
+            Say a program can handle n&nbsp;=&nbsp;{refN} items in one second. If we got a computer 1,000 times
+            faster, how many items could it handle in that same second? Notice how a super-fast computer barely
+            helps the slow ones at the bottom.
           </p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-800">
-                <th className="text-left px-5 py-2.5 text-xs font-semibold text-slate-400">Complexity</th>
-                <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-400">Ops at n={refN}</th>
-                <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-400">1,000× faster → n</th>
-                <th className="text-right px-5 py-2.5 text-xs font-semibold text-slate-400">1,000,000× faster → n</th>
+                <th className="text-left px-5 py-2.5 text-xs font-semibold text-slate-400">Big O</th>
+                <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-400">Steps at n={refN}</th>
+                <th className="text-right px-4 py-2.5 text-xs font-semibold text-slate-400">1,000× faster computer</th>
+                <th className="text-right px-5 py-2.5 text-xs font-semibold text-slate-400">1,000,000× faster computer</th>
               </tr>
             </thead>
             <tbody>
@@ -792,7 +817,9 @@ export default function BigOVisualizer() {
           </table>
         </div>
         <div className="px-5 py-3 border-t border-slate-800 text-xs text-slate-500">
-          Clicking a row selects it on the graph and switches the code panel. For O(1), faster hardware handles infinite inputs — it&apos;s already constant. For O(n!) with large n, values overflow 64-bit floats.
+          Click a row to show it on the graph and see its code. A number like 10^301 means a 1 with 301 zeros
+          after it. ∞ means the number is too big to even show. (For O(1), there&apos;s truly no limit: it does the
+          same work no matter how big n is.)
         </div>
       </div>
     </div>

@@ -53,27 +53,27 @@ const PROBLEMS: ProblemCard[] = [
     kidName: 'Visit All Your Friends',
     realName: 'Traveling Salesman Problem',
     description:
-      "You want to visit 10 friends' houses in one bike ride — but you want to take the shortest possible route so you're not exhausted. Easy with 3 friends. Miserable with 30.",
+      "You want to ride your bike to 10 friends' houses and then go home. What is the shortest trip that visits every house? With 3 friends it's easy. With 30 friends it's a nightmare.",
     hardExplanation:
-      "With 10 friends there are 3,628,800 possible routes to check. With 20 friends? 2,432,902,008,176,640,000. A computer checking a billion routes per second would take 77 years just for 20 friends. There's no known shortcut that's guaranteed to find the perfect answer.",
+      "With 10 friends, there are 3,628,800 different orders you could visit them in. With 20 friends, there are about 2.4 billion billion orders! A computer that checks a billion trips every second would need 77 years to try them all. Nobody knows a fast trick that always finds the very best trip.",
   },
   {
     emoji: '🎒',
     kidName: 'Pack Your Backpack',
     realName: 'Knapsack Problem',
     description:
-      "Your backpack can only hold 8 lbs. You have a pile of stuff with different weights and fun-scores. Which combo fits AND gives you the most fun on your trip?",
+      "Your backpack can only hold 8 pounds. Each thing you could bring has a weight and a fun score. Which things fit in the bag AND give you the most fun?",
     hardExplanation:
-      "With 8 items you only need to check 256 combos — no problem! But with 100 items that's 1,267,650,600,228,229,401,496,703,205,376 combinations. That's more than the number of atoms in the observable universe. No computer can check them all.",
+      "With 8 things, there are only 256 ways to pack. Easy! Each new thing doubles the number of ways. With 100 things, there are about 1,000,000,000,000,000,000,000,000,000,000 ways (a 1 with 30 zeros). A computer checking a billion ways every second would need about 40 trillion years. That's thousands of times longer than the universe has existed!",
   },
   {
     emoji: '🗺️',
     kidName: 'Color the Map',
     realName: 'Graph Coloring Problem',
     description:
-      "Color a map so that no two countries touching each other share the same color. Try to use as few colors as possible. Sounds easy — but figuring out the MINIMUM colors needed for any map is brutally hard.",
+      "Color a map so that countries that touch each other never have the same color. Can you do it with only 3 colors? For a small map, you can figure it out. For a huge map, it gets really, really hard.",
     hardExplanation:
-      "You can always color any map with just 4 colors (proven in 1976!). But figuring out if 3 colors are enough for a specific map requires checking an explosion of possibilities. As the map gets bigger, the problem gets astronomically harder.",
+      "In 1976, mathematicians proved that 4 colors are always enough for any flat map. But is 3 enough for YOUR map? Every country you add gives you more choices to try, so the number of possible colorings grows super fast. Nobody knows a quick way to always answer that question.",
   },
 ];
 
@@ -130,18 +130,23 @@ export default function NPCompleteExplainer() {
       <section className="rounded-2xl bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800 p-6 sm:p-8 flex flex-col gap-4">
         <h2 className="text-2xl font-bold">🤔 The Big Question</h2>
         <p className="text-gray-700 dark:text-gray-300">
-          Imagine your friend hands you a finished jigsaw puzzle and asks: <em>&ldquo;Did I put this together correctly?&rdquo;</em>
-          — you can check in seconds. But if they hand you a box of 1,000 scrambled pieces and say <em>&ldquo;You do it&rdquo;</em> —
-          that takes way longer.
+          Your friend shows you a finished jigsaw puzzle and asks, <em>&ldquo;Did I do it right?&rdquo;</em> You can
+          check in a few seconds. Now your friend dumps out a box of 1,000 mixed-up pieces and says, <em>&ldquo;Your
+          turn.&rdquo;</em> That takes a LOT longer.
         </p>
         <p className="text-gray-700 dark:text-gray-300">
-          That&apos;s the big idea behind NP-Complete problems. <strong>Checking an answer is easy. Finding the answer might take longer than the age of the universe.</strong>
+          That&apos;s the big idea behind NP-Complete problems. <strong>Checking an answer is quick. Finding the answer
+          can be so slow that, for big puzzles, even the fastest computer would need longer than the universe has
+          existed.</strong>
+        </p>
+        <p className="text-gray-700 dark:text-gray-300">
+          Computer scientists sort problems into groups. Here are the three you need to know:
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
           {[
-            { label: 'P', color: 'bg-green-100 dark:bg-green-900 border-green-300 dark:border-green-700', description: 'Problems that are fast to solve AND fast to check. Like multiplying two numbers.' },
-            { label: 'NP', color: 'bg-yellow-100 dark:bg-yellow-900 border-yellow-300 dark:border-yellow-700', description: 'Fast to check, but might be slow to solve. Like verifying a jigsaw vs. solving one.' },
-            { label: 'NP-Complete', color: 'bg-purple-100 dark:bg-purple-900 border-purple-300 dark:border-purple-700', description: 'The hardest NP problems. If you find a shortcut for ANY of these, you solve them all.' },
+            { label: 'P', color: 'bg-green-100 dark:bg-green-900 border-green-300 dark:border-green-700', description: 'Problems a computer can SOLVE quickly, even when they get big. Example: putting a list of names in ABC order.' },
+            { label: 'NP', color: 'bg-yellow-100 dark:bg-yellow-900 border-yellow-300 dark:border-yellow-700', description: 'Problems where you can CHECK an answer quickly. Some are also quick to solve, but for others nobody knows a fast way. Heads up: NP does NOT mean "not P"!' },
+            { label: 'NP-Complete', color: 'bg-purple-100 dark:bg-purple-900 border-purple-300 dark:border-purple-700', description: 'The toughest problems in NP. They are all linked together: find a fast way to solve just ONE of them, and you get a fast way to solve ALL of NP.' },
           ].map(({ label, color, description }) => (
             <div key={label} className={`rounded-xl border p-4 ${color}`}>
               <div className="font-bold text-lg mb-1">{label}</div>
@@ -155,7 +160,7 @@ export default function NPCompleteExplainer() {
       <section className="flex flex-col gap-4">
         <h2 className="text-2xl font-bold">🧩 Famous NP-Complete Problems</h2>
         <p className="text-gray-600 dark:text-gray-400 text-sm">
-          Each of these sounds simple — until you try to solve them perfectly for a big input.
+          Each of these sounds simple. The trouble starts when you want the PERFECT answer for a really big one.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {PROBLEMS.map((p) => (
@@ -169,7 +174,7 @@ export default function NPCompleteExplainer() {
         <div>
           <h2 className="text-2xl font-bold">🎒 Try It: Pack Your Backpack</h2>
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            Your backpack holds <strong>{CAPACITY} lbs</strong>. Click items to pack them. Try to get the highest fun score without going over the weight limit!
+            Your backpack holds <strong>{CAPACITY} pounds</strong>. Click things to pack them. Can you get the highest fun score without going over the weight limit?
           </p>
         </div>
 
@@ -244,9 +249,9 @@ export default function NPCompleteExplainer() {
               </div>
             )}
             <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-              The computer checked all <strong>256 combinations</strong> instantly for 8 items.
-              But with 100 items? That&apos;s more combinations than atoms in the universe — no computer could ever check them all.
-              That&apos;s what makes this an NP-Complete problem.
+              With 8 things, the computer tried all <strong>256 ways to pack</strong> in the blink of an eye.
+              But every new thing doubles the number of ways. With 100 things, trying them all would take trillions
+              of years. That&apos;s why packing problems like this one are NP-Complete.
             </p>
           </div>
         )}
@@ -259,18 +264,18 @@ export default function NPCompleteExplainer() {
           {[
             {
               emoji: '🔐',
-              title: 'Your Passwords Are Safe',
-              body: "Encryption that protects your bank account and messages uses math that's NP-hard to crack. Breaking it would take longer than the universe has existed.",
+              title: 'Keeping Secrets Safe',
+              body: "The secret codes that protect online banking and messages use math puzzles that are easy to check but (we think) super hard to solve. They aren't NP-Complete, but they ARE in NP, so a fast way to solve NP problems would crack them too.",
             },
             {
               emoji: '📦',
-              title: 'Shipping & Logistics',
-              body: "Companies like Amazon and FedEx need to pack trucks and plan delivery routes. They use clever tricks to get a *good* answer fast — but nobody can guarantee the perfect answer.",
+              title: 'Delivering Packages',
+              body: "Delivery companies have to pack trucks and plan routes every day. They use clever tricks to find a GOOD answer fast, but they can't be sure it's the BEST answer.",
             },
             {
               emoji: '🎮',
-              title: 'Video Game Levels',
-              body: "Many puzzle games (Tetris, Minesweeper, even Mario!) are secretly NP-complete. Game designers use this difficulty to make levels that feel impossibly tricky.",
+              title: 'Video Games',
+              body: "Mathematicians have proven that giant-sized levels of Tetris, Minesweeper, and even Super Mario Bros. are at least as hard as NP-Complete problems!",
             },
           ].map(({ emoji, title, body }) => (
             <div key={title} className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 flex flex-col gap-2">
@@ -286,14 +291,22 @@ export default function NPCompleteExplainer() {
       <section className="rounded-2xl bg-yellow-50 dark:bg-yellow-950 border border-yellow-300 dark:border-yellow-700 p-6 sm:p-8 flex flex-col gap-3">
         <h2 className="text-2xl font-bold">💰 The Million Dollar Question</h2>
         <p className="text-gray-700 dark:text-gray-300">
-          Nobody has ever proven whether a perfect shortcut exists for NP-Complete problems — or proven it&apos;s impossible.
-          This is called the <strong>P vs NP</strong> problem, and it&apos;s one of the 7 <em>Millennium Prize Problems</em>.
+          Here&apos;s the question nobody can answer: <strong>if an answer is quick to CHECK, is it always quick to
+          FIND, too?</strong> In other words, are P and NP really the same group? This is called the{' '}
+          <strong>P vs NP</strong> problem.
         </p>
         <p className="text-gray-700 dark:text-gray-300">
-          Solve it, and you win <strong>$1,000,000</strong> from the Clay Mathematics Institute — plus you&apos;d probably break all the encryption on the internet, which would be a problem.
+          Most experts think the answer is &ldquo;no&rdquo; (some problems really are hard), but nobody has been
+          able to prove it either way. It&apos;s one of 7 famous <em>Millennium Prize Problems</em>, and the Clay
+          Mathematics Institute will pay <strong>$1,000,000</strong> to whoever solves it.
+        </p>
+        <p className="text-gray-700 dark:text-gray-300">
+          If someone proved the answer is &ldquo;yes&rdquo; and found a fast trick, the secret codes that protect
+          the internet might stop working. That would be a very big deal!
         </p>
         <p className="text-gray-700 dark:text-gray-300 font-medium">
-          The smartest mathematicians and computer scientists in the world have been working on it for 50+ years. Maybe you&apos;ll crack it. 🤷
+          The smartest mathematicians and computer scientists in the world have been stuck on it for more than 50
+          years. Maybe you&apos;ll be the one to crack it. 🤷
         </p>
       </section>
 

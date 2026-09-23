@@ -7,7 +7,7 @@ export default function SortingAlgorithmsPage() {
     <div className="min-h-screen p-8 sm:p-12 max-w-6xl mx-auto">
       <Header
         title="Sorting Algorithms"
-        subtitle="Six sorting algorithms with animated demos, Python code, and kid-friendly explanations"
+        subtitle="Six ways to put a list in order, with animations, Python code, and easy explanations"
       />
       <SortingAlgorithmsClient />
       <Footer />

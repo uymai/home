@@ -320,13 +320,13 @@ export const ALGORITHMS: AlgorithmMeta[] = [
     id: "bubble",
     name: "Bubble Sort",
     emoji: "🫧",
-    metaphor: "Like bubbles rising to the surface — big numbers float to the end!",
+    metaphor: "Like bubbles rising in a glass of soda, big numbers float to the end!",
     description:
-      "Imagine you have a row of numbered cards. You look at two cards next to each other. If the bigger number is on the left, you swap them. Then you move one step to the right and check again. After one full pass, the BIGGEST number has \"bubbled\" all the way to the end! You keep doing this over and over, and each pass, the next biggest number finds its home.",
+      "Picture a row of number cards. Look at the first two cards. If the left one is bigger, swap them. Then move one step to the right and compare the next two. When you reach the end of the row, the BIGGEST number has \"bubbled\" all the way to the end! Go back to the start and do it again. Each trip through the row moves the next-biggest number into its spot.",
     timeComplexity: { best: "O(n²)", avg: "O(n²)", worst: "O(n²)" },
     spaceComplexity: "O(1)",
     stable: true,
-    funFact: "Bubble sort is so slow that computer scientists use it as the classic example of what NOT to do — but it's great for learning!",
+    funFact: "Bubble Sort is so slow that computer scientists use it as the classic example of what NOT to do. But it's great for learning!",
     pythonCode: `def bubble_sort(arr):
     n = len(arr)
     for i in range(n):
@@ -339,13 +339,13 @@ export const ALGORITHMS: AlgorithmMeta[] = [
     id: "bubble-opt",
     name: "Bubble Sort+",
     emoji: "🫧",
-    metaphor: "Same bubbles, but smarter — it knows when to stop early!",
+    metaphor: "Same bubbles, but smarter: it knows when to stop early!",
     description:
-      "This is the same as Bubble Sort, but with one clever trick: we keep track of whether any swaps happened during a full pass. If we get all the way through without swapping anything, that means the list is already sorted — so we stop immediately! On a list that's already sorted, we only need one pass instead of n passes. On a nearly-sorted list, we stop much sooner too. Try shuffling and see how often it exits early!",
+      "This is Bubble Sort with one clever trick. On each trip through the row, we keep track of whether we swapped anything. If we get all the way to the end without a single swap, the list must already be in order, so we stop right away! On a list that's already sorted, that means just one trip instead of one trip per card. Shuffle a few times and watch how often it stops early.",
     timeComplexity: { best: "O(n)", avg: "O(n²)", worst: "O(n²)" },
     spaceComplexity: "O(1)",
     stable: true,
-    funFact: "This tiny one-line change (tracking the swapped flag) is the difference between always-slow and sometimes-fast. A small idea can make a big difference!",
+    funFact: "Adding just a few lines of code (the \"swapped\" check) turns an always-slow sort into a sometimes-fast one. A small idea can make a big difference!",
     pythonCode: `def bubble_sort(arr):
     n = len(arr)
     for i in range(n):
@@ -362,13 +362,13 @@ export const ALGORITHMS: AlgorithmMeta[] = [
     id: "insertion",
     name: "Insertion Sort",
     emoji: "🃏",
-    metaphor: "Just like sorting playing cards in your hand — one card at a time!",
+    metaphor: "Just like sorting playing cards in your hand, one card at a time!",
     description:
-      "Picture picking up playing cards one by one. When you pick up a new card, you slide it into the right spot among the cards you're already holding. You might need to move several cards to the right to make room. The left part of your hand is always sorted — you just keep growing it by inserting each new card in its correct position.",
+      "Picture picking up playing cards one at a time. Each time you pick up a new card, you slide it into the right spot among the cards already in your hand. Sometimes you have to scoot a few cards over to make room. The cards in your hand are always in order. You just keep adding one more card at a time until you're holding them all.",
     timeComplexity: { best: "O(n)", avg: "O(n²)", worst: "O(n²)" },
     spaceComplexity: "O(1)",
     stable: true,
-    funFact: "Insertion sort is actually FASTER than quicksort on tiny lists! That's why Tim Sort (Python's real sort) uses it for small chunks.",
+    funFact: "Insertion Sort is actually FASTER than Quick Sort on tiny lists! That's why Tim Sort (the sort Python really uses) uses it for small chunks.",
     pythonCode: `def insertion_sort(arr):
     for i in range(1, len(arr)):
         key = arr[i]
@@ -383,13 +383,13 @@ export const ALGORITHMS: AlgorithmMeta[] = [
     id: "quick",
     name: "Quick Sort",
     emoji: "⚡",
-    metaphor: "Pick a \"referee\" number and split the team into smaller and bigger — then sort each team!",
+    metaphor: "Pick a \"referee\" number, split everyone into a smaller team and a bigger team, then sort each team!",
     description:
-      "Choose a \"pivot\" number (we pick the last one). Now separate everything: numbers smaller than the pivot go to its left, bigger ones go to its right. The pivot is now in its PERFECT final spot! Then do the exact same trick on the left group and the right group. Keep splitting and sorting until every number is in its own group — and you're done! This divide-and-conquer trick is why it's called \"Quick\" Sort.",
+      "Pick one number to be the \"pivot\" (we use the last one). Move every number smaller than the pivot to its left, and every bigger number to its right. Now the pivot is in its PERFECT final spot! Then do the same trick on the left group, and again on the right group. Keep splitting into smaller and smaller groups until each group has just one number. Then the whole list is sorted! This trick of breaking a big problem into smaller ones is called \"divide and conquer.\"",
     timeComplexity: { best: "O(n log n)", avg: "O(n log n)", worst: "O(n²)" },
     spaceComplexity: "O(log n)",
     stable: false,
-    funFact: "Quick Sort is often the fastest sorting algorithm in practice, which is why it's used inside many programming languages and databases.",
+    funFact: "Quick Sort is usually one of the fastest sorts in real life, so lots of programming languages use it. But it has a bad day: if the list is already sorted and you always pick the last number as the pivot, it gets as slow as Bubble Sort!",
     pythonCode: `def quick_sort(arr, lo=0, hi=None):
     if hi is None:
         hi = len(arr) - 1
@@ -415,11 +415,11 @@ def partition(arr, lo, hi):
     emoji: "🧩",
     metaphor: "Split everything in half, sort each half, then carefully zip them back together!",
     description:
-      "Imagine tearing a deck of cards in half, then in half again, and again — until each pile has just one card. A single card is always sorted! Now start combining piles: pick up two one-card piles and merge them into a sorted two-card pile. Combine two-card piles into four-card piles, and so on. When merging, you always compare the top card of each pile and take the smaller one. Keep merging until you have one big sorted pile!",
+      "Split a deck of cards into two piles. Split each of those in half, and keep going until every pile has just one card. A pile with one card is already sorted! Now join the piles back together, two at a time. To join two sorted piles, look at the top card of each and take the smaller one. Keep doing that until both piles are used up. Two-card piles become four-card piles, then eight, and so on, until you have one big sorted pile!",
     timeComplexity: { best: "O(n log n)", avg: "O(n log n)", worst: "O(n log n)" },
     spaceComplexity: "O(n)",
     stable: true,
-    funFact: "Merge Sort is one of the few algorithms that's ALWAYS O(n log n) — it never has a \"bad day\" unlike Quick Sort.",
+    funFact: "Merge Sort is ALWAYS O(n log n). Unlike Quick Sort, it never has a \"bad day\"!",
     pythonCode: `def merge_sort(arr):
     if len(arr) <= 1:
         return arr
@@ -448,11 +448,11 @@ def merge(left, right):
     emoji: "🏔️",
     metaphor: "Build a \"biggest on top\" tower, then keep pulling the top off — it's always the next biggest!",
     description:
-      "First, arrange all the numbers into a special structure called a \"max-heap\" — like a tree where every parent is bigger than its children. The biggest number is always at the very top! Swap the top with the last number, put that last spot aside (it's sorted!), and fix the heap so the new biggest floats back to the top. Repeat until everything is sorted. It's like a sorting machine that always knows the current champion.",
+      "First, arrange the numbers into a \"heap.\" Think of a family tree where every parent is bigger than its kids. That means the biggest number is always at the very top! Now swap the top number with the last number that isn't sorted yet. The biggest number is now at the end, in its final spot. Fix up the heap so the next-biggest number rises to the top, and do it again. It's like a contest that always knows who the current champion is.",
     timeComplexity: { best: "O(n log n)", avg: "O(n log n)", worst: "O(n log n)" },
     spaceComplexity: "O(1)",
     stable: false,
-    funFact: "Heap Sort uses O(1) extra space unlike Merge Sort — it sorts everything right in place using the heap structure!",
+    funFact: "Heap Sort barely needs any extra memory (that's what O(1) space means). Merge Sort needs a whole extra list to hold the piles, but Heap Sort does all its work right inside the original list!",
     pythonCode: `def heap_sort(arr):
     n = len(arr)
     # Build max-heap
@@ -482,13 +482,13 @@ def sift_down(arr, root, size):
     id: "tim",
     name: "Tim Sort",
     emoji: "🐍",
-    metaphor: "Python's secret weapon — combines two great ideas for a super-fast real-world sort!",
+    metaphor: "Python's secret weapon: two great ideas mixed together into one super-fast sort!",
     description:
-      "Tim Sort is the actual algorithm Python uses when you call list.sort()! It combines two tricks: first, it chops the list into small chunks (called \"runs\") and sorts each chunk with Insertion Sort — which is great for small lists. Then it merges all those sorted chunks together using Merge Sort's clever merging trick. By using the best tool for each job, Tim Sort is incredibly fast on real-world data!",
+      "Tim Sort is the real sorting method Python uses when you call list.sort()! It mixes two ideas. First, it cuts the list into small chunks called \"runs\" and sorts each chunk with Insertion Sort, which is great for small lists. Then it joins the sorted chunks together using Merge Sort's merging trick. The real Tim Sort is even smarter: it looks for parts of the list that are already in order and doesn't waste time on them. Using the best tool for each job makes it super fast on real-world data!",
     timeComplexity: { best: "O(n)", avg: "O(n log n)", worst: "O(n log n)" },
     spaceComplexity: "O(n)",
     stable: true,
-    funFact: "Tim Sort was invented by Tim Peters in 2002 specifically for Python. It's so good that Java, Android, and Swift all copied it!",
+    funFact: "Tim Peters invented Tim Sort in 2002, just for Python. It worked so well that Java, Android, and the JavaScript in the Chrome web browser started using it too!",
     pythonCode: `# Python's built-in list.sort() IS Tim Sort!
 # Here's a simplified version showing the key ideas:
 

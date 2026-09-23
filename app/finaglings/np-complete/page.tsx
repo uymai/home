@@ -7,7 +7,7 @@ export default function NPCompletePage() {
     <div className="min-h-screen p-8 sm:p-12 max-w-4xl mx-auto">
       <Header
         title="NP-Complete"
-        subtitle="The hardest problems in math — explained for a 10-year-old"
+        subtitle="P vs NP and the hardest problems in computer science, explained for kids"
       />
       <NPCompleteExplainer />
       <Footer />
