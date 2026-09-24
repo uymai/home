@@ -7,7 +7,7 @@ export default function BigOPage() {
     <div className="min-h-screen p-8 sm:p-12 max-w-6xl mx-auto">
       <Header
         title="Big O Complexity"
-        subtitle="Visualize and compare time complexity curves, with code examples and a speed-improvement calculator"
+        subtitle="How much slower does a program get when you give it more to do? See the curves, read the code, and find out."
       />
       <BigOVisualizer />
       <Footer />

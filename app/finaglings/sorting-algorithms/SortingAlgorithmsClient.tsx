@@ -77,7 +77,7 @@ function CodePanel({ label, code, onCopy, copied }: {
   return (
     <div className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
       <div className="flex items-center px-4 py-2.5 border-b border-slate-800">
-        <span className="text-sm font-semibold text-slate-300">🐍 {label}</span>
+        <span className="text-sm font-semibold text-slate-300">{label}</span>
         <button
           onClick={onCopy}
           className="ml-auto text-xs text-slate-400 hover:text-slate-200 transition-colors px-2 py-1 rounded hover:bg-slate-800"
@@ -382,8 +382,10 @@ export default function SortingAlgorithmsClient() {
           <div className="bg-slate-900 rounded-xl border border-slate-800 p-5">
             <h3 className="font-bold text-white mb-1">📊 Side-by-Side Comparison</h3>
             <p className="text-sm text-slate-400">
-              How fast is each algorithm? These are Big O notations — they describe how the time
-              grows as the list gets bigger. Smaller is better!
+              How fast is each sort? These use Big O notation, which describes how much more work a sort
+              has to do as the list gets longer. The letter n stands for how many numbers are in the list.
+              &ldquo;Best&rdquo; is how it does on its luckiest list, and &ldquo;Worst&rdquo; is its unluckiest.
+              &ldquo;Space&rdquo; is how much extra memory it needs. Slower-growing is better!
             </p>
           </div>
 
@@ -451,28 +453,28 @@ export default function SortingAlgorithmsClient() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
               <div className="text-emerald-400 font-mono font-bold mb-1">O(n)</div>
-              <div className="text-xs text-slate-400">Super fast — goes through the list once. Best possible!</div>
+              <div className="text-xs text-slate-400">Super fast: looks at each number about once. You can&apos;t sort faster than that!</div>
             </div>
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
               <div className="text-sky-400 font-mono font-bold mb-1">O(n log n)</div>
-              <div className="text-xs text-slate-400">Really fast — splits the problem in half each time. Great for sorting!</div>
+              <div className="text-xs text-slate-400">Really fast: keeps cutting the list in half. The best speed for most sorting jobs.</div>
             </div>
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
               <div className="text-red-400 font-mono font-bold mb-1">O(n²)</div>
-              <div className="text-xs text-slate-400">Slow — checks every pair. Fine for small lists, painful for big ones.</div>
+              <div className="text-xs text-slate-400">Slow: compares almost every pair of numbers. Fine for small lists, painful for big ones.</div>
             </div>
           </div>
 
           <div className="bg-slate-900 rounded-xl border border-slate-800 p-4 text-sm text-slate-400">
             <span className="font-semibold text-slate-300">What does &quot;stable&quot; mean?</span>{" "}
-            When two items have the same value, a stable sort keeps them in their original order.
-            This matters when you&apos;re sorting something like a list of students by grade — you want
-            students with the same grade to stay in alphabetical order!
+            When two items are tied, a stable sort keeps them in the same order they started in.
+            Say your class list is in ABC order, and you sort it by grade. With a stable sort, kids with
+            the same grade stay in ABC order!
           </div>
 
           <p className="text-xs text-slate-600">
-            * Bubble Sort&apos;s best case is O(n²) for the naive version. With an early-exit optimization
-            (stopping when no swaps occur in a pass), the best case improves to O(n).
+            * Plain Bubble Sort is O(n²) even on its luckiest list. Bubble Sort+ stops early when a trip
+            through the list makes no swaps, so its best case is O(n).
           </p>
         </div>
       )}
