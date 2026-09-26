@@ -72,6 +72,13 @@ export default function FinaglingsPage() {
       color: "bg-indigo-100 dark:bg-indigo-950",
     },
     {
+      title: "Binary Numbers",
+      description: "There are 10 kinds of people in the world. Learn to count in binary with just 0s and 1s, and count to 31 on one hand.",
+      url: "/finaglings/binary",
+      icon: "/window.svg",
+      color: "bg-sky-100 dark:bg-sky-950",
+    },
+    {
       title: "Big O Complexity",
       description: "How much slower does a program get when you give it more to do? Compare the curves, read the code, and see what a faster computer really buys you.",
       url: "/finaglings/big-o",
