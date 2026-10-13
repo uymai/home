@@ -26,12 +26,19 @@ export async function GET() {
 
   // Fetch profile and recent games in parallel.
   // Cast to `RequestInit` to allow the Next.js-specific `next.revalidate` extension.
-  const [profileRes, recentRes] = await Promise.all([
-    fetch(steamUrl('ISteamUser', 'GetPlayerSummaries', 'v0002', { steamids: userId }),
-      { next: { revalidate: 300 } } as RequestInit),
-    fetch(steamUrl('IPlayerService', 'GetRecentlyPlayedGames', 'v0001', { steamid: userId, count: '10' }),
-      { next: { revalidate: 300 } } as RequestInit),
-  ]);
+  // A network failure (DNS, timeout, Steam down) rejects rather than returning !ok.
+  let profileRes: Response;
+  let recentRes: Response;
+  try {
+    [profileRes, recentRes] = await Promise.all([
+      fetch(steamUrl('ISteamUser', 'GetPlayerSummaries', 'v0002', { steamids: userId }),
+        { next: { revalidate: 300 } } as RequestInit),
+      fetch(steamUrl('IPlayerService', 'GetRecentlyPlayedGames', 'v0001', { steamid: userId, count: '10' }),
+        { next: { revalidate: 300 } } as RequestInit),
+    ]);
+  } catch {
+    return NextResponse.json({ error: 'Could not reach the Steam API' }, { status: 502 });
+  }
 
   if (!profileRes.ok) {
     return NextResponse.json({ error: 'Failed to fetch Steam profile' }, { status: 502 });

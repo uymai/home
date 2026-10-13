@@ -15,7 +15,7 @@ export default function Home() {
       title: "Mastodon",
       description: "Follow me for updates, thoughts, and discussions",
       url: "https://mstdn.io/@uymai",
-      icon: "/next.svg",
+      icon: "/mastodon.svg",
       color: "bg-purple-100 dark:bg-purple-950",
     },
     {

@@ -2,16 +2,18 @@
 
 ## Project Overview
 
-Personal homepage built with Next.js 15, React 19, TypeScript, and Tailwind CSS v4. Contains several mini-apps and pages:
+Personal homepage built with Next.js 15, React 19, TypeScript, and Tailwind CSS v4. The home page (`app/page.tsx`) links to the main sections:
 
-- **Recipes** (`/recipes`) — redirects to the standalone recipes app at https://grimoire.uymai.net
-- **Steve's Game** (`/steves-game`) — number-based game with hardcoded ROB_HARD_NUMBERS
-- **Gaming** (`/gaming`) — gaming-related page
-- **Finaglings** (`/finaglings`) — miscellaneous page
-- **Magic Square** (`/magic-square`) — magic square generator
-- **Warp Protocol** (`/warp-protocol`) — simulation with step-through (Next Pick / Next Round) buttons
-- **Discord** (`/discord`) — Discord-related page
-- **Contact** (`/contact`) — contact page
+- **Discord** (`/discord`) — casual gaming Discord server
+- **Steam** (`/steam`) — live Steam profile, recent games, and achievements, fetched server-side by `app/api/steam/route.ts` (needs `STEAM_API_KEY` and `STEAM_USER_ID` env vars)
+- **Finaglings** (`/finaglings`) — index of experiments and mini-apps; the project list lives in `app/finaglings/page.tsx`
+- **Contact** (`/contact`) and **Wishlist** (`/wishlist`, items in `app/wishlist/items.ts`)
+- **Recipes** (`/recipes`) — redirects to https://grimoire.uymai.net (configured in `next.config.ts`)
+
+Mini-apps linked from Finaglings:
+
+- Under `/finaglings/`: `nightlight`, `guitar-lizard`, `toilet-paper-math`, `binary`, `big-o`, `np-complete`, `sorting-algorithms`, `bobs-27`, `dart-game`, `dart-checkout`. `workout-tracker` also exists but isn't linked from the index.
+- At the top level: **Steve's Game** (`/steves-game`, number-guessing game with hardcoded `ROB_HARD_NUMBERS`), **Number Grid** (`/number-grid`), **Magic Square** (`/magic-square`), and **Warp Protocol** (`/warp-protocol`, simulation with Next Pick / Next Round step-through).
 
 ## Commands
 
@@ -27,16 +29,17 @@ npm run lint       # ESLint
 
 - `app/` — Next.js App Router pages and components
 - `app/components/` — Shared components (Header, Footer, LinkCard, etc.)
-- `lib/` — Shared utilities (e.g., `recipes.ts`)
-- `data/` — Static JSON data files
-- `test/` — Test files (Vitest)
+- `app/api/` — Route handlers (currently just `steam`)
+- `public/` — Static assets: link-card icons, PWA `manifest.json` and `icons/`
 - `skills/` — Claude Code custom skills
+
+Mini-apps keep their logic next to their page, usually as a `*Client.tsx` component plus a plain `engine.ts` / data module.
 
 ## Testing
 
 Tests use Vitest. Run `npm test` before committing. The `prebuild` script runs tests automatically.
 
-Test files live in both `test/` and colocated with source (e.g., `app/warp-protocol/engine.test.ts`).
+Test files are colocated with source as `*.test.ts` (e.g., `app/warp-protocol/engine.test.ts`, `app/finaglings/workout-tracker/storage.test.ts`).
 
 ## Guitar Lizard (`/finaglings/guitar-lizard`)
 
