@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import Footer from '../../components/Footer';
 import Header from '../../components/Header';
 import Bobs27Client from './Bobs27Client';
+
+export const metadata: Metadata = {
+  title: "Bob's 27",
+  description: "Doubles practice scorer for darts.",
+};
 
 export default function Bobs27Page() {
   return (

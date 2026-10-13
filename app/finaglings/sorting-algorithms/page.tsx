@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import SortingAlgorithmsClient from "./SortingAlgorithmsClient";
+
+export const metadata: Metadata = {
+  title: "Sorting Algorithms",
+  description: "Six ways to put a list in order, with animations, Python code, and easy explanations.",
+};
 
 export default function SortingAlgorithmsPage() {
   return (

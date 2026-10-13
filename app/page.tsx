@@ -8,7 +8,7 @@ export default function Home() {
       title: "GitHub",
       description: "Explore my open source projects and contributions",
       url: "https://github.com/uymai",
-      icon: "/file.svg",
+      icon: "/github.svg",
       color: "bg-gray-100 dark:bg-gray-900",
     },
     {
@@ -29,7 +29,7 @@ export default function Home() {
       title: "Steam",
       description: "Live Steam activity — recent games and achievements",
       url: "/steam",
-      icon: "/window.svg",
+      icon: "/steam.svg",
       color: "bg-slate-100 dark:bg-slate-900",
     },
     {
@@ -49,9 +49,9 @@ export default function Home() {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {links.map((link, index) => (
+        {links.map((link) => (
           <LinkCard
-            key={index}
+            key={link.title}
             title={link.title}
             description={link.description}
             url={link.url}

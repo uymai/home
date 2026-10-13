@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import WarpProtocolClient from './WarpProtocolClient';
 import { GameMode } from './types';
 import { generateDailySeed } from './engine';
+
+export const metadata: Metadata = {
+  title: "Warp Protocol",
+  description: "A self-contained protocol game experiment with its own rules, state, and play loop.",
+};
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;

@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import MagicSquareGenerator from "../components/MagicSquareGenerator";
+
+export const metadata: Metadata = {
+  title: "Magic Square",
+  description: "Build 4 x 4 magic squares with a custom target sum.",
+};
 
 export default function MagicSquarePage() {
   return (

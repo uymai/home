@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import Footer from '../../components/Footer';
 import Header from '../../components/Header';
 import GuitarLizardClient from './GuitarLizardClient';
+
+export const metadata: Metadata = {
+  title: "Guitar Lizard",
+  description: "Scale shapes for the fretboard.",
+};
 
 export default function GuitarLizardPage() {
   return (

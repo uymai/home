@@ -1,7 +1,13 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import DiscordIcon from '../components/DiscordIcon';
+
+export const metadata: Metadata = {
+  title: "Discord Communities",
+  description: "Join me in these Discord servers.",
+};
 
 export default function Discord() {
   const discordServers = [

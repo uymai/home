@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import BinaryExplainer from "./BinaryExplainer";
+
+export const metadata: Metadata = {
+  title: "Binary Numbers",
+  description: "How computers count with just 0 and 1, and how you can count to 31 on one hand.",
+};
 
 export default function BinaryPage() {
   return (
