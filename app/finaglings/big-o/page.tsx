@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import BigOVisualizer from "./BigOVisualizer";
+
+export const metadata: Metadata = {
+  title: "Big O Complexity",
+  description: "How much slower does a program get when you give it more to do? See the curves, read the code, and find out.",
+};
 
 export default function BigOPage() {
   return (

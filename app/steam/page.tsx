@@ -4,7 +4,7 @@ import Footer from '../components/Footer';
 import SteamProfile from './SteamProfile';
 
 export const metadata = {
-  title: 'Steam Activity — uymai.net',
+  title: 'Steam Activity',
   description: 'Live Steam profile, recently played games, and achievements.',
 };
 

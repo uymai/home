@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import NumberGridVisualizer from "../components/NumberGridVisualizer";
+
+export const metadata: Metadata = {
+  title: "Number Grid",
+  description: "Visualize skip counting, primes, and Fibonacci numbers.",
+};
 
 export default function NumberGridPage() {
   return (

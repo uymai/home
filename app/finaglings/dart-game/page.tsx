@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import Footer from '../../components/Footer';
 import Header from '../../components/Header';
 import DartGameClient from './DartGameClient';
+
+export const metadata: Metadata = {
+  title: "Dart Game",
+  description: "Click the board — 3 darts per round.",
+};
 
 export default function DartGamePage() {
   return (

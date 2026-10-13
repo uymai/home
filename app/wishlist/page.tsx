@@ -1,7 +1,13 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { WISHLIST, type WishlistItem } from './items';
+
+export const metadata: Metadata = {
+  title: "Wishlist",
+  description: "Things I'd love to have.",
+};
 
 const PRIORITY_ORDER: WishlistItem['priority'][] = ['high', 'medium', 'low'];
 const PRIORITY_LABELS: Record<WishlistItem['priority'], string> = {

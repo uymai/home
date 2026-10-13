@@ -13,12 +13,12 @@ export default function LinkCard({ title, description, url, icon, color = 'bg-bl
   const isExternal = url.startsWith('http');
   
   return (
-    <div className={`rounded-lg p-6 transition-all hover:scale-105 ${color}`}>
-      <Link 
+    <div className={`rounded-lg transition-all motion-safe:hover:scale-105 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 dark:focus-within:ring-offset-black ${color}`}>
+      <Link
         href={url}
         target={isExternal ? "_blank" : undefined}
         rel={isExternal ? "noopener noreferrer" : undefined}
-        className="flex flex-col h-full"
+        className="flex flex-col h-full p-6 rounded-lg focus:outline-none"
       >
         <div className="flex items-center mb-3">
           {icon && (

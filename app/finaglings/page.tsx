@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import LinkCard from "../components/LinkCard";
 import SkillCard from "../components/SkillCard";
+
+export const metadata: Metadata = {
+  title: "Finaglings",
+  description: "One-off projects, prototypes, and side experiments that deserve a home of their own.",
+};
 
 type Project = {
   title: string;

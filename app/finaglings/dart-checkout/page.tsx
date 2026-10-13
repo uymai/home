@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import Footer from '../../components/Footer';
 import Header from '../../components/Header';
 import DartCheckoutClient from './DartCheckoutClient';
+
+export const metadata: Metadata = {
+  title: "Checkout Chart",
+  description: "Double out — what to throw to win at darts.",
+};
 
 export default function DartCheckoutPage() {
   return (
