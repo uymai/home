@@ -41,3 +41,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# eneba price check
+/scripts/eneba-price-check/.itad-token.json

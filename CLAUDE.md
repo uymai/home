@@ -32,6 +32,7 @@ npm run lint       # ESLint (flat config in eslint.config.mjs)
 - `app/api/` — Route handlers (currently just `steam`)
 - `public/` — Static assets: link-card icons, PWA `manifest.json` and `icons/`
 - `skills/` — Claude Code custom skills
+- `scripts/eneba-price-check/` — standalone Node CLI (`npm run eneba`) that checks Eneba prices for Canada-usable Steam keys against an IsThereAnyDeal waitlist; see its README
 - `app/site.ts` — `SITE_URL`, used by `metadataBase`, `sitemap.ts`, and `robots.ts`
 
 Mini-apps keep their logic next to their page, usually as a `*Client.tsx` component plus a plain `engine.ts` / data module.
