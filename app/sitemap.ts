@@ -17,6 +17,7 @@ const PATHS = [
   "/finaglings/bobs-27",
   "/finaglings/dart-game",
   "/finaglings/dart-checkout",
+  "/finaglings/hawkins-legion-darts",
   "/finaglings/workout-tracker",
   "/steves-game",
   "/number-grid",

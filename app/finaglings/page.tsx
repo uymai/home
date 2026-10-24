@@ -170,6 +170,13 @@ export default function FinaglingsPage() {
       icon: "/window.svg",
       color: "bg-red-100 dark:bg-red-950",
     },
+    {
+      title: "Hawkins Legion Darts",
+      description: "League-night scorekeeper for 301/501/701 — players or teams, double out, round history, and high-round tracking.",
+      url: "/finaglings/hawkins-legion-darts",
+      icon: "/window.svg",
+      color: "bg-emerald-100 dark:bg-emerald-950",
+    },
   ];
 
   const fitnessProjects: Project[] = [
