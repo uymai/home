@@ -13,6 +13,7 @@ Personal homepage built with Next.js 16, React 19, TypeScript, and Tailwind CSS 
 Mini-apps linked from Finaglings:
 
 - Under `/finaglings/`: `nightlight`, `guitar-lizard`, `toilet-paper-math`, `binary`, `big-o`, `np-complete`, `sorting-algorithms`, `bobs-27`, `dart-game`, `dart-checkout`, `workout-tracker`.
+- **Hawkins Legion Darts** (`/finaglings/hawkins-legion-darts`) — a standalone HTML page in `public/finaglings/hawkins-legion-darts.html`, served at the clean URL by a rewrite in `next.config.ts`.
 - At the top level: **Steve's Game** (`/steves-game`, number-guessing game with hardcoded `ROB_HARD_NUMBERS`), **Number Grid** (`/number-grid`), **Magic Square** (`/magic-square`), and **Warp Protocol** (`/warp-protocol`, simulation with Next Pick / Next Round step-through).
 
 ## Commands

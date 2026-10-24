@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/finaglings/hawkins-legion-darts",
+        destination: "/finaglings/hawkins-legion-darts.html",
+      },
+    ];
+  },
   async redirects() {
     return [
       {
