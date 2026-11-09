@@ -41,7 +41,7 @@ export default function FinaglingsPage() {
   const misc: Project[] = [
     {
       title: "Nightlight",
-      description: "Five glowing ambient patterns to use as a soft nightlight — swipe between them, tap to control.",
+      description: "Bright demoscene-style nightlight — plasma, tunnel, metaballs, moiré rings, and pixel fire — swipe between them, tap to control.",
       url: "/finaglings/nightlight",
       icon: "/window.svg",
       color: "bg-indigo-100 dark:bg-indigo-950",
