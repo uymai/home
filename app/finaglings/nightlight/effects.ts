@@ -79,3 +79,123 @@ export function plasmaColor(v: number, shift: number): RGB {
     Math.round(127.5 + 127.5 * Math.sin(a + (4 * Math.PI) / 3)),
   ];
 }
+
+// ── Fire palette variants (channel swaps of the classic palette) ──────────
+
+/** Violet → magenta → white. */
+export const GHOST_FIRE_PALETTE: readonly RGB[] = FIRE_PALETTE.map(([r, g, b]) => [g, b, r] as const);
+
+/** Green → lime → yellow → white. */
+export const TOXIC_FIRE_PALETTE: readonly RGB[] = FIRE_PALETTE.map(([r, g, b]) => [g, r, b] as const);
+
+// ── Tunnel ────────────────────────────────────────────────────────────────
+
+/**
+ * Per-pixel lookup tables for the tunnel: `angle` around the center in [0, 1)
+ * and `depth` (inverse distance from the center, so it grows toward the middle).
+ */
+export function tunnelLookup(cols: number, rows: number): { angle: Float32Array; depth: Float32Array } {
+  const angle = new Float32Array(cols * rows);
+  const depth = new Float32Array(cols * rows);
+  const scale = Math.max(cols, rows);
+  let i = 0;
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const dx = (x + 0.5 - cols / 2) / scale;
+      const dy = (y + 0.5 - rows / 2) / scale;
+      angle[i] = Math.atan2(dy, dx) / (2 * Math.PI) + 0.5;
+      depth[i] = 0.3 / Math.max(Math.sqrt(dx * dx + dy * dy), 1e-3);
+      i++;
+    }
+  }
+  return { angle, depth };
+}
+
+/** Color of a tunnel wall point at time `t` (seconds). */
+export function tunnelColor(angle: number, depth: number, t: number): RGB {
+  const u = angle + t * 0.04; // slow twist
+  const v = depth * 3 + t * 2; // fly forward
+  const k = 0.5 + 0.5 * Math.sin(u * Math.PI * 16) * Math.sin(v * Math.PI);
+  const [r, g, b] = plasmaColor(v * 0.03 + k * 0.2, t * 0.03);
+  // Only the far-away center fades out; the walls stay full brightness.
+  const shade = Math.min(1, 4 / depth) * (0.65 + 0.35 * k);
+  return [Math.round(r * shade), Math.round(g * shade), Math.round(b * shade)];
+}
+
+// ── Metaballs ─────────────────────────────────────────────────────────────
+
+export type Ball = { x: number; y: number; r: number; color: RGB };
+
+const BALL_COLORS: readonly RGB[] = [
+  [255, 47, 208], [0, 229, 255], [255, 212, 0], [255, 106, 0], [77, 255, 77],
+];
+
+/**
+ * Ball positions at time `t` in a field `w` × `h` (long side = 1), each on its
+ * own Lissajous path.
+ */
+export function metaballs(t: number, w: number, h: number): Ball[] {
+  return BALL_COLORS.map((color, i) => ({
+    x: w * (0.5 + 0.38 * Math.sin(t * (0.31 + i * 0.07) + i * 1.7)),
+    y: h * (0.5 + 0.38 * Math.sin(t * (0.23 + i * 0.05) + i * 2.9)),
+    r: 0.11 + 0.03 * Math.sin(t * 0.5 + i),
+    color,
+  }));
+}
+
+/**
+ * Color at point (x, y): the nearest ball's color dominates (blending where
+ * they meet), blobs have a soft bright edge, and cores glow white.
+ */
+export function metaballColor(x: number, y: number, balls: readonly Ball[]): RGB {
+  let field = 0, r = 0, g = 0, b = 0, total = 0;
+  for (const ball of balls) {
+    const dx = x - ball.x, dy = y - ball.y;
+    const w = (ball.r * ball.r) / (dx * dx + dy * dy + 1e-6);
+    field += w;
+    const cw = w * w; // sharper color weighting avoids a muddy average
+    total += cw;
+    r += cw * ball.color[0];
+    g += cw * ball.color[1];
+    b += cw * ball.color[2];
+  }
+  r /= total; g /= total; b /= total;
+  const edge = Math.min(1, Math.max(0, (field - 0.6) / 0.4));
+  const intensity = 0.35 + 0.65 * edge * edge * (3 - 2 * edge);
+  const white = Math.min(0.6, Math.max(0, (field - 1) / 3));
+  const mix = (c: number) => Math.round((c * (1 - white) + 255 * white) * intensity);
+  return [mix(r), mix(g), mix(b)];
+}
+
+// ── Interference rings ────────────────────────────────────────────────────
+
+const RINGS_PER_UNIT = 24;
+
+/** Two drifting ring sources at time `t` in a field `w` × `h`. */
+export function ringSources(t: number, w: number, h: number): [number, number][] {
+  return [
+    [w * (0.5 + 0.3 * Math.sin(t * 0.21)), h * (0.5 + 0.3 * Math.cos(t * 0.17))],
+    [w * (0.5 + 0.3 * Math.cos(t * 0.13 + 1)), h * (0.5 + 0.3 * Math.sin(t * 0.19 + 2))],
+  ];
+}
+
+/**
+ * Overlapping ring sets: where the rings agree you get one color, where they
+ * disagree its complement — the classic moiré look. Edges are softened.
+ */
+export function ringsColor(x: number, y: number, sources: readonly [number, number][], t: number): RGB {
+  let s = 1;
+  sources.forEach(([sx, sy], i) => {
+    const d = Math.sqrt((x - sx) ** 2 + (y - sy) ** 2);
+    s *= Math.sin(Math.PI * (d * RINGS_PER_UNIT - t * (2 + i * 0.5)));
+  });
+  const m = 0.5 + 0.5 * Math.max(-1, Math.min(1, s * 3));
+  const hue = t * 0.03;
+  const a = plasmaColor(0, hue);
+  const b = plasmaColor(0.45, hue);
+  return [
+    Math.round(a[0] * m + b[0] * (1 - m)),
+    Math.round(a[1] * m + b[1] * (1 - m)),
+    Math.round(a[2] * m + b[2] * (1 - m)),
+  ];
+}

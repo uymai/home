@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FIRE_PALETTE, createFire, plasmaColor, plasmaValue, stepFire } from './effects';
+import { EFFECTS, type Effect } from './renderers';
 
 type WakeLockSentinelLike = {
   addEventListener?: (type: 'release', listener: () => void) => void;
@@ -16,40 +16,25 @@ type NavigatorWithWakeLock = Navigator & {
   };
 };
 
-const PATTERNS = ['Plasma', 'Aurora', 'Lava', 'Ocean', 'Embers', 'Doom Fire', 'Retro Plasma'] as const;
 const SPEEDS = [0.5, 1, 2, 3] as const;
 const SPEED_LABELS = ['½×', '1×', '2×', '3×'] as const;
 type Speed = typeof SPEEDS[number];
 
-type PatternProps = { active: boolean; speed: Speed };
-
-type CanvasRenderer = {
-  /** Grid size for a viewport of the given CSS pixel size. */
-  size: (w: number, h: number) => { cols: number; rows: number };
-  /** Called whenever the grid is (re)created. */
-  init: (cols: number, rows: number) => void;
-  /** Advance by `dt` seconds (already scaled by speed) and paint into `px`. */
-  draw: (px: Uint8ClampedArray, cols: number, rows: number, dt: number) => void;
-};
-
 /**
  * Low-resolution canvas stretched to fill the screen, animated with
- * requestAnimationFrame only while its pattern is the active one.
+ * requestAnimationFrame. Remount (via `key`) to switch effects.
  */
-function CanvasEffect({
-  active, speed, makeRenderer, pixelated,
-}: PatternProps & { makeRenderer: () => CanvasRenderer; pixelated: boolean }) {
+function CanvasEffect({ effect, speed }: { effect: Effect; speed: Speed }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const speedRef = useRef(speed);
   useEffect(() => { speedRef.current = speed; }, [speed]);
 
   useEffect(() => {
-    if (!active) return;
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (!canvas || !ctx) return;
 
-    const renderer = makeRenderer();
+    const renderer = effect.create();
     let image: ImageData | null = null;
 
     const resize = () => {
@@ -79,260 +64,16 @@ function CanvasEffect({
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
     };
-  }, [active, makeRenderer]);
+  }, [effect]);
 
   return (
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full"
-      style={{ background: '#000', imageRendering: pixelated ? 'pixelated' : 'auto' }}
+      style={{ background: '#000', imageRendering: effect.pixelated ? 'pixelated' : 'auto' }}
     />
   );
 }
-
-const FIRE_ROWS = 100;
-const FIRE_STEPS_PER_SEC = 30;
-
-function makeFireRenderer(): CanvasRenderer {
-  let fire: Uint8Array = new Uint8Array(0);
-  let acc = 0;
-  return {
-    size: (w, h) => ({
-      cols: Math.max(40, Math.min(320, Math.round((FIRE_ROWS * w) / h))),
-      rows: FIRE_ROWS,
-    }),
-    init: (cols, rows) => { fire = createFire(cols, rows); acc = 0; },
-    draw: (px, cols, rows, dt) => {
-      acc += dt * FIRE_STEPS_PER_SEC;
-      let steps = Math.min(4, Math.floor(acc));
-      acc -= Math.floor(acc);
-      while (steps-- > 0) stepFire(fire, cols, rows);
-      for (let i = 0; i < fire.length; i++) {
-        const [r, g, b] = FIRE_PALETTE[fire[i]];
-        const o = i * 4;
-        px[o] = r; px[o + 1] = g; px[o + 2] = b; px[o + 3] = 255;
-      }
-    },
-  };
-}
-
-const PLASMA_LONG_SIDE = 160;
-const PLASMA_UNITS = 8;
-
-function makePlasmaRenderer(): CanvasRenderer {
-  let t = Math.random() * 100;
-  return {
-    size: (w, h) => {
-      const scale = PLASMA_LONG_SIDE / Math.max(w, h);
-      return { cols: Math.max(1, Math.round(w * scale)), rows: Math.max(1, Math.round(h * scale)) };
-    },
-    init: () => {},
-    draw: (px, cols, rows, dt) => {
-      t += dt * 0.6;
-      const unit = PLASMA_UNITS / Math.max(cols, rows);
-      const shift = t * 0.08;
-      let o = 0;
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          const [r, g, b] = plasmaColor(plasmaValue(x * unit, y * unit, t), shift);
-          px[o] = r; px[o + 1] = g; px[o + 2] = b; px[o + 3] = 255;
-          o += 4;
-        }
-      }
-    },
-  };
-}
-
-function DoomFire(props: PatternProps) {
-  return <CanvasEffect {...props} makeRenderer={makeFireRenderer} pixelated />;
-}
-
-function RetroPlasma(props: PatternProps) {
-  return <CanvasEffect {...props} makeRenderer={makePlasmaRenderer} pixelated={false} />;
-}
-
-function Plasma() {
-  return (
-    <div
-      className="absolute inset-0 overflow-hidden"
-      style={{ background: '#000', animation: 'nl-hue calc(25s / var(--nl-speed, 1)) linear infinite' }}
-    >
-      <div
-        className="nl-blob"
-        style={{
-          width: '90vmax', height: '90vmax',
-          background: 'radial-gradient(circle, #c800ff 0%, transparent 65%)',
-          opacity: 0.22, top: '-30%', left: '-30%',
-          animation: 'nl-b1 calc(20s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-      <div
-        className="nl-blob"
-        style={{
-          width: '80vmax', height: '80vmax',
-          background: 'radial-gradient(circle, #00e5ff 0%, transparent 65%)',
-          opacity: 0.22, bottom: '-25%', right: '-20%',
-          animation: 'nl-b2 calc(27s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-      <div
-        className="nl-blob"
-        style={{
-          width: '70vmax', height: '70vmax',
-          background: 'radial-gradient(circle, #ffd700 0%, transparent 65%)',
-          opacity: 0.18, top: '20%', left: '20%',
-          animation: 'nl-b3 calc(34s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-    </div>
-  );
-}
-
-function Aurora() {
-  return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: '#030a12' }}>
-      <div
-        style={{
-          position: 'absolute', left: '-10%', right: '-10%', top: '22%', height: 200,
-          background: 'linear-gradient(180deg, transparent 0%, #00c87a 40%, #00a896 60%, transparent 100%)',
-          filter: 'blur(40px)', animation: 'nl-a1 calc(15s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute', left: '-10%', right: '-10%', top: '38%', height: 180,
-          background: 'linear-gradient(180deg, transparent 0%, #0077b6 40%, #7b2ff7 60%, transparent 100%)',
-          filter: 'blur(50px)', animation: 'nl-a2 calc(19s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute', left: '-10%', right: '-10%', top: '10%', height: 160,
-          background: 'linear-gradient(180deg, transparent 0%, #00f5d4 50%, transparent 100%)',
-          filter: 'blur(65px)', animation: 'nl-a3 calc(23s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-    </div>
-  );
-}
-
-function Lava() {
-  return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: '#0a0000' }}>
-      <div
-        className="nl-blob"
-        style={{
-          width: '80vmax', height: '80vmax',
-          background: 'radial-gradient(circle, #ff3300 0%, transparent 65%)',
-          opacity: 0.28, top: '-20%', left: '-20%',
-          animation: 'nl-b1 calc(22s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-      <div
-        className="nl-blob"
-        style={{
-          width: '70vmax', height: '70vmax',
-          background: 'radial-gradient(circle, #ff8800 0%, transparent 65%)',
-          opacity: 0.25, bottom: '-20%', right: '-15%',
-          animation: 'nl-b2 calc(29s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-      <div
-        className="nl-blob"
-        style={{
-          width: '60vmax', height: '60vmax',
-          background: 'radial-gradient(circle, #cc0000 0%, transparent 65%)',
-          opacity: 0.22, top: '30%', left: '25%',
-          animation: 'nl-b3 calc(36s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-      <div
-        className="nl-blob"
-        style={{
-          width: '50vmax', height: '50vmax',
-          background: 'radial-gradient(circle, #ffcc00 0%, transparent 65%)',
-          opacity: 0.18, bottom: '10%', left: '-10%',
-          animation: 'nl-b4 calc(30s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-    </div>
-  );
-}
-
-function Ocean() {
-  return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: '#000818' }}>
-      <div
-        style={{
-          position: 'absolute', inset: '-20%',
-          background: 'linear-gradient(135deg, #001a4d, #003366, #004080, #001a4d, #000d26)',
-          backgroundSize: '400% 400%',
-          animation: 'nl-oc calc(18s / var(--nl-speed, 1)) ease infinite',
-          opacity: 0.9,
-        }}
-      />
-      <div
-        className="nl-blob"
-        style={{
-          width: '100vmax', height: '60vmax',
-          background: 'radial-gradient(circle, #0066cc 0%, transparent 60%)',
-          opacity: 0.2, bottom: '-30%', left: '-20%',
-          animation: 'nl-b1 calc(24s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-      <div
-        className="nl-blob"
-        style={{
-          width: '80vmax', height: '50vmax',
-          background: 'radial-gradient(circle, #00cccc 0%, transparent 65%)',
-          opacity: 0.15, top: '10%', right: '-20%',
-          animation: 'nl-b3 calc(30s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-    </div>
-  );
-}
-
-function Embers() {
-  return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: '#000' }}>
-      <div
-        style={{
-          position: 'absolute', bottom: '-20%', left: '-20%', right: '-20%', height: '100vmax',
-          background: 'radial-gradient(ellipse at 50% 90%, #ff4400 0%, #cc1100 20%, transparent 60%)',
-          filter: 'blur(40px)',
-          animation: 'nl-eg calc(7s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-      <div
-        className="nl-blob"
-        style={{
-          width: '60vmax', height: '60vmax',
-          background: 'radial-gradient(circle, #ff8800 0%, transparent 60%)',
-          opacity: 0.2, bottom: '-10%', left: '30%',
-          animation: 'nl-er calc(9s / var(--nl-speed, 1)) ease-in-out infinite',
-        }}
-      />
-      <div
-        className="nl-blob"
-        style={{
-          width: '50vmax', height: '50vmax',
-          background: 'radial-gradient(circle, #cc0000 0%, transparent 65%)',
-          opacity: 0.18, bottom: '-10%', right: '10%',
-          animationName: 'nl-er',
-          animationDuration: 'calc(12s / var(--nl-speed, 1))',
-          animationTimingFunction: 'ease-in-out',
-          animationIterationCount: 'infinite',
-          animationDelay: '2s',
-        }}
-      />
-    </div>
-  );
-}
-
-const PatternComponents: React.ComponentType<PatternProps>[] = [
-  Plasma, Aurora, Lava, Ocean, Embers, DoomFire, RetroPlasma,
-];
 
 export default function NightlightClient() {
   const [patternIdx, setPatternIdx] = useState(0);
@@ -432,7 +173,7 @@ export default function NightlightClient() {
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-      setPatternIdx(i => (i + (dx < 0 ? 1 : -1) + PATTERNS.length) % PATTERNS.length);
+      setPatternIdx(i => (i + (dx < 0 ? 1 : -1) + EFFECTS.length) % EFFECTS.length);
       setMenuVisible(false);
     } else if (dist < 15) {
       setMenuVisible(v => !v);
@@ -441,70 +182,14 @@ export default function NightlightClient() {
 
   return (
     <>
-      <style>{`
-        .nl-blob { position: absolute; border-radius: 50%; filter: blur(65px); }
-        @keyframes nl-hue { from { filter: hue-rotate(0deg); } to { filter: hue-rotate(360deg); } }
-        @keyframes nl-b1 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          33% { transform: translate(20vw,15vh) scale(1.1); }
-          66% { transform: translate(-10vw,25vh) scale(0.9); }
-        }
-        @keyframes nl-b2 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          33% { transform: translate(-25vw,-20vh) scale(0.8); }
-          66% { transform: translate(15vw,-10vh) scale(1.2); }
-        }
-        @keyframes nl-b3 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          50% { transform: translate(-20vw,20vh) scale(1.15); }
-        }
-        @keyframes nl-b4 {
-          0%,100% { transform: translate(0,0) scale(1); }
-          40% { transform: translate(15vw,-15vh) scale(0.85); }
-          80% { transform: translate(-10vw,10vh) scale(1.1); }
-        }
-        @keyframes nl-a1 {
-          0%,100% { transform: translateY(0); opacity: 0.5; }
-          50% { transform: translateY(-12vh); opacity: 0.7; }
-        }
-        @keyframes nl-a2 {
-          0%,100% { transform: translateY(0); opacity: 0.35; }
-          50% { transform: translateY(8vh); opacity: 0.55; }
-        }
-        @keyframes nl-a3 {
-          0%,100% { transform: translateY(0); opacity: 0.25; }
-          50% { transform: translateY(-5vh); opacity: 0.45; }
-        }
-        @keyframes nl-oc {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @keyframes nl-eg {
-          0%,100% { opacity: 0.35; }
-          50% { opacity: 0.52; }
-        }
-        @keyframes nl-er {
-          0%,100% { transform: translateY(0) scale(1); opacity: 0.2; }
-          50% { transform: translateY(-8vh) scale(1.05); opacity: 0.3; }
-        }
-      `}</style>
 
       <div
         className="absolute inset-0 touch-none select-none"
-        style={{ '--nl-speed': speed } as React.CSSProperties}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onContextMenu={e => e.preventDefault()}
       >
-        {PatternComponents.map((Pattern, i) => (
-          <div
-            key={i}
-            style={{ display: patternIdx === i ? 'block' : 'none', position: 'absolute', inset: 0 }}
-          >
-            <Pattern active={patternIdx === i} speed={speed} />
-          </div>
-        ))}
+        <CanvasEffect key={patternIdx} effect={EFFECTS[patternIdx]} speed={speed} />
 
         {/* Slide-up menu */}
         <div
@@ -519,10 +204,10 @@ export default function NightlightClient() {
             {/* Pattern name + dot picker */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.75)' }}>
-                {PATTERNS[patternIdx]}
+                {EFFECTS[patternIdx].name}
               </span>
               <div className="flex gap-2.5 items-center">
-                {PATTERNS.map((name, i) => (
+                {EFFECTS.map(({ name }, i) => (
                   <button
                     key={i}
                     onClick={() => setPatternIdx(i)}
