@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { FIRE_PALETTE, createFire, plasmaColor, plasmaValue, stepFire } from './effects';
 
 type WakeLockSentinelLike = {
   addEventListener?: (type: 'release', listener: () => void) => void;
@@ -15,10 +16,140 @@ type NavigatorWithWakeLock = Navigator & {
   };
 };
 
-const PATTERNS = ['Plasma', 'Aurora', 'Lava', 'Ocean', 'Embers'] as const;
+const PATTERNS = ['Plasma', 'Aurora', 'Lava', 'Ocean', 'Embers', 'Doom Fire', 'Retro Plasma'] as const;
 const SPEEDS = [0.5, 1, 2, 3] as const;
 const SPEED_LABELS = ['½×', '1×', '2×', '3×'] as const;
 type Speed = typeof SPEEDS[number];
+
+type PatternProps = { active: boolean; speed: Speed };
+
+type CanvasRenderer = {
+  /** Grid size for a viewport of the given CSS pixel size. */
+  size: (w: number, h: number) => { cols: number; rows: number };
+  /** Called whenever the grid is (re)created. */
+  init: (cols: number, rows: number) => void;
+  /** Advance by `dt` seconds (already scaled by speed) and paint into `px`. */
+  draw: (px: Uint8ClampedArray, cols: number, rows: number, dt: number) => void;
+};
+
+/**
+ * Low-resolution canvas stretched to fill the screen, animated with
+ * requestAnimationFrame only while its pattern is the active one.
+ */
+function CanvasEffect({
+  active, speed, makeRenderer, pixelated,
+}: PatternProps & { makeRenderer: () => CanvasRenderer; pixelated: boolean }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const speedRef = useRef(speed);
+  useEffect(() => { speedRef.current = speed; }, [speed]);
+
+  useEffect(() => {
+    if (!active) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+
+    const renderer = makeRenderer();
+    let image: ImageData | null = null;
+
+    const resize = () => {
+      const { cols, rows } = renderer.size(window.innerWidth, window.innerHeight);
+      canvas.width = cols;
+      canvas.height = rows;
+      image = ctx.createImageData(cols, rows);
+      renderer.init(cols, rows);
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    let raf = 0;
+    let last = performance.now();
+    const frame = (now: number) => {
+      const dt = Math.min(0.1, (now - last) / 1000) * speedRef.current;
+      last = now;
+      if (image) {
+        renderer.draw(image.data, image.width, image.height, dt);
+        ctx.putImageData(image, 0, 0);
+      }
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', resize);
+    };
+  }, [active, makeRenderer]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full"
+      style={{ background: '#000', imageRendering: pixelated ? 'pixelated' : 'auto' }}
+    />
+  );
+}
+
+const FIRE_ROWS = 100;
+const FIRE_STEPS_PER_SEC = 30;
+
+function makeFireRenderer(): CanvasRenderer {
+  let fire: Uint8Array = new Uint8Array(0);
+  let acc = 0;
+  return {
+    size: (w, h) => ({
+      cols: Math.max(40, Math.min(320, Math.round((FIRE_ROWS * w) / h))),
+      rows: FIRE_ROWS,
+    }),
+    init: (cols, rows) => { fire = createFire(cols, rows); acc = 0; },
+    draw: (px, cols, rows, dt) => {
+      acc += dt * FIRE_STEPS_PER_SEC;
+      let steps = Math.min(4, Math.floor(acc));
+      acc -= Math.floor(acc);
+      while (steps-- > 0) stepFire(fire, cols, rows);
+      for (let i = 0; i < fire.length; i++) {
+        const [r, g, b] = FIRE_PALETTE[fire[i]];
+        const o = i * 4;
+        px[o] = r; px[o + 1] = g; px[o + 2] = b; px[o + 3] = 255;
+      }
+    },
+  };
+}
+
+const PLASMA_LONG_SIDE = 160;
+const PLASMA_UNITS = 8;
+
+function makePlasmaRenderer(): CanvasRenderer {
+  let t = Math.random() * 100;
+  return {
+    size: (w, h) => {
+      const scale = PLASMA_LONG_SIDE / Math.max(w, h);
+      return { cols: Math.max(1, Math.round(w * scale)), rows: Math.max(1, Math.round(h * scale)) };
+    },
+    init: () => {},
+    draw: (px, cols, rows, dt) => {
+      t += dt * 0.6;
+      const unit = PLASMA_UNITS / Math.max(cols, rows);
+      const shift = t * 0.08;
+      let o = 0;
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const [r, g, b] = plasmaColor(plasmaValue(x * unit, y * unit, t), shift);
+          px[o] = r; px[o + 1] = g; px[o + 2] = b; px[o + 3] = 255;
+          o += 4;
+        }
+      }
+    },
+  };
+}
+
+function DoomFire(props: PatternProps) {
+  return <CanvasEffect {...props} makeRenderer={makeFireRenderer} pixelated />;
+}
+
+function RetroPlasma(props: PatternProps) {
+  return <CanvasEffect {...props} makeRenderer={makePlasmaRenderer} pixelated={false} />;
+}
 
 function Plasma() {
   return (
@@ -199,7 +330,9 @@ function Embers() {
   );
 }
 
-const PatternComponents = [Plasma, Aurora, Lava, Ocean, Embers];
+const PatternComponents: React.ComponentType<PatternProps>[] = [
+  Plasma, Aurora, Lava, Ocean, Embers, DoomFire, RetroPlasma,
+];
 
 export default function NightlightClient() {
   const [patternIdx, setPatternIdx] = useState(0);
@@ -369,7 +502,7 @@ export default function NightlightClient() {
             key={i}
             style={{ display: patternIdx === i ? 'block' : 'none', position: 'absolute', inset: 0 }}
           >
-            <Pattern />
+            <Pattern active={patternIdx === i} speed={speed} />
           </div>
         ))}
 
