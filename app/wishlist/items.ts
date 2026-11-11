@@ -37,6 +37,11 @@ export const WISHLIST: WishlistItem[] = [
     priority: 'medium',
   },
   {
+    name: 'Magical Athlete: Second Wind',
+    url: 'https://store.401games.ca/products/magical-athlete-second-wind',
+    priority: 'medium',
+  },
+  {
     name: 'CPAP Hose Holder',
     url: 'https://a.co/d/dXgojaY',
     priority: 'low',
