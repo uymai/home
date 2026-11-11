@@ -39,6 +39,14 @@ export const WISHLIST: WishlistItem[] = [
   {
     name: 'Magical Athlete: Second Wind',
     url: 'https://store.401games.ca/products/magical-athlete-second-wind',
+    price: '$37.95',
+    priority: 'medium',
+    notes: 'Currently a pre-order at 401 Games.',
+  },
+  {
+    name: 'Hot Streak',
+    url: 'https://store.401games.ca/products/hot-streak',
+    price: '$49.95',
     priority: 'medium',
   },
   {
