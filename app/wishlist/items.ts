@@ -36,19 +36,21 @@ export const WISHLIST: WishlistItem[] = [
     url: 'https://store.401games.ca/products/this-game-is-killer',
     price: '~$18',
     priority: 'medium',
+    notes: 'Funny horror-survival party game about an alien loose on a cargo ship — rounds take about ten minutes, and death comes quickly.',
   },
   {
     name: 'Magical Athlete: Second Wind',
     url: 'https://store.401games.ca/products/magical-athlete-second-wind',
     price: '$37.95',
     priority: 'medium',
-    notes: 'Currently a pre-order at 401 Games.',
+    notes: 'Zany dice-racing party game (2–6 players, ~30 min) where each bizarre athlete breaks the rules in its own way. Pre-order at 401 Games, projected release Q2 2027.',
   },
   {
     name: 'Hot Streak',
     url: 'https://store.401games.ca/products/hot-streak',
     price: '$49.95',
     priority: 'medium',
+    notes: 'Mascot-racing betting game: draft bets, sneak cards into the race deck, then scream at the racers as they swerve, turn around, and get knocked over.',
   },
   {
     name: 'CPAP Hose Holder',
