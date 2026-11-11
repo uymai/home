@@ -10,6 +10,7 @@ export const WISHLIST: WishlistItem[] = [
   {
     name: 'Ticket to Ride Legacy: Legends of the West',
     url: 'https://store.401games.ca/products/ticket-to-ride-legacy-legends-of-the-west',
+    price: '$135.95',
     priority: 'medium',
     notes: 'Legacy version of Ticket to Ride — has a literal end to the campaign. Super expensive but on the list.',
   },
