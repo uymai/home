@@ -52,9 +52,4 @@ export const WISHLIST: WishlistItem[] = [
     priority: 'medium',
     notes: 'Mascot-racing betting game: draft bets, sneak cards into the race deck, then scream at the racers as they swerve, turn around, and get knocked over.',
   },
-  {
-    name: 'CPAP Hose Holder',
-    url: 'https://a.co/d/dXgojaY',
-    priority: 'low',
-  },
 ];
