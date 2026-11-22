@@ -57,6 +57,7 @@ export const WISHLIST: WishlistItem[] = [
     url: 'https://www.muaythainationshop.com/products/7-11-lucky-muay-thai-shorts?variant=65153740275734',
     price: '$65.00',
     priority: 'low',
+    notes: 'Size Large.',
   },
   {
     name: 'Old School Muay Thai T-Shirt',
