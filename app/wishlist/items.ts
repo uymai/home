@@ -57,4 +57,24 @@ export const WISHLIST: WishlistItem[] = [
     url: 'https://a.co/d/dXgojaY',
     priority: 'low',
   },
+  {
+    name: '7-11 Lucky Muay Thai Shorts',
+    url: 'https://www.muaythainationshop.com/products/7-11-lucky-muay-thai-shorts?variant=65153740275734',
+    price: '$65.00',
+    priority: 'low',
+  },
+  {
+    name: 'Old School Muay Thai T-Shirt',
+    url: 'https://www.muaythainationshop.com/products/muay-thai-t-shirt?variant=43858613108758',
+    price: '$30',
+    priority: 'low',
+    notes: 'Black, size Large.',
+  },
+  {
+    name: 'Anker MagGo 2 Pro Power Bank',
+    url: 'https://a.co/d/0hPigjiJ',
+    price: '$120',
+    priority: 'low',
+    notes: 'Qi2.2 25W 10000mAh magnetic MagSafe-compatible battery pack with active cooling fan, smart display and stand, 45W max recharge.',
+  },
 ];
