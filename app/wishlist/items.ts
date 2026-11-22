@@ -53,11 +53,6 @@ export const WISHLIST: WishlistItem[] = [
     notes: 'Mascot-racing betting game: draft bets, sneak cards into the race deck, then scream at the racers as they swerve, turn around, and get knocked over.',
   },
   {
-    name: 'CPAP Hose Holder',
-    url: 'https://a.co/d/dXgojaY',
-    priority: 'low',
-  },
-  {
     name: '7-11 Lucky Muay Thai Shorts',
     url: 'https://www.muaythainationshop.com/products/7-11-lucky-muay-thai-shorts?variant=65153740275734',
     price: '$65.00',
