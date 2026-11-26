@@ -3,6 +3,8 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { WISHLIST, type WishlistItem } from './items';
+import { wishlistToMarkdown } from './markdown';
+import CopyMarkdownButton from './CopyMarkdownButton';
 
 export const metadata: Metadata = {
   title: "Wishlist",
@@ -25,6 +27,12 @@ export default function Wishlist() {
   return (
     <div className="min-h-screen p-8 sm:p-12 max-w-6xl mx-auto">
       <Header title="Wishlist" subtitle="Things I'd love to have" />
+
+      {WISHLIST.length > 0 && (
+        <div className="mb-8 flex justify-end">
+          <CopyMarkdownButton markdown={wishlistToMarkdown(WISHLIST)} />
+        </div>
+      )}
 
       {PRIORITY_ORDER.map((priority) => {
         const items = grouped[priority];
