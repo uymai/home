@@ -60,6 +60,13 @@ export default function FinaglingsPage() {
       icon: "/window.svg",
       color: "bg-lime-100 dark:bg-lime-950",
     },
+    {
+      title: "Cube Timer",
+      description: "Rubik's cube timer with best, average, Ao5/Ao12, a progress chart, and export/import — times shown to the hundredth, no flickering thousandths.",
+      url: "/finaglings/cube-timer",
+      icon: "/window.svg",
+      color: "bg-fuchsia-100 dark:bg-fuchsia-950",
+    },
   ];
 
   const mathProjects: Project[] = [

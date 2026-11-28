@@ -9,6 +9,7 @@ const PATHS = [
   "/finaglings",
   "/finaglings/nightlight",
   "/finaglings/guitar-lizard",
+  "/finaglings/cube-timer",
   "/finaglings/toilet-paper-math",
   "/finaglings/binary",
   "/finaglings/big-o",
